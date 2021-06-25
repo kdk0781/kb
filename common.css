@@ -11,9 +11,6 @@ body {font-family: 'Nanum Gothic', sans-serif; background: #fff;}
 .table .h2:first-child {border-top: none 0;}
 .point {color: #DC143C;}
 .sub_point {color: blue;}
-.un_line {text-decoration: underline;}
-.gray {background: #A9A9A9;}
-.green {background: #90EE90;}
 .fc {padding-left: 20px; position: relative; margin-top: 2px;}
 .fc:before {content: '*'; display: block; position: absolute; left: 0; top: 1px; font-size: 12px;}
 .basic_table {text-align: center; border-collapse: collapse; table-layout:fixed; width: 100%;}
@@ -31,6 +28,21 @@ body {font-family: 'Nanum Gothic', sans-serif; background: #fff;}
 .mo {display: none;}
 .left {text-align: left;}
 
+.bold {font-weight: bold;}
+
+.un_line {text-decoration: underline;}
+.gray {background: #A9A9A9;}
+.green {background: #90EE90;}
+.yellow {background: #F2F5A9;}
+
+.w25 {width: 25%; display: inline-block; text-align: center; -webkit-box-sizing: border-box; -moz-box-sizing: border-box; box-sizing: border-box;}
+.w50 {width: 50%; display: inline-block; text-align: center; -webkit-box-sizing: border-box; -moz-box-sizing: border-box; box-sizing: border-box;}
+
+.font_0 {font-size: 0;}
+.font_15 {font-size: 15px;}
+
+.PaA_5 {padding: 5px;}
+.PaA_10 {padding: 10px;}
 
 
 .last {text-align: right; padding: 0 20px 20px 0; font-size: 20px;}
