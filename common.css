@@ -54,6 +54,7 @@ body {font-family: 'Nanum Gothic', sans-serif; background: #fff;}
 .kb_list li:first-child {margin-top: 0;}
 .kb_list img {display: inline-block;}
 
+.div_second {margin-top: 1em;}
 
 
 
@@ -66,26 +67,29 @@ body {font-family: 'Nanum Gothic', sans-serif; background: #fff;}
 		.pc {display: none;}
 		.mo {display: block;}
 
-		.cell > p {font-size: 1em;}
 	}
 
 	@media all and (min-width:425px) {
 		.pc {display: none;}
 		.mo {display: block;}
+
 	}
 
 	@media all and (min-width:320px) {
-		* {font-size: 1.5em;}
+		* {font-size: 1.3em;}
 		.kb_list li {font-size: 2em; margin-right: 1.5em;}
 		.pc {display: none;}
 		.mo {display: block;}
+		
+		.point {font-size: 1em;}
 
-		.table h1 {font-size: .7em;}
+		.table h1 {font-size: 1.1em;}
+		.table h2 {font-size: 1.5em;}
 
 		.font_15 {font-size: 60px;}
 		.font_15 p {font-size: 1.2em;}
 
-		.cell > p {font-size: 1.3em;}
+
 	}
 
 	@media print {
