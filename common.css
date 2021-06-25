@@ -58,22 +58,6 @@ body {font-family: 'Nanum Gothic', sans-serif; background: #fff;}
 
 
 
-	@media all and (min-width:1024px) {
-		.pc {display: block;}
-		.mo {display: none;}
-	}
-
-	@media all and (min-width:768px) {
-		.pc {display: none;}
-		.mo {display: block;}
-
-	}
-
-	@media all and (min-width:425px) {
-		.pc {display: none;}
-		.mo {display: block;}
-
-	}
 
 	@media all and (min-width:320px) {
 		* {font-size: 1.3em;}
@@ -88,8 +72,36 @@ body {font-family: 'Nanum Gothic', sans-serif; background: #fff;}
 
 		.font_15 {font-size: 60px;}
 		.font_15 p {font-size: 1.2em;}
+	}
 
+	@media all and (min-width:425px) {
+		.pc {display: none;}
+		.mo {display: block;}
 
+	}
+
+	@media all and (min-width:768px) {
+		.pc {display: none;}
+		.mo {display: block;}
+	}
+
+	@media all and (min-width:1024px) {
+		.pc {display: none;}
+		.mo {display: block;}
+	}
+
+	@media all and (min-width:1440px) {
+		.pc {display: block;}
+		.mo {display: none;}
+		
+		.table.pc h1 {font-size: 1.2em;}
+		.table.pc h2 {font-size: 1.2em; padding: 10px 0;}
+		.table.pc thead th {font-size: .5em;}
+		.table.pc tbody td {font-size: .7em;}
+
+		.table_sub {font-size: .8em; width: 100%;}
+		.table_sub sup {font-size: .5em; color: #DC143C;}
+		.table_sub + .point {font-size: .5em; text-align: left; margin: 10px 0;}
 	}
 
 	@media print {
