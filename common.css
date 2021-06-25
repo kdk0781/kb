@@ -1,8 +1,8 @@
 @charset "utf-8";
 @import url("https://cdn.rawgit.com/openhiun/hangul/14c0f6faa2941116bb53001d6a7dcd5e82300c3f/nanumbarungothic.css");
 
-*{margin: 0; padding: 0; font-size: 1.5em; color: #000;}
-body {font-family: 'Noto Sans KR', sans-serif;}
+*{margin: 0; padding: 0; font-size: 1em; color: #000;}
+body {font-family: 'Nanum Gothic', sans-serif; background: #fff;}
 .table {text-align: center; border: 1px solid #000;}
 .table h1 {border-bottom: 1px solid #000; padding: 10px 0; font-size: 1.5em;}
 .h2 {font-size: 1.5em; font-weight: 500; border-top: 1px solid #000; padding: 5px;}
@@ -11,18 +11,38 @@ body {font-family: 'Noto Sans KR', sans-serif;}
 .table .h2:first-child {border-top: none 0;}
 .point {color: #DC143C;}
 .sub_point {color: blue;}
+.fc {padding-left: 20px; position: relative; margin-top: 2px;}
+.fc:before {content: '*'; display: block; position: absolute; left: 0; top: 1px; font-size: 12px;}
+.basic_table {text-align: center; border-collapse: collapse; table-layout:fixed; width: 100%;}
+.basic_table td {border: 1px solid #000; -webkit-box-sizing: border-box; -moz-box-sizing: border-box; box-sizing: border-box; padding: 5px 10px;}
+.basic_table td.last {text-align: left;}
+
+.mo_table {border: 1px solid #000; margin: .2em;}
+.mo_table_cell {border-top: 1px solid #000; padding: .5em; font-size: 1.5em; width: 100%; webkit-box-sizing: border-box;
+-moz-box-sizing: border-box; box-sizing: border-box;}
+.mo_table_cell:first-child {border-top: none 0;}
+.mo_table_cell .mo_table_cell_txt {display: inline-block; width: 32.333333%;}
+.mo_table_cell .mo_table_cell_txt:first-child {margin-left: 0;}
+
+.pc {display: block;}
+.mo {display: none;}
+.left {text-align: left;}
+
+.bold {font-weight: bold;}
+
 .un_line {text-decoration: underline;}
 .gray {background: #A9A9A9;}
 .green {background: #90EE90;}
-.fc {padding-left: 20px; position: relative; margin-top: 2px;}
-.fc:before {content: ''; display: block; position: absolute; left: 0; top: 1px; font-size: 12px;}
-.fc1:before {content: "1)";}
-.fc2:before {content: "2)";}
-.fc3:before {content: "3)";}
-.fc4:before {content: "*";}
-.basic_table {border: 1px solid #000; text-align: center; border-collapse: collapse; table-layout:fixed; width: 100%;}
-.basic_table td {border: 1px solid #000; -webkit-box-sizing: border-box; -moz-box-sizing: border-box; box-sizing: border-box; padding: 5px 10px;}
-.basic_table td.last {text-align: left;}
+.yellow {background: #F2F5A9;}
+
+.w25 {width: 25%; display: inline-block; text-align: center; -webkit-box-sizing: border-box; -moz-box-sizing: border-box; box-sizing: border-box;}
+.w50 {width: 50%; display: inline-block; text-align: center; -webkit-box-sizing: border-box; -moz-box-sizing: border-box; box-sizing: border-box;}
+
+.font_0 {font-size: 0;}
+.font_15 {font-size: 15px;}
+
+.PaA_5 {padding: 5px;}
+.PaA_10 {padding: 10px;}
 
 
 .last {text-align: right; padding: 0 20px 20px 0; font-size: 20px;}
@@ -32,15 +52,38 @@ body {font-family: 'Noto Sans KR', sans-serif;}
 .kb_list {padding: 2em; font-size: 1em;}
 .kb_list li {font-size: 1.2em; color: #000; margin-top: .5em;}
 .kb_list li:first-child {margin-top: 0;}
+.kb_list img {display: inline-block;}
+
 
 
 	@media all and (min-width:320px) {
+		* {font-size: 1.5em;}
 		.kb_list li {font-size: 3em; margin-right: 1.5em;}
-		
+		.pc {display: none;}
+		.mo {display: block;}
+
+		.table h1 {font-size: .7em;}
+
+		.font_15 {font-size: 60px;}
+		.font_15 p {font-size: 1.2em;}
+
+		.cell > p {font-size: 1.3em;}
+	}
+
+	@media all and (min-width:768px) {
+		.pc {display: none;}
+		.mo {display: block;}
+
+		.cell > p {font-size: 1em;}
+	}
+
+	@media all and (min-width:1024px) {
+		.pc {display: block;}
+		.mo {display: none;}
 	}
 
 	@media print {
-		body {padding: 0; background:red;}
+		body {padding: 0; background:#fff;}
 		title {display: none;}
 		.fc {margin-top: 1px;}
 		.h2:last-child {letter-spacing: -.5px;}
