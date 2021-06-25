@@ -4,4 +4,4 @@
 <p>https://kdk0781.github.io/kb/20210429.html - 정부 가계부채 관리방안 </p>
 <p>https://kdk0781.github.io/kb/20210511.html - 주택임대차 보호법 시행령 개정안 </p>
 <p>https://kdk0781.github.io/kb/20200617.html - 부동산대책 관련 정리요약 및 실행시기 </p>
-<p>https://kdk0781.github.io/kb/20200601.html - 서민 실수요자에 대한 주택담보대출 우대요건 및 우대혜택 개선 방안 </p>
+<p>https://kdk0781.github.io/kb/20210601.html - 서민 실수요자에 대한 주택담보대출 우대요건 및 우대혜택 개선 방안 </p>
