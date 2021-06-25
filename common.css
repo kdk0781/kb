@@ -72,8 +72,6 @@ body {font-family: 'Nanum Gothic', sans-serif; background: #fff;}
 	@media all and (min-width:425px) {
 		.pc {display: none;}
 		.mo {display: block;}
-
-		.cell > p {font-size: .9em !important;}
 	}
 
 	@media all and (min-width:320px) {
