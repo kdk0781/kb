@@ -21,7 +21,7 @@ body {font-family: 'Nanum Gothic', sans-serif; background: #fff;}
 .mo_table_cell {border-top: 1px solid #000; padding: .5em; font-size: 1.5em; width: 100%; webkit-box-sizing: border-box;
 -moz-box-sizing: border-box; box-sizing: border-box;}
 .mo_table_cell:first-child {border-top: none 0;}
-.mo_table_cell .mo_table_cell_txt {display: inline-block; width: 32.333333%;}
+.mo_table_cell .mo_table_cell_txt {display: inline-block; width: 31.333333%;}
 .mo_table_cell .mo_table_cell_txt:first-child {margin-left: 0;}
 
 .pc {display: block;}
