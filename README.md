@@ -6,4 +6,4 @@
 <p>https://kdk0781.github.io/kb/20200617.html - 부동산대책 관련 정리요약 및 실행시기 </p>
 <p>https://kdk0781.github.io/kb/20210601.html - 서민 실수요자에 대한 주택담보대출 우대요건 및 우대혜택 개선 방안 </p>
 <p>https://kdk0781.github.io/kb/guide.html - 전자등기 태블릿 가이드 </p>
-<p>https://kdk0781.github.io/kb/210809.html - 전자등기 고객안내문 </p>
+<p>https://kdk0781.github.io/kb/20210809.html - 전자등기 고객안내문 </p>
