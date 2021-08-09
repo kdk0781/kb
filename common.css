@@ -72,6 +72,8 @@ body {font-family: 'Nanum Gothic', sans-serif; background: #fff;}
 
 		.font_15 {font-size: 60px;}
 		.font_15 p {font-size: 1.2em;}
+		
+		.mo_table_cell .mo_table_cell_txt {width:30.3333333%; font-size:1em;}
 	}
 
 	@media all and (min-width:425px) {
