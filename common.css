@@ -56,7 +56,7 @@ body {font-family: 'Nanum Gothic', sans-serif; background: #fff;}
 
 .div_second {margin-top: 1em;}
 
-.pic {width:100%;}
+.pic, .pic img {width:100%;}
 
 
 
