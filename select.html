@@ -1,0 +1,536 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ko" xml:lang="ko">
+<head>
+	<meta name="author" content="" />
+	<meta name="keywords" content="" />
+	<meta name="description" content="" />
+	<meta http-equiv="content-type" content="text/html;charset=utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+	<title>new Document</title>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+</head>
+
+<style type="text/css">
+* {margin: 0; padding: 0;}
+.big_tab ul{overflow: hidden; width: 100%;}
+ li {list-style-type: none; }
+.big_tab ul li{width: 25%; box-sizing: border-box; float: left; border: 1px solid #ccc; text-align: center; line-height: 40px;}
+.big_tab ul li.activeClass{font-weight: bold; font-size: 20px;}
+.big_tab {display: none;}
+.sm_select {display: block;}
+.sm_select select {width:100%; padding: 3%; font-size: 2em;}
+.tab_contents {margin-top: 10px;}
+.list {padding: 5%;}
+.list li {font-size: 1.8em; padding-top: 1%; border-bottom: 1px solid #000;}
+.list li .left {float: left;}
+.list li .right {float: right;}
+.list li:after {content: ''; display: block; clear: both;}
+
+h3 {padding:5% 0 0 5%; font-size: 2em; font-weight: bold;}
+</style>
+
+<body>
+<div class="tabmenu">
+    <!-- div class="big_tab">
+      <ul>
+        <li><a href="#tab01">tab1</a></li>
+        <li><a href="#tab02">tab2</a></li>
+        <li><a href="#tab03">tab3</a></li>
+        <li><a href="#tab04">tab4</a></li>
+      </ul>
+    </div -->
+	<div class="sm_select">
+		<select name="" id="tabmenu">
+			<option value="#tab01">강남구</option>
+			<option value="#tab02">강동구</option>
+			<option value="#tab03">강북구</option>
+			<option value="#tab04">강서구</option>
+			<option value="#tab05">관악구</option>
+			<option value="#tab06">광진구</option>
+			<option value="#tab07">구로구</option>
+			<option value="#tab08">금천구</option>
+			<option value="#tab09">노원구</option>
+			<option value="#tab10">도봉구</option>
+			<option value="#tab11">동대문구</option>
+			<option value="#tab12">동작구</option>
+			<option value="#tab13">마포구</option>
+			<option value="#tab14">서대문구</option>
+			<option value="#tab15">서초구</option>
+			<option value="#tab16">성동구</option>
+			<option value="#tab17">성북구</option>
+			<option value="#tab18">송파구</option>
+			<option value="#tab19">양천구</option>
+			<option value="#tab20">영등포구</option>
+			<option value="#tab21">용산구</option>
+			<option value="#tab22">은평구</option>
+			<option value="#tab23">종로구</option>
+			<option value="#tab24">중구</option>
+			<option value="#tab25">중랑구</option>
+			<option value="#tab26">구리시</option>
+			<option value="#tab27">남양주시</option>
+		</select>
+	</div>
+  </div>
+	<div id="tab01" class="tab-contents">
+		<h3>강남구 담보 회수율</h3>
+		<div class="list">
+			<ul>
+				<li><span class="left">121 아파트</span> <span class="right">85</span></li>
+				<li><span class="left">122 도시형아파트</span> <span class="right">75</span></li>
+				<li><span class="left">124 연립(빌라)</span> <span class="right">79</span></li>
+				<li><span class="left">125 다세대(빌라)</span> <span class="right">76</span></li>
+				<li><span class="left">128 도시형 연립/다세대</span> <span class="right">75</span></li>
+				<li><span class="left">120 단독주택</span> <span class="right">75</span></li>
+				<li><span class="left">126 다가구주택</span> <span class="right">74</span></li>
+				<li><span class="left">127 주상복합주택</span> <span class="right">79</span></li>
+				<li><span class="left">113 오피스텔</span> <span class="right">68</span></li>
+			</ul>
+		</div>
+		
+	</div>
+	<div id="tab02" class="tab-contents">
+		<h3>강동구 담보 회수율</h3>
+		<div class="list">
+			<ul>
+				<li><span class="left">121 아파트</span> <span class="right">85</span></li>
+				<li><span class="left">122 도시형아파트</span> <span class="right">75</span></li>
+				<li><span class="left">124 연립(빌라)</span> <span class="right">76</span></li>
+				<li><span class="left">125 다세대(빌라)</span> <span class="right">76</span></li>
+				<li><span class="left">128 도시형 연립/다세대</span> <span class="right">75</span></li>
+				<li><span class="left">120 단독주택</span> <span class="right">73</span></li>
+				<li><span class="left">126 다가구주택</span> <span class="right">75</span></li>
+				<li><span class="left">127 주상복합주택</span> <span class="right">79</span></li>
+				<li><span class="left">113 오피스텔</span> <span class="right">75</span></li>
+			</ul>
+		</div>
+	</div>
+	<div id="tab03" class="tab-contents">
+		<h3>강북구 담보 회수율</h3>
+		<div class="list">
+			<ul>
+				<li><span class="left">121 아파트</span> <span class="right">85</span></li>
+				<li><span class="left">122 도시형아파트</span> <span class="right">75</span></li>
+				<li><span class="left">124 연립(빌라)</span> <span class="right">73</span></li>
+				<li><span class="left">125 다세대(빌라)</span> <span class="right">70</span></li>
+				<li><span class="left">128 도시형 연립/다세대</span> <span class="right">71</span></li>
+				<li><span class="left">120 단독주택</span> <span class="right">70</span></li>
+				<li><span class="left">126 다가구주택</span> <span class="right">75</span></li>
+				<li><span class="left">127 주상복합주택</span> <span class="right">79</span></li>
+				<li><span class="left">113 오피스텔</span> <span class="right">75</span></li>
+			</ul>
+		</div>
+	</div>
+	<div id="tab04" class="tab-contents">
+		<h3>강서구 담보 회수율</h3>
+		<div class="list">
+			<ul>
+				<li><span class="left">121 아파트</span> <span class="right">84</span></li>
+				<li><span class="left">122 도시형아파트</span> <span class="right">74</span></li>
+				<li><span class="left">124 연립(빌라)</span> <span class="right">70</span></li>
+				<li><span class="left">125 다세대(빌라)</span> <span class="right">71</span></li>
+				<li><span class="left">128 도시형 연립/다세대</span> <span class="right">72</span></li>
+				<li><span class="left">120 단독주택</span> <span class="right">72</span></li>
+				<li><span class="left">126 다가구주택</span> <span class="right">75</span></li>
+				<li><span class="left">127 주상복합주택</span> <span class="right">79</span></li>
+				<li><span class="left">113 오피스텔</span> <span class="right">75</span></li>
+			</ul>
+		</div>
+	</div>
+	<div id="tab05" class="tab-contents">
+		<h3>관악구 담보 회수율</h3>
+		<div class="list">
+			<ul>
+				<li><span class="left">121 아파트</span> <span class="right">85</span></li>
+				<li><span class="left">122 도시형아파트</span> <span class="right">75</span></li>
+				<li><span class="left">124 연립(빌라)</span> <span class="right">74</span></li>
+				<li><span class="left">125 다세대(빌라)</span> <span class="right">75</span></li>
+				<li><span class="left">128 도시형 연립/다세대</span> <span class="right">75</span></li>
+				<li><span class="left">120 단독주택</span> <span class="right">73</span></li>
+				<li><span class="left">126 다가구주택</span> <span class="right">75</span></li>
+				<li><span class="left">127 주상복합주택</span> <span class="right">79</span></li>
+				<li><span class="left">113 오피스텔</span> <span class="right">74</span></li>
+			</ul>
+		</div>
+	</div>
+	<div id="tab06" class="tab-contents">
+		<h3>광진구 담보 회수율</h3>
+		<div class="list">
+			<ul>
+				<li><span class="left">121 아파트</span> <span class="right">85</span></li>
+				<li><span class="left">122 도시형아파트</span> <span class="right">75</span></li>
+				<li><span class="left">124 연립(빌라)</span> <span class="right">76</span></li>
+				<li><span class="left">125 다세대(빌라)</span> <span class="right">78</span></li>
+				<li><span class="left">128 도시형 연립/다세대</span> <span class="right">75</span></li>
+				<li><span class="left">120 단독주택</span> <span class="right">73</span></li>
+				<li><span class="left">126 다가구주택</span> <span class="right">75</span></li>
+				<li><span class="left">127 주상복합주택</span> <span class="right">79</span></li>
+				<li><span class="left">113 오피스텔</span> <span class="right">73</span></li>
+			</ul>
+		</div>
+	</div>
+	<div id="tab07" class="tab-contents">
+		<h3>구로구 담보 회수율</h3>
+		<div class="list">
+			<ul>
+				<li><span class="left">121 아파트</span> <span class="right">85</span></li>
+				<li><span class="left">122 도시형아파트</span> <span class="right">74</span></li>
+				<li><span class="left">124 연립(빌라)</span> <span class="right">75</span></li>
+				<li><span class="left">125 다세대(빌라)</span> <span class="right">73</span></li>
+				<li><span class="left">128 도시형 연립/다세대</span> <span class="right">74</span></li>
+				<li><span class="left">120 단독주택</span> <span class="right">73</span></li>
+				<li><span class="left">126 다가구주택</span> <span class="right">75</span></li>
+				<li><span class="left">127 주상복합주택</span> <span class="right">79</span></li>
+				<li><span class="left">113 오피스텔</span> <span class="right">75</span></li>
+			</ul>
+		</div>
+	</div>
+	<div id="tab08" class="tab-contents">
+		<h3>금천구 담보 회수율</h3>
+		<div class="list">
+			<ul>
+				<li><span class="left">121 아파트</span> <span class="right">85</span></li>
+				<li><span class="left">122 도시형아파트</span> <span class="right">74</span></li>
+				<li><span class="left">124 연립(빌라)</span> <span class="right">74</span></li>
+				<li><span class="left">125 다세대(빌라)</span> <span class="right">75</span></li>
+				<li><span class="left">128 도시형 연립/다세대</span> <span class="right">75</span></li>
+				<li><span class="left">120 단독주택</span> <span class="right">75</span></li>
+				<li><span class="left">126 다가구주택</span> <span class="right">73</span></li>
+				<li><span class="left">127 주상복합주택</span> <span class="right">79</span></li>
+				<li><span class="left">113 오피스텔</span> <span class="right">66</span></li>
+			</ul>
+		</div>
+	</div>
+	<div id="tab09" class="tab-contents">
+		<h3>노원구 담보 회수율</h3>
+		<div class="list">
+			<ul>
+				<li><span class="left">121 아파트</span> <span class="right">85</span></li>
+				<li><span class="left">122 도시형아파트</span> <span class="right">75</span></li>
+				<li><span class="left">124 연립(빌라)</span> <span class="right">75</span></li>
+				<li><span class="left">125 다세대(빌라)</span> <span class="right">70</span></li>
+				<li><span class="left">128 도시형 연립/다세대</span> <span class="right">71</span></li>
+				<li><span class="left">120 단독주택</span> <span class="right">75</span></li>
+				<li><span class="left">126 다가구주택</span> <span class="right">75</span></li>
+				<li><span class="left">127 주상복합주택</span> <span class="right">79</span></li>
+				<li><span class="left">113 오피스텔</span> <span class="right">75</span></li>
+			</ul>
+		</div>
+	</div>
+	<div id="tab10" class="tab-contents">
+		<h3>도봉구 담보 회수율</h3>
+		<div class="list">
+			<ul>
+				<li><span class="left">121 아파트</span> <span class="right">84</span></li>
+				<li><span class="left">122 도시형아파트</span> <span class="right">75</span></li>
+				<li><span class="left">124 연립(빌라)</span> <span class="right">75</span></li>
+				<li><span class="left">125 다세대(빌라)</span> <span class="right">70</span></li>
+				<li><span class="left">128 도시형 연립/다세대</span> <span class="right">74</span></li>
+				<li><span class="left">120 단독주택</span> <span class="right">74</span></li>
+				<li><span class="left">126 다가구주택</span> <span class="right">73</span></li>
+				<li><span class="left">127 주상복합주택</span> <span class="right">79</span></li>
+				<li><span class="left">113 오피스텔</span> <span class="right">72</span></li>
+			</ul>
+		</div>
+	</div>
+	<div id="tab11" class="tab-contents">
+		<h3>동대문구 담보 회수율</h3>
+		<div class="list">
+			<ul>
+				<li><span class="left">121 아파트</span> <span class="right">86</span></li>
+				<li><span class="left">122 도시형아파트</span> <span class="right">75</span></li>
+				<li><span class="left">124 연립(빌라)</span> <span class="right">74</span></li>
+				<li><span class="left">125 다세대(빌라)</span> <span class="right">76</span></li>
+				<li><span class="left">128 도시형 연립/다세대</span> <span class="right">74</span></li>
+				<li><span class="left">120 단독주택</span> <span class="right">76</span></li>
+				<li><span class="left">126 다가구주택</span> <span class="right">75</span></li>
+				<li><span class="left">127 주상복합주택</span> <span class="right">79</span></li>
+				<li><span class="left">113 오피스텔</span> <span class="right">74</span></li>
+			</ul>
+		</div>
+	</div>
+	<div id="tab12" class="tab-contents">
+		<h3>동작구 담보 회수율</h3>
+		<div class="list">
+			<ul>
+				<li><span class="left">121 아파트</span> <span class="right">86</span></li>
+				<li><span class="left">122 도시형아파트</span> <span class="right">74</span></li>
+				<li><span class="left">124 연립(빌라)</span> <span class="right">78</span></li>
+				<li><span class="left">125 다세대(빌라)</span> <span class="right">77</span></li>
+				<li><span class="left">128 도시형 연립/다세대</span> <span class="right">75</span></li>
+				<li><span class="left">120 단독주택</span> <span class="right">79</span></li>
+				<li><span class="left">126 다가구주택</span> <span class="right">74</span></li>
+				<li><span class="left">127 주상복합주택</span> <span class="right">79</span></li>
+				<li><span class="left">113 오피스텔</span> <span class="right">73</span></li>
+			</ul>
+		</div>
+	</div>
+	<div id="tab13" class="tab-contents">
+		<h3>마포구 담보 회수율</h3>
+		<div class="list">
+			<ul>
+				<li><span class="left">121 아파트</span> <span class="right">85</span></li>
+				<li><span class="left">122 도시형아파트</span> <span class="right">75</span></li>
+				<li><span class="left">124 연립(빌라)</span> <span class="right">71</span></li>
+				<li><span class="left">125 다세대(빌라)</span> <span class="right">79</span></li>
+				<li><span class="left">128 도시형 연립/다세대</span> <span class="right">75</span></li>
+				<li><span class="left">120 단독주택</span> <span class="right">77</span></li>
+				<li><span class="left">126 다가구주택</span> <span class="right">75</span></li>
+				<li><span class="left">127 주상복합주택</span> <span class="right">79</span></li>
+				<li><span class="left">113 오피스텔</span> <span class="right">73</span></li>
+			</ul>
+		</div>
+	</div>
+	<div id="tab14" class="tab-contents">
+		<h3>서대문구 담보 회수율</h3>
+		<div class="list">
+			<ul>
+				<li><span class="left">121 아파트</span> <span class="right">83</span></li>
+				<li><span class="left">122 도시형아파트</span> <span class="right">74</span></li>
+				<li><span class="left">124 연립(빌라)</span> <span class="right">72</span></li>
+				<li><span class="left">125 다세대(빌라)</span> <span class="right">74</span></li>
+				<li><span class="left">128 도시형 연립/다세대</span> <span class="right">73</span></li>
+				<li><span class="left">120 단독주택</span> <span class="right">73</span></li>
+				<li><span class="left">126 다가구주택</span> <span class="right">75</span></li>
+				<li><span class="left">127 주상복합주택</span> <span class="right">80</span></li>
+				<li><span class="left">113 오피스텔</span> <span class="right">75</span></li>
+			</ul>
+		</div>
+	</div>
+	<div id="tab15" class="tab-contents">
+		<h3>서초구 담보 회수율</h3>
+		<div class="list">
+			<ul>
+				<li><span class="left">121 아파트</span> <span class="right">86</span></li>
+				<li><span class="left">122 도시형아파트</span> <span class="right">75</span></li>
+				<li><span class="left">124 연립(빌라)</span> <span class="right">79</span></li>
+				<li><span class="left">125 다세대(빌라)</span> <span class="right">82</span></li>
+				<li><span class="left">128 도시형 연립/다세대</span> <span class="right">73</span></li>
+				<li><span class="left">120 단독주택</span> <span class="right">75</span></li>
+				<li><span class="left">126 다가구주택</span> <span class="right">75</span></li>
+				<li><span class="left">127 주상복합주택</span> <span class="right">79</span></li>
+				<li><span class="left">113 오피스텔</span> <span class="right">72</span></li>
+			</ul>
+		</div>
+	</div>
+	<div id="tab16" class="tab-contents">
+		<h3>성동구 담보 회수율</h3>
+		<div class="list">
+			<ul>
+				<li><span class="left">121 아파트</span> <span class="right">85</span></li>
+				<li><span class="left">122 도시형아파트</span> <span class="right">75</span></li>
+				<li><span class="left">124 연립(빌라)</span> <span class="right">74</span></li>
+				<li><span class="left">125 다세대(빌라)</span> <span class="right">76</span></li>
+				<li><span class="left">128 도시형 연립/다세대</span> <span class="right">75</span></li>
+				<li><span class="left">120 단독주택</span> <span class="right">75</span></li>
+				<li><span class="left">126 다가구주택</span> <span class="right">74</span></li>
+				<li><span class="left">127 주상복합주택</span> <span class="right">79</span></li>
+				<li><span class="left">113 오피스텔</span> <span class="right">74</span></li>
+			</ul>
+		</div>
+	</div>
+	<div id="tab17" class="tab-contents">
+		<h3>성북구 담보 회수율</h3>
+		<div class="list">
+			<ul>
+				<li><span class="left">121 아파트</span> <span class="right">85</span></li>
+				<li><span class="left">122 도시형아파트</span> <span class="right">75</span></li>
+				<li><span class="left">124 연립(빌라)</span> <span class="right">72</span></li>
+				<li><span class="left">125 다세대(빌라)</span> <span class="right">73</span></li>
+				<li><span class="left">128 도시형 연립/다세대</span> <span class="right">72</span></li>
+				<li><span class="left">120 단독주택</span> <span class="right">71</span></li>
+				<li><span class="left">126 다가구주택</span> <span class="right">74</span></li>
+				<li><span class="left">127 주상복합주택</span> <span class="right">79</span></li>
+				<li><span class="left">113 오피스텔</span> <span class="right">67</span></li>
+			</ul>
+		</div>
+	</div>
+	<div id="tab18" class="tab-contents">
+		<h3>송파구 담보 회수율</h3>
+		<div class="list">
+			<ul>
+				<li><span class="left">121 아파트</span> <span class="right">85</span></li>
+				<li><span class="left">122 도시형아파트</span> <span class="right">75</span></li>
+				<li><span class="left">124 연립(빌라)</span> <span class="right">74</span></li>
+				<li><span class="left">125 다세대(빌라)</span> <span class="right">81</span></li>
+				<li><span class="left">128 도시형 연립/다세대</span> <span class="right">75</span></li>
+				<li><span class="left">120 단독주택</span> <span class="right">73</span></li>
+				<li><span class="left">126 다가구주택</span> <span class="right">73</span></li>
+				<li><span class="left">127 주상복합주택</span> <span class="right">79</span></li>
+				<li><span class="left">113 오피스텔</span> <span class="right">76</span></li>
+			</ul>
+		</div>
+	</div>
+	<div id="tab19" class="tab-contents">
+		<h3>양천구 담보 회수율</h3>
+		<div class="list">
+			<ul>
+				<li><span class="left">121 아파트</span> <span class="right">84</span></li>
+				<li><span class="left">122 도시형아파트</span> <span class="right">75</span></li>
+				<li><span class="left">124 연립(빌라)</span> <span class="right">70</span></li>
+				<li><span class="left">125 다세대(빌라)</span> <span class="right">75</span></li>
+				<li><span class="left">128 도시형 연립/다세대</span> <span class="right">75</span></li>
+				<li><span class="left">120 단독주택</span> <span class="right">74</span></li>
+				<li><span class="left">126 다가구주택</span> <span class="right">75</span></li>
+				<li><span class="left">127 주상복합주택</span> <span class="right">79</span></li>
+				<li><span class="left">113 오피스텔</span> <span class="right">73</span></li>
+			</ul>
+		</div>
+	</div>
+	<div id="tab20" class="tab-contents">
+		<h3>영등포구 담보 회수율</h3>
+		<div class="list">
+			<ul>
+				<li><span class="left">121 아파트</span> <span class="right">84</span></li>
+				<li><span class="left">122 도시형아파트</span> <span class="right">74</span></li>
+				<li><span class="left">124 연립(빌라)</span> <span class="right">76</span></li>
+				<li><span class="left">125 다세대(빌라)</span> <span class="right">76</span></li>
+				<li><span class="left">128 도시형 연립/다세대</span> <span class="right">75</span></li>
+				<li><span class="left">120 단독주택</span> <span class="right">73</span></li>
+				<li><span class="left">126 다가구주택</span> <span class="right">75</span></li>
+				<li><span class="left">127 주상복합주택</span> <span class="right">79</span></li>
+				<li><span class="left">113 오피스텔</span> <span class="right">72</span></li>
+			</ul>
+		</div>
+	</div>
+	<div id="tab21" class="tab-contents">
+		<h3>용산구 담보 회수율</h3>
+		<div class="list">
+			<ul>
+				<li><span class="left">121 아파트</span> <span class="right">84</span></li>
+				<li><span class="left">122 도시형아파트</span> <span class="right">75</span></li>
+				<li><span class="left">124 연립(빌라)</span> <span class="right">72</span></li>
+				<li><span class="left">125 다세대(빌라)</span> <span class="right">71</span></li>
+				<li><span class="left">128 도시형 연립/다세대</span> <span class="right">69</span></li>
+				<li><span class="left">120 단독주택</span> <span class="right">71</span></li>
+				<li><span class="left">126 다가구주택</span> <span class="right">73</span></li>
+				<li><span class="left">127 주상복합주택</span> <span class="right">80</span></li>
+				<li><span class="left">113 오피스텔</span> <span class="right">71</span></li>
+			</ul>
+		</div>
+	</div>
+	<div id="tab22" class="tab-contents">
+		<h3>은평구 담보 회수율</h3>
+		<div class="list">
+			<ul>
+				<li><span class="left">121 아파트</span> <span class="right">84</span></li>
+				<li><span class="left">122 도시형아파트</span> <span class="right">74</span></li>
+				<li><span class="left">124 연립(빌라)</span> <span class="right">71</span></li>
+				<li><span class="left">125 다세대(빌라)</span> <span class="right">75</span></li>
+				<li><span class="left">128 도시형 연립/다세대</span> <span class="right">73</span></li>
+				<li><span class="left">120 단독주택</span> <span class="right">72</span></li>
+				<li><span class="left">126 다가구주택</span> <span class="right">75</span></li>
+				<li><span class="left">127 주상복합주택</span> <span class="right">79</span></li>
+				<li><span class="left">113 오피스텔</span> <span class="right">74</span></li>
+			</ul>
+		</div>
+	</div>
+	<div id="tab23" class="tab-contents">
+		<h3>종로구 담보 회수율</h3>
+		<div class="list">
+			<ul>
+				<li><span class="left">121 아파트</span> <span class="right">84</span></li>
+				<li><span class="left">122 도시형아파트</span> <span class="right">75</span></li>
+				<li><span class="left">124 연립(빌라)</span> <span class="right">74</span></li>
+				<li><span class="left">125 다세대(빌라)</span> <span class="right">73</span></li>
+				<li><span class="left">128 도시형 연립/다세대</span> <span class="right">75</span></li>
+				<li><span class="left">120 단독주택</span> <span class="right">74</span></li>
+				<li><span class="left">126 다가구주택</span> <span class="right">75</span></li>
+				<li><span class="left">127 주상복합주택</span> <span class="right">79</span></li>
+				<li><span class="left">113 오피스텔</span> <span class="right">75</span></li>
+			</ul>
+		</div>
+	</div>
+	<div id="tab24" class="tab-contents">
+		<h3>중구 담보 회수율</h3>
+		<div class="list">
+			<ul>
+				<li><span class="left">121 아파트</span> <span class="right">83</span></li>
+				<li><span class="left">122 도시형아파트</span> <span class="right">75</span></li>
+				<li><span class="left">124 연립(빌라)</span> <span class="right">76</span></li>
+				<li><span class="left">125 다세대(빌라)</span> <span class="right">76</span></li>
+				<li><span class="left">128 도시형 연립/다세대</span> <span class="right">74</span></li>
+				<li><span class="left">120 단독주택</span> <span class="right">75</span></li>
+				<li><span class="left">126 다가구주택</span> <span class="right">75</span></li>
+				<li><span class="left">127 주상복합주택</span> <span class="right">79</span></li>
+				<li><span class="left">113 오피스텔</span> <span class="right">75</span></li>
+			</ul>
+		</div>
+	</div>
+	<div id="tab25" class="tab-contents">
+		<h3>중랑구 담보 회수율</h3>
+		<div class="list">
+			<ul>
+				<li><span class="left">121 아파트</span> <span class="right">88</span></li>
+				<li><span class="left">122 도시형아파트</span> <span class="right">74</span></li>
+				<li><span class="left">124 연립(빌라)</span> <span class="right">73</span></li>
+				<li><span class="left">125 다세대(빌라)</span> <span class="right">77</span></li>
+				<li><span class="left">128 도시형 연립/다세대</span> <span class="right">72</span></li>
+				<li><span class="left">120 단독주택</span> <span class="right">75</span></li>
+				<li><span class="left">126 다가구주택</span> <span class="right">75</span></li>
+				<li><span class="left">127 주상복합주택</span> <span class="right">79</span></li>
+				<li><span class="left">113 오피스텔</span> <span class="right">72</span></li>
+			</ul>
+		</div>
+	</div>
+	<div id="tab26" class="tab-contents">
+		<h3>구리시 담보 회수율</h3>
+		<div class="list">
+			<ul>
+				<li><span class="left">121 아파트</span> <span class="right">84</span></li>
+				<li><span class="left">122 도시형아파트</span> <span class="right">62</span></li>
+				<li><span class="left">124 연립(빌라)</span> <span class="right">67</span></li>
+				<li><span class="left">125 다세대(빌라)</span> <span class="right">65</span></li>
+				<li><span class="left">128 도시형 연립/다세대</span> <span class="right">65</span></li>
+				<li><span class="left">120 단독주택</span> <span class="right">66</span></li>
+				<li><span class="left">126 다가구주택</span> <span class="right">69</span></li>
+				<li><span class="left">127 주상복합주택</span> <span class="right">72</span></li>
+				<li><span class="left">113 오피스텔</span> <span class="right">68</span></li>
+			</ul>
+		</div>
+	</div>
+	<div id="tab27" class="tab-contents">
+		<h3>남양주시 담보 회수율</h3>
+		<div class="list">
+			<ul>
+				<li><span class="left">121 아파트</span> <span class="right">82</span></li>
+				<li><span class="left">122 도시형아파트</span> <span class="right">62</span></li>
+				<li><span class="left">124 연립(빌라)</span> <span class="right">70</span></li>
+				<li><span class="left">125 다세대(빌라)</span> <span class="right">67</span></li>
+				<li><span class="left">128 도시형 연립/다세대</span> <span class="right">65</span></li>
+				<li><span class="left">120 단독주택</span> <span class="right">70</span></li>
+				<li><span class="left">126 다가구주택</span> <span class="right">69</span></li>
+				<li><span class="left">127 주상복합주택</span> <span class="right">71</span></li>
+				<li><span class="left">113 오피스텔</span> <span class="right">68</span></li>
+			</ul>
+		</div>
+	</div>
+
+</body>
+
+<script>
+	$('.big_tab li').first().addClass("activeClass");
+	$(".tab-contents").not(':first').hide();
+  
+	$('.big_tab li').on('click',function(){
+		$(this).addClass("activeClass").siblings().removeClass("activeClass");
+		var link = $(this).find("a").attr("href");
+		var link_num = link.substr(link.length-1);
+		$("select#tabmenu option").eq(link_num-1).prop("selected", "selected");
+		$(".tab-contents").hide();
+		$(link).show();
+	});
+    
+	$("select#tabmenu").on("change",function(){
+		var select_link = $("select#tabmenu").val();
+		var select_num = $(this).prop('selectedIndex');
+		$('.big_tab li').eq(select_num).addClass("activeClass").siblings().removeClass('activeClass');
+		$(".tab-contents").hide();
+		$(select_link).show();
+		console.log(select_link);
+	});
+   
+
+</script>
+
+
+</html>
