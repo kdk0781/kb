@@ -58,6 +58,12 @@ body {font-family: 'Nanum Gothic', sans-serif; background: #fff;}
 
 .pic, .pic img {width:100%;}
 
+.title {width:100%; font-size:0; border-bottom:1px solid #000; }
+.title_box {display:inline-block; font-weight:bold;}
+
+.box_money {background:#F0E68C; padding:10px; text-align:left; margin-top:10px; border-top:1px solid #000;}
+.box_money:first-child {margin-top:0; border-top:none 0;}
+.box_title {font-weight:bold;}
 
 
 
