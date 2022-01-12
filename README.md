@@ -10,3 +10,4 @@
 <p>https://kdk0781.github.io/kb/select.html - 담보회수율 </p>
 <p>https://kdk0781.github.io/kb/card.html - 홈택스 소득공제용 신용카드 출력방법 </p>
 <p>https://kdk0781.github.io/kb/longterm.html - 스타뱅킹 장기미사용 해지 절차 </p>
+<p>https://kdk0781.github.io/kb/hug.html - KB안심전세 자서샘플 </p>
