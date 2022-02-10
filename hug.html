@@ -11,9 +11,18 @@
 	<link rel="stylesheet" href="common.css" media="all">
 	<link rel="stylesheet" href="style.css" media="all">
 	<title>KB 안심전세 샘플</title>
-</head>
 
-<body>
+<script type="text/javascript">
+	$(document).ready(function(){ $(document).bind('keydown',function(e){ if ( e.keyCode == 123 /* F12 */) { e.preventDefault(); e.returnValue = false; } }); });
+	document.onmousedown=disableclick; status="Right click is not available."; function disableclick(event){ if (event.button==2) { alert(status); return false; } } 
+	</script>
+
+</head>
+<style type="text/css">
+	img {max-width:100%;}
+</style>
+
+<body oncontextmenu="return false" ondragstart="return false">
 	<div class="pic_guide">
 		<div class="pic pc">
 			<img src="HUG_1.jpg" alt="안심전세 자서 샘플">
