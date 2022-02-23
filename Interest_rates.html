@@ -1,0 +1,134 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ko" xml:lang="ko">
+<head>
+	<meta name="author" content="" />
+	<meta name="keywords" content="" />
+	<meta name="description" content="" />
+	<meta http-equiv="content-type" content="text/html;charset=utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+	<title>국민은행 금리표</title>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+</head>
+
+<style type="text/css">
+* {margin: 0; padding: 0;}
+.big_tab ul{overflow: hidden; width: 100%;}
+ li {list-style-type: none; }
+.big_tab ul li{width: 25%; box-sizing: border-box; float: left; border: 1px solid #ccc; text-align: center; line-height: 40px;}
+.big_tab ul li.activeClass{font-weight: bold; font-size: 20px;}
+.big_tab {display: none;}
+.sm_select {display: block;}
+.sm_select select {width:100%; padding: 3%; font-size: 2em;}
+.tab_contents {margin-top: 10px;}
+.tab-contents h3 {margin-left:20px; font-size:2em;}
+.list {margin-top:20px;}
+.list li {text-align:center;}
+.list img {text-align:center; max-width:100%;}
+
+.data {font-weight:bold; color:red; margin:20px;}
+
+</style>
+
+<body>
+<div class="tabmenu">
+	<div class="sm_select">
+		<select name="" id="tabmenu">
+			<optgroup label="담보">
+				<option value="#tab01">MOR 금리</option>
+				<option value="#tab02">COFIX 금리</option>
+			</optgroup>
+			<optgroup label="전세">
+				<option value="#tab03">은행제원 협약전세 (HF)</option>
+				<option value="#tab04">KB 플러스 전세 (SGI)</option>
+				<option value="#tab05">KB 안심전세 (HUG)</option>
+			</optgroup>
+			<optgroup label="오피스텔">
+				<option value="#tab06">오피스텔 담보</option>
+				<option value="#tab07">오피스텔 전세</option>
+			</optgroup>
+		</select>
+	</div>
+  </div>
+
+	<p class="data">기준일 : 2022-02-23</p>
+	<div id="tab01" class="tab-contents">
+		<h3>MOR 금리</h3>
+		<div class="list">
+			<ul>
+				<li><img src="Interest_rates01.jpg" alt="MOR금리" /></li>
+			</ul>
+		</div>
+	</div>
+	<div id="tab02" class="tab-contents">
+		<h3>COFIX 금리</h3>
+		<div class="list">
+			<ul>
+				<li><img src="Interest_rates02.jpg" alt="COFIX금리" /></li>
+			</ul>
+		</div>
+	</div>
+	<div id="tab03" class="tab-contents">
+		<h3>은행제원 협약전세 (HF)</h3>
+		<div class="list">
+			<ul>
+				<li><img src="Interest_rates03.jpg" alt="은행제원전세금리" /></li>
+			</ul>
+		</div>
+	</div>
+	<div id="tab04" class="tab-contents">
+		<h3>KB 플러스 전세 (SGI)</h3>
+		<div class="list">
+			<ul>
+				<li><img src="Interest_rates04.jpg" alt="플러스전세금리" /></li>
+			</ul>
+		</div>
+	</div>
+	<div id="tab05" class="tab-contents">
+		<h3>KB 안심전세 (HUG)</h3>
+		<div class="list">
+			<ul>
+				<li><img src="Interest_rates05.jpg" alt="안심전세금리" /></li>
+			</ul>
+		</div>
+	</div>
+	<div id="tab06" class="tab-contents">
+		<h3>오피스텔 담보</h3>
+		<div class="list">
+			<ul>
+				<li><img src="Interest_rates06.jpg" alt="오피스텔담보금리" /></li>
+			</ul>
+		</div>
+	</div>
+	<div id="tab07" class="tab-contents">
+		<h3>오피스텔 전세</h3>
+		<div class="list">
+			<ul>
+				<li><img src="Interest_rates07.jpg" alt="오피스텔전세금리" /></li>
+			</ul>
+		</div>
+	</div>
+</body>
+
+<script type="text/javascript">
+	$('.big_tab li').first().addClass("activeClass");
+	$(".tab-contents").not(':first').hide();
+  
+	$('.big_tab li').on('click',function(){
+		$(this).addClass("activeClass").siblings().removeClass("activeClass");
+		var link = $(this).find("a").attr("href");
+		var link_num = link.substr(link.length-1);
+		$("select#tabmenu option").eq(link_num-1).prop("selected", "selected");
+		$(".tab-contents").hide();
+		$(link).show();
+	});
+    
+	$("select#tabmenu").on("change",function(){
+		var select_link = $("select#tabmenu").val();
+		var select_num = $(this).prop('selectedIndex');
+		$('.big_tab li').eq(select_num).addClass("activeClass").siblings().removeClass('activeClass');
+		$(".tab-contents").hide();
+		$(select_link).show();
+		console.log(select_link);
+	});
+</script>
+</html>
