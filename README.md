@@ -14,3 +14,4 @@
 <p>https://kdk0781.github.io/kb/longterm.html - 스타뱅킹 장기미사용 해지 절차 </p>
 <p>https://kdk0781.github.io/kb/hug.html - KB안심전세 자서샘플 </p>
 <p>https://kdk0781.github.io/kb/220801.html - 22.08.01 생애최초 </p>
+<p>https://kdk0781.github.io/kb/print_color.html - 프린터 색상 </p>
