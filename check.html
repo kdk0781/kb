@@ -24,7 +24,7 @@
 		<p class="fc fc1">국민은행과 급여이체 등록된 경우 (회사) - <span class="point">이직</span>시 급여이체 등록여부 확인하시고 안되어 있다면 극민은행 급여일 지정후 급여라 입금하여야 함</p>
 		<p class="fc fc2">급여일 지정후 급여로 입금시 - 급여일 지정한 날에 <span class="point">타은행</span>에서 급여로 <span class="point">50만원이상 입금</span>되어야 함(영업일 기준 앞뒤로 하루씩 총 3영업일 안에 입금되어야 함 <span class="sub_point">- 급여지정일 아닌 날짜에 입금되거나 국민은행에서 입금되어지면 급여인정 안됨</span>)</p>
 		<p class="fc fc3">급여일 변경시 - <a href="tel:15889999">1588-9999</a> 번 전화해서 급여일 변경후 <span class="sub_point">"급여"</span> 지정하여 입금되어야 합니다.</p>
-		<p class="point">(모바일에서 번호 클릭시 전화로 연결됨)</p>
+		<p class="point no-print">(모바일에서 번호 클릭시 전화로 연결됨)</p>
 	</div>
 	<div class="h2 green">2. 신용카드 - <span class="point">0.3%</span> 직전 3개월 사용금액으로 금리조정 <span class="sub_point">(결제 계좌 국민은행)</span></div>
 	<div class="h3">
@@ -109,6 +109,9 @@
 	@media all and (min-width:320px) {
 		.fc {padding-left: 20px;}
 		.fc:before {font-size: 14px;}
+	}
+	@media print {
+		.no-print{ display:none }
 	}
 </style>
 
