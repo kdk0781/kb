@@ -55,7 +55,20 @@
 	</div>
   </div>
 	<p class="summary"><span class="up">&uarr;</span> 클릭시 담보 전세 금리 확인가능</p>
-	<p class="data">기준일 : 2022-11-14 (연이율, %)</p>
+	<p class="data">기준일 : <span>
+		<script type="text/javascript">
+			let today = new Date();   
+
+			let year = today.getFullYear(); // 년도
+			let month = today.getMonth();  // 월
+			let date = today.getDate();  // 날짜
+			let day = today.getDay();  // 요일
+
+			document.write(year + '/' + month + '/' + date)
+			// document.write(day);
+		</script>
+		</span> (연이율, %)
+	</p>
 	<div id="tab01" class="tab-contents">
 		<h3>혼합금리</h3>
 		<div class="list">
