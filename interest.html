@@ -1,0 +1,160 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ko" xml:lang="ko">
+<head>
+	<meta name="author" content="" />
+	<meta name="keywords" content="" />
+	<meta name="description" content="" />
+	<meta http-equiv="content-type" content="text/html;charset=utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+	<title>국민은행 금리표</title>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+</head>
+
+<style type="text/css">
+* {margin: 0; padding: 0;}
+.big_tab ul{overflow: hidden; width: 100%;}
+ li {list-style-type: none; }
+.big_tab ul li{width: 25%; box-sizing: border-box; float: left; border: 1px solid #ccc; text-align: center; line-height: 40px;}
+.big_tab ul li.activeClass{font-weight: bold; font-size: 20px;}
+.big_tab {display: none;}
+.sm_select {display: block;}
+.sm_select select {width:100%; padding: 3%; font-size: 2em;}
+.tab_contents {margin-top: 10px;}
+.tab-contents h3 {margin-left:20px; font-size:2em;}
+.list {margin-top:20px; padding:0 20px;}
+.box {margin-top:10px; font-size:20px;}
+.box:first-child {margin-top:0;}
+
+.data {font-weight:bold; color:red; margin:20px;}
+
+.point {color:#FF0000; font-weight:bold;}
+.summary {color:#FF8000; padding:0 20px;}
+
+</style>
+
+<body>
+<div class="tabmenu">
+	<div class="sm_select">
+		<select name="" id="tabmenu">
+			<optgroup label="담보">
+				<option value="#tab01">혼합금리</option>
+				<option value="#tab02">변동금리</option>
+			</optgroup>
+			<optgroup label="전세">
+				<option value="#tab03">은행제원 협약전세 (HF)</option>
+				<option value="#tab04">KB 플러스 전세 (SGI)</option>
+				<option value="#tab05">KB 안심전세 (HUG)</option>
+			</optgroup>
+		</select>
+	</div>
+  </div>
+	<p class="summary">&uarr; 클릭시 담보 전세 금리 확인가능</p>
+	<p class="data">기준일 : 2022-11-14 (연이율, %)</p>
+	<div id="tab01" class="tab-contents">
+		<h3>혼합금리</h3>
+		<div class="list">
+			<div class="box">
+				<p>5년고정</p>
+				<p>기준금리 : 5.12</p>
+				<p>가산금리 : 1.98</p>
+				<p>우대금리 : 1.20</p>
+				<p class="point">최저금리 : 5.90</p>
+			</div>
+			<!--
+			<div class="box">
+				<p>6개월 변동</p>
+				<p>기준금리 : 3.40</p>
+				<p>가산금리 : 3.48</p>
+				<p>우대금리 : 1.20</p>
+				<p>최저금리 : 5.68</p>
+			</div>
+			<div class="box">
+				<p>12개월 변동</p>
+				<p>기준금리 : 3.70</p>
+				<p>가산금리 : 3.07</p>
+				<p>우대금리 : 1.20</p>
+				<p>최저금리 : 5.57</p>
+			</div>
+			-->
+		</div>
+	</div>
+	<div id="tab02" class="tab-contents">
+		<h3>변동금리</h3>
+		<div class="list">
+			<div class="box">
+				<p>6개월 변동</p>
+				<p>기준금리 : 2.04</p>
+				<p>가산금리 : 4.14</p>
+				<p>우대금리 : 1.20</p>
+				<p class="point">최저금리 : 4.98</p>
+			</div>
+			<div class="box">
+				<p>60개월 변동</p>
+				<p>기준금리 : 5.12</p>
+				<p>가산금리 : 1.98</p>
+				<p>우대금리 : 1.20</p>
+				<p class="point">최저금리 : 5.90</p>
+			</div>
+		</div>
+	</div>
+	<div id="tab03" class="tab-contents">
+		<h3>은행제원 협약전세 (HF)</h3>
+		<div class="list">
+			<div class="box">
+				<p>6개월 변동</p>
+				<p>기준금리 : 2.04</p>
+				<p>가산금리 : 4.09</p>
+				<p>우대금리 : 0.90</p>
+				<p class="point">최저금리 : 5.23</p>
+			</div>
+		</div>
+	</div>
+	<div id="tab04" class="tab-contents">
+		<h3>KB 플러스 전세 (SGI)</h3>
+		<div class="list">
+			<div class="box">
+				<p>6개월 변동</p>
+				<p>기준금리 : 2.04</p>
+				<p>가산금리 : 4.21</p>
+				<p>우대금리 : 0.90</p>
+				<p class="point">최저금리 : 5.35</p>
+			</div>
+		</div>
+	</div>
+	<div id="tab05" class="tab-contents">
+		<h3>KB 안심전세 (HUG)</h3>
+		<div class="list">
+			<div class="box">
+				<p>6개월 변동</p>
+				<p>기준금리 : 2.04</p>
+				<p>가산금리 : 3.90</p>
+				<p>우대금리 : 0.90</p>
+				<p class="point">최저금리 : 5.04</p>
+			</div>
+		</div>
+	</div>
+</body>
+
+<script type="text/javascript">
+	$('.big_tab li').first().addClass("activeClass");
+	$(".tab-contents").not(':first').hide();
+  
+	$('.big_tab li').on('click',function(){
+		$(this).addClass("activeClass").siblings().removeClass("activeClass");
+		var link = $(this).find("a").attr("href");
+		var link_num = link.substr(link.length-1);
+		$("select#tabmenu option").eq(link_num-1).prop("selected", "selected");
+		$(".tab-contents").hide();
+		$(link).show();
+	});
+    
+	$("select#tabmenu").on("change",function(){
+		var select_link = $("select#tabmenu").val();
+		var select_num = $(this).prop('selectedIndex');
+		$('.big_tab li').eq(select_num).addClass("activeClass").siblings().removeClass('activeClass');
+		$(".tab-contents").hide();
+		$(select_link).show();
+		console.log(select_link);
+	});
+</script>
+</html>
