@@ -29,7 +29,12 @@
 
 .point {color:#FF0000; font-weight:bold;}
 .summary {color:#FF8000; padding:0 20px;}
+.up {animation: motion 0.3s linear 0s infinite alternate; margin-top: 0;}}
 
+@keyframes motion {
+	0% {margin-top: 0px;}
+	100% {margin-top: 10px;}
+}
 </style>
 
 <body>
@@ -48,7 +53,7 @@
 		</select>
 	</div>
   </div>
-	<p class="summary">&uarr; 클릭시 담보 전세 금리 확인가능</p>
+	<p class="summary"><span class="up">&uarr;</span> 클릭시 담보 전세 금리 확인가능</p>
 	<p class="data">기준일 : 2022-11-14 (연이율, %)</p>
 	<div id="tab01" class="tab-contents">
 		<h3>혼합금리</h3>
