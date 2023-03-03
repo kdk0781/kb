@@ -43,7 +43,7 @@
 .summary {color:#FF8000; padding:10px 20px 10px 20px; position:relative;}
 .up {animation: motion 0.3s linear 0s infinite alternate; margin-top: 0; display:inline-block; position:absolute; right:10px;; top:10px;}
 .up img {max-width:100%; width:80px; height:80px;}
-.last {margin:30px 0 0 20px; padding-bottom:30px;}
+.last {margin:30px 0 0 20px;  padding-bottom:50px;}
 .check {background:#F5DA81; /* animation: left 3s ease-in-out 0s infinite alternate; */}
 
 
@@ -78,6 +78,120 @@
 		document.write('0.90');
 		// 전세 우대금리
 	};
+
+	// ================ 담보 ================
+
+	function result_mor_5(){
+		//(담보) 5년 금융채 금리 
+		const a = 4.310, b = 1.800, c = 1.200;
+
+		const result1 = Math.round(a * 100) / 100;
+		const result2 = Math.round(b * 100) / 100;
+		const result3 = Math.round(c * 100) / 100;
+		const result4 = (result1 + result2 - result3).toFixed(2);
+		document.write(result4);
+	}
+
+	function result_ncofix_6(){
+		//(담보) 신규 코픽스 6개월 금리
+		const a = 3.820, b = 2.830, c = 1.200;
+
+		const result1 = Math.round(a * 100) / 100;
+		const result2 = Math.round(b * 100) / 100;
+		const result3 = Math.round(c * 100) / 100;
+		const result4 = (result1 + result2 - result3).toFixed(2);
+		document.write(result4);
+	}
+
+	function result_ncofix_12(){
+		//(담보) 신규 코픽스 12개월 금리
+		const a = 3.820, b = 2.740, c = 1.200;
+
+		const result1 = Math.round(a * 100) / 100;
+		const result2 = Math.round(b * 100) / 100;
+		const result3 = Math.round(c * 100) / 100;
+		const result4 = (result1 + result2 - result3).toFixed(2);
+		document.write(result4);
+	}
+
+	function result_scofix_6(){
+		//(담보) 신잔액 코픽스 6개월 금리
+		const a = 3.02, b = 3.34, c = 1.20;
+
+		const result1 = Math.round(a * 100) / 100;
+		const result2 = Math.round(b * 100) / 100;
+		const result3 = Math.round(c * 100) / 100;
+		const result4 = (result1 + result2 - result3).toFixed(2);
+		document.write(result4);
+	}
+
+	function result_scofix_12(){
+		//(담보) 신잔액 코픽스 12개월 금리
+		const a = 3.020, b = 3.380, c = 1.200;
+
+		const result1 = Math.round(a * 100) / 100;
+		const result2 = Math.round(b * 100) / 100;
+		const result3 = Math.round(c * 100) / 100;
+		const result4 = (result1 + result2 - result3).toFixed(2);
+		document.write(result4);
+	}
+
+	// ================ 전세 ================
+
+	function result_hf_2(){
+		//(전세) 주신보 2년 금융채 금리 
+		const a = 3.990, b = 1.490, c = 0.900;
+
+		const result1 = Math.round(a * 100) / 100;
+		const result2 = Math.round(b * 100) / 100;
+		const result3 = Math.round(c * 100) / 100;
+		const result4 = (result1 + result2 - result3).toFixed(2);
+		document.write(result4);
+	}
+
+	function hf_ncofix_6(){
+		//(전세) 주신보 신규 코픽스 6개월 금리
+		const a = 3.820, b = 2.830, c = 1.200;
+
+		const result1 = Math.round(a * 100) / 100;
+		const result2 = Math.round(b * 100) / 100;
+		const result3 = Math.round(c * 100) / 100;
+		const result4 = (result1 + result2 - result3).toFixed(2);
+		document.write(result4);
+	}
+
+	function hf_ncofix_12(){
+		//(전세) 주신보 신규 코픽스 12개월 금리
+		const a = 3.820, b = 2.740, c = 1.200;
+
+		const result1 = Math.round(a * 100) / 100;
+		const result2 = Math.round(b * 100) / 100;
+		const result3 = Math.round(c * 100) / 100;
+		const result4 = (result1 + result2 - result3).toFixed(2);
+		document.write(result4);
+	}
+
+	function result_scofix_6(){
+		//(전세) 주신보 신잔액 코픽스 6개월 금리
+		const a = 3.020, b = 3.340, c = 1.200;
+
+		const result1 = Math.round(a * 100) / 100;
+		const result2 = Math.round(b * 100) / 100;
+		const result3 = Math.round(c * 100) / 100;
+		const result4 = (result1 + result2 - result3).toFixed(2);
+		document.write(result4);
+	}
+
+	function result_scofix_12(){
+		//(전세) 주신보 신잔액 코픽스 12개월 금리
+		const a = 3.020, b = 3.380, c = 1.200;
+
+		const result1 = Math.round(a * 100) / 100;
+		const result2 = Math.round(b * 100) / 100;
+		const result3 = Math.round(c * 100) / 100;
+		const result4 = (result1 + result2 - result3).toFixed(2);
+		document.write(result4);
+	}
 
 </script>
 <body>
@@ -121,8 +235,8 @@
 				<p>기준금리 : <script type="text/javascript">mor_5();</script></p>
 				<p>가산금리 : 1.80</p>
 				<p>우대금리 : <script type="text/javascript">Prime_5();</script></p>
-				<p class="point">최저금리 : 4.91</p>
-				<script type="text/javascript">result_mor_5();</script>
+				<p class="point">최저금리 : <script type="text/javascript">result_mor_5();</script></p>
+				
 			</div>
 		</div>
 	</div>
@@ -134,35 +248,35 @@
 				<p>기준금리 :  <script type="text/javascript">mor_5();</script></p>
 				<p>가산금리 : 1.80</p>
 				<p>우대금리 : <script type="text/javascript">Prime_5();</script></p>
-				<p class="point">최저금리 : 4.91</p>
+				<p class="point">최저금리 : <script type="text/javascript">result_mor_5();</script></p>
 			</div>
 			<div class="box">
 				<p>신규 6개월 변동</p>
 				<p>기준금리 : <script type="text/javascript">ncofix();</script></p>
 				<p>가산금리 : 2.83</p>
 				<p>우대금리 : <script type="text/javascript">Prime_5();</script></p>
-				<p class="point">최저금리 : 5.45</p>
+				<p class="point">최저금리 : <script type="text/javascript">result_ncofix_6();</script></p>
 			</div>
 			<div class="box">
 				<p>신규 12개월 변동</p>
 				<p>기준금리 : <script type="text/javascript">ncofix();</script></p>
 				<p>가산금리 : 3.44</p>
 				<p>우대금리 : <script type="text/javascript">Prime_5();</script></p>
-				<p class="point">최저금리 : 5.36</p>
+				<p class="point">최저금리 : <script type="text/javascript">result_ncofix_12();</script></p>
 			</div>
 			<div class="box">
 				<p>신잔액 6개월 변동</p>
 				<p>기준금리 : <script type="text/javascript">scofix();</script></p>
-				<p>가산금리 : 3.34</p>
+				<p>가산금리 : 3.64</p>
 				<p>우대금리 : <script type="text/javascript">Prime_5();</script></p>
-				<p class="point">최저금리 : 4.86</p>
+				<p class="point">최저금리 : <script type="text/javascript">result_scofix_6();</script></p>
 			</div>
 			<div class="box">
 				<p>신잔액 12개월 변동</p>
 				<p>기준금리 : <script type="text/javascript">scofix();</script></p>
-				<p>가산금리 : 3.43</p>
+				<p>가산금리 : 3.73</p>
 				<p>우대금리 : <script type="text/javascript">Prime_5();</script></p>
-				<p class="point">최저금리 : 4.90</p>
+				<p class="point">최저금리 : <script type="text/javascript">result_scofix_12();</script></p>
 			</div>
 		</div>
 	</div>
@@ -175,20 +289,6 @@
 				<p>가산금리 : 1.49</p>
 				<p>우대금리 : <script type="text/javascript">Prime_2();</script></p>
 				<p class="point">최저금리 : 4.58</p>
-			</div>
-			<div class="box">
-				<p>신규 6개월 변동</p>
-				<p>기준금리 : <script type="text/javascript">ncofix();</script></p>
-				<p>가산금리 : 2.54</p>
-				<p>우대금리 : <script type="text/javascript">Prime_2();</script></p>
-				<p class="point">최저금리 : 5.46</p>
-			</div>
-			<div class="box">
-				<p>신규 12개월 변동</p>
-				<p>기준금리 : <script type="text/javascript">ncofix();</script></p>
-				<p>가산금리 : 2.49</p>
-				<p>우대금리 : <script type="text/javascript">Prime_2();</script></p>
-				<p class="point">최저금리 : 5.41</p>
 			</div>
 			<div class="box">
 				<p>신잔액 6개월 변동</p>
@@ -204,6 +304,20 @@
 				<p>우대금리 : <script type="text/javascript">Prime_2();</script></p>
 				<p class="point">최저금리 : 5.15</p>
 			</div>
+			<div class="box">
+				<p>신규 6개월 변동</p>
+				<p>기준금리 : <script type="text/javascript">ncofix();</script></p>
+				<p>가산금리 : 2.54</p>
+				<p>우대금리 : <script type="text/javascript">Prime_2();</script></p>
+				<p class="point">최저금리 : 5.46</p>
+			</div>
+			<div class="box">
+				<p>신규 12개월 변동</p>
+				<p>기준금리 : <script type="text/javascript">ncofix();</script></p>
+				<p>가산금리 : 2.49</p>
+				<p>우대금리 : <script type="text/javascript">Prime_2();</script></p>
+				<p class="point">최저금리 : 5.41</p>
+			</div>
 		</div>
 	</div>
 	<div id="tab04" class="tab-contents">
@@ -214,35 +328,21 @@
 				<p>기준금리 : <script type="text/javascript">mor_2();</script></p>
 				<p>가산금리 : 1.79</p>
 				<p>우대금리 : <script type="text/javascript">Prime_2();</script></p>
-				<p class="point">최저금리 : 4.88</p>
-			</div>
-			<div class="box">
-				<p>신규 6개월 변동</p>
-				<p>기준금리 : <script type="text/javascript">ncofix();</script></p>
-				<p>가산금리 : 2.51</p>
-				<p>우대금리 : <script type="text/javascript">Prime_2();</script></p>
-				<p class="point">최저금리 : 5.43</p>
-			</div>
-			<div class="box">
-				<p>신규 12개월 변동</p>
-				<p>기준금리 : <script type="text/javascript">ncofix();</script></p>
-				<p>가산금리 : 2.47</p>
-				<p>우대금리 : <script type="text/javascript">Prime_2();</script></p>
-				<p class="point">최저금리 : 5.39</p>
+				<p class="point">최저금리 : 4.74</p>
 			</div>
 			<div class="box">
 				<p>신잔액 6개월 변동</p>
 				<p>기준금리 : <script type="text/javascript">scofix();</script></p>
-				<p>가산금리 : 3.37</p>
+				<p>가산금리 : 3.67</p>
 				<p>우대금리 : <script type="text/javascript">Prime_2();</script></p>
-				<p class="point">최저금리 : 5.09</p>
+				<p class="point">최저금리 : 5.69</p>
 			</div>
 			<div class="box">
 				<p>신잔액 12개월 변동</p>
 				<p>기준금리 : <script type="text/javascript">scofix();</script></p>
-				<p>가산금리 : 3.66</p>
+				<p>가산금리 : 3.96</p>
 				<p>우대금리 : <script type="text/javascript">Prime_2();</script></p>
-				<p class="point">최저금리 : 5.33</p>
+				<p class="point">최저금리 : 5.98</p>
 			</div>
 		</div>
 	</div>
@@ -254,39 +354,25 @@
 				<p>기준금리 : <script type="text/javascript">mor_2();</script></p>
 				<p>가산금리 : 1.52</p>
 				<p>우대금리 : <script type="text/javascript">Prime_2();</script></p>
-				<p class="point">최저금리 : 4.61</p>
-			</div>
-			<div class="box">
-				<p>신규 6개월 변동</p>
-				<p>기준금리 : <script type="text/javascript">ncofix();</script></p>
-				<p>가산금리 : 2.25</p>
-				<p>우대금리 : <script type="text/javascript">Prime_2();</script></p>
-				<p class="point">최저금리 : 5.17</p>
-			</div>
-			<div class="box">
-				<p>신규 12개월 변동</p>
-				<p>기준금리 : <script type="text/javascript">ncofix();</script></p>
-				<p>가산금리 : 2.07</p>
-				<p>우대금리 : <script type="text/javascript">Prime_2();</script></p>
-				<p class="point">최저금리 : 4.99</p>
+				<p class="point">최저금리 : 4.47</p>
 			</div>
 			<div class="box">
 				<p>신잔액 6개월 변동</p>
 				<p>기준금리 : <script type="text/javascript">scofix();</script></p>
-				<p>가산금리 : 3.01</p>
+				<p>가산금리 : 3.31</p>
 				<p>우대금리 : <script type="text/javascript">Prime_2();</script></p>
-				<p class="point">최저금리 : 4.63</p>
+				<p class="point">최저금리 : 5.33</p>
 			</div>
 			<div class="box">
 				<p>신잔액 12개월 변동</p>
 				<p>기준금리 : <script type="text/javascript">scofix();</script></p>
-				<p>가산금리 : 3.16</p>
+				<p>가산금리 : 3.46</p>
 				<p>우대금리 : <script type="text/javascript">Prime_2();</script></p>
-				<p class="point">최저금리 : 4.73</p>
+				<p class="point">최저금리 : 5.48</p>
 			</div>
 		</div>
 	</div>
-	<p class="point last">※최근 접속기록이 없는경우 이전금리가 보여 새로고침후 다시 확인해야 합니다</p>
+	<p class="point last">※최근 접속기록이 없는경우 이전금리가 보여 새로고침후 다시 확인해야 합니다 <br/> 소수점은 올림으로 올려서 보면 됩니다.</p>
 </body>
 
 <script type="text/javascript">
