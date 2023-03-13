@@ -44,7 +44,7 @@
 
 <script type="text/javascript">
 	function mor_5(){
-		document.write('4.56');
+		document.write('4.44');
 		// 금융채 5년물
 	};
 	function addition_5() {
@@ -57,7 +57,7 @@
 	};
 
 	function mor_2(){
-		document.write('4.21');
+		document.write('4.18');
 		// 금융채 2년물
 	};
 	function ncofix(){
@@ -156,13 +156,9 @@
 		// HUG 신규12개월 가산금리
 	};
 
-
-
-	// ================ 담보 ================
-
 	function result_mor_5(){
 		//(담보) 5년 금융채 금리 
-		const a = 4.560, b = 1.800, c = 1.200;
+		const a = 4.440, b = 1.800, c = 1.200;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -215,11 +211,11 @@
 		document.write(result4);
 	}
 
-	// ================ 전세 ================
+	
 	// HF
 	function result_hf_2(){
 		//(전세) 주신보 2년 금융채 금리 
-		const a = 4.210, b = 1.490, c = 0.900;
+		const a = 4.180, b = 1.490, c = 0.900;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -275,7 +271,7 @@
 	// SGI
 	function result_sgi_2(){
 		//(전세) 서울보증 2년 금융채 금리 
-		const a = 4.210, b = 1.790, c = 0.900;
+		const a = 4.180, b = 1.790, c = 0.900;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -331,7 +327,7 @@
 	// HUG
 	function result_hug_2(){
 		//(전세) 주택도시보증 2년 금융채 금리 
-		const a = 4.210, b = 1.520, c = 0.900;
+		const a = 4.180, b = 1.520, c = 0.900;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -513,14 +509,14 @@
 	<div id="tab04" class="tab-contents"> <!-- SGI -->
 		<h3>KB 플러스 전세 (SGI)</h3>
 		<div class="list">
-			<div class="box">
+			<div class="box check">
 				<p>24개월 변동</p>
 				<p>기준금리 : <script type="text/javascript">mor_2();</script></p>
 				<p>가산금리 : <script type="text/javascript">addition_sgi_2();</script></p>
 				<p>우대금리 : <script type="text/javascript">Prime_2();</script></p>
 				<p class="point">최저금리 : <script type="text/javascript">result_sgi_2();</script></p>
 			</div>
-			<div class="box check">
+			<div class="box">
 				<p>신잔액 6개월 변동</p>
 				<p>기준금리 : <script type="text/javascript">scofix();</script></p>
 				<p>가산금리 : <script type="text/javascript">addition_sgi_s6();</script></p>
@@ -590,7 +586,7 @@
 			</div>
 		</div>
 	</div>
-	<p class="point last">※최근 접속기록이 없는경우 이전금리가 보여 새로고침후 다시 확인해야 합니다.</p>
+	<p class="point last">※최근 접속기록이 없는경우 이전금리가 보여 새로고침후 다시 확인해야 합니다 <br/> 소수점은 올림으로 올려서 보면 됩니다.</p>
 </body>
 
 <script type="text/javascript">
