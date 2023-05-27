@@ -45,7 +45,7 @@
 <script type="text/javascript">
 	// 담보
 	function mor_5(){
-		document.write('3.92');
+		document.write('4.13');
 		// 금융채 5년물
 	};
 	function addition_5() {
@@ -85,7 +85,7 @@
 
 	// 전세
 	function mor_2(){
-		document.write('3.79');
+		document.write('3.95');
 		// 금융채 2년물
 	};
 	function Prime_2(){
@@ -160,7 +160,7 @@
 
 	function result_mor_5(){
 		//(담보) 5년 금융채 금리 
-		const a = 3.920, b = 1.180, c = 0.900;
+		const a = 4.130, b = 1.180, c = 0.900;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -217,7 +217,7 @@
 	// HF
 	function result_hf_2(){
 		//(전세) 주신보 2년 금융채 금리 
-		const a = 3.79, b = 1.17, c = 0.90;
+		const a = 3.95, b = 1.17, c = 0.90;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -273,7 +273,7 @@
 	// SGI
 	function result_sgi_2(){
 		//(전세) 서울보증 2년 금융채 금리 
-		const a = 3.79, b = 1.44, c = 0.90;
+		const a = 3.95, b = 1.44, c = 0.90;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -329,7 +329,7 @@
 	// HUG
 	function result_hug_2(){
 		//(전세) 주택도시보증 2년 금융채 금리 
-		const a = 3.79, b = 1.20, c = 0.90;
+		const a = 3.95, b = 1.20, c = 0.90;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -511,14 +511,14 @@
 	<div id="tab04" class="tab-contents"> <!-- SGI -->
 		<h3>KB 플러스 전세 (SGI)</h3>
 		<div class="list">
-			<div class="box check">
+			<div class="box ">
 				<p>24개월 변동</p>
 				<p>기준금리 : <script type="text/javascript">mor_2();</script></p>
 				<p>가산금리 : <script type="text/javascript">addition_sgi_2();</script></p>
 				<p>우대금리 : <script type="text/javascript">Prime_2();</script></p>
 				<p class="point">최저금리 : <script type="text/javascript">result_sgi_2();</script></p>
 			</div>
-			<div class="box ">
+			<div class="box check">
 				<p>신규 6개월 변동</p>
 				<p>기준금리 : <script type="text/javascript">ncofix();</script></p>
 				<p>가산금리 : <script type="text/javascript">addition_sgi_n6();</script></p>
