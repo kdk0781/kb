@@ -49,8 +49,12 @@
 		// 금융채 5년물
 	};
 	function addition_5() {
-		document.write('1.09');
+		document.write('0.99');
 		// 금융채 5년물 가산금리
+	};
+	function addition_5v() {
+		document.write('1.09');
+		// 금융채 5년물 변동 가산금리
 	};
 	function Prime_5(){
 		document.write('0.90');
@@ -159,7 +163,18 @@
 	};
 
 	function result_mor_5(){
-		//(담보) 5년 금융채 금리 
+		//(담보) 5년 금융채 혼합금리 
+		const a = 4.550, b = 0.990, c = 0.900;
+
+		const result1 = Math.round(a * 100) / 100;
+		const result2 = Math.round(b * 100) / 100;
+		const result3 = Math.round(c * 100) / 100;
+		const result4 = (result1 + result2 - result3).toFixed(2);
+		document.write(result4);
+	}
+
+	function result_mor_5v(){
+		//(담보) 5년 금융채 변동금리 
 		const a = 4.550, b = 1.090, c = 0.900;
 
 		const result1 = Math.round(a * 100) / 100;
@@ -434,9 +449,9 @@
 			<div class="box check">
 				<p>5년변동</p>
 				<p>기준금리 :  <script type="text/javascript">mor_5();</script></p>
-				<p>가산금리 : <script type="text/javascript">addition_5();</script></p>
+				<p>가산금리 : <script type="text/javascript">addition_5v();</script></p>
 				<p>우대금리 : <script type="text/javascript">Prime_5();</script></p>
-				<p class="point">최저금리 : <script type="text/javascript">result_mor_5();</script></p>
+				<p class="point">최저금리 : <script type="text/javascript">result_mor_5v();</script></p>
 			</div>
 			<div class="box">
 				<p>신규 6개월 변동</p>
