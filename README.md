@@ -16,3 +16,4 @@
 <p>https://kdk0781.github.io/kb/220801.html - 22.08.01 생애최초 </p>
 <p>https://kdk0781.github.io/kb/print_color.html - 프린터 색상 </p>
 <p>https://kdk0781.github.io/kb/down.html - 다운로드 </p>
+<p>https://kdk0781.github.io/kb/check_house.html - 주택보유 산정기준</p>
