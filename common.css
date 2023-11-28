@@ -51,6 +51,8 @@ sup {font-size:20px; vertical-align:top; font-weight:bold; color:#DC143C;}
 .MaT_10 {margin:10px 0;}
 
 .TaL {text-align:left;}
+.txt_u {display:inline-block; position:relative; font-size:1em;}
+.txt_u:before {content:''; display:block; clear:both; border-bottom:1px solid #000; position:absolute; left:0; right:0; bottom:-5px; vertical-align:middle;}
 
 
 .last {text-align: right; padding: 0 20px 20px 0; font-size: 20px;}
@@ -71,11 +73,28 @@ sup {font-size:20px; vertical-align:top; font-weight:bold; color:#DC143C;}
 .title {width:100%; font-size:0; border-bottom:1px solid #000; }
 .title_box {display:inline-block; font-weight:bold;}
 
-.box_money {background:#F0E68C; padding:10px; text-align:left; margin-top:10px; border-top:1px solid #000;}
+.box_money {background:#F0E68C; padding:10px; text-align:left; margin-top:10px; border-top:1px solid #000; display: inline-block; text-align: center; -webkit-box-sizing: border-box; -moz-box-sizing: border-box; box-sizing: border-box; vertical-align:middle;}
 .box_money:first-child {margin-top:0; border-top:none 0;}
 .box_title {font-weight:bold;}
 
 .sup_txt {border-top:1px solid #000; font-size:10px; text-align:left; line-height:1.8;}
+
+.house {padding:.5%;}
+.house h1 {display:none;}
+.house .box_money {width:100%; display: inline-block; text-align: center; -webkit-box-sizing: border-box; -moz-box-sizing: border-box; box-sizing: border-box; vertical-align:middle; font-size:0;}
+.house .box_money sup {vertical-align:super; font-size:15px; color:red;}
+.house .box_money .box_money_w20,
+.house .box_money .box_money_w40,
+.house .box_money .box_money_w80 {display: inline-block; text-align: center; -webkit-box-sizing: border-box; -moz-box-sizing: border-box; box-sizing: border-box; vertical-align:middle;}
+.house .box_money .box_money_w20 .title,
+.house .box_money .box_money_w40 .title {display:block; font-size:30px; font-weight:bold; border-bottom:none; text-align:left;}
+.house .box_money .box_money_w20 .txt,
+.house .box_money .box_money_w40 .txt,
+.house .box_money .box_money_w80 .txt,
+.house .box_money .txt{display:block;font-size:20px; text-align:left; font-weight:300;}
+.house .box_money .box_money_w20 {width:20%;}
+.house .box_money .box_money_w40 {width:40%;}
+.house .box_money .box_money_w80 {width:80%;}
 
 
 
