@@ -45,15 +45,15 @@
 <script type="text/javascript">
 	// 담보
 	function mor_5(){
-		document.write('4.23');
+		document.write('4.17');
 		// 금융채 5년물
 	};
 	function addition_5() {
-		document.write('0.99');
+		document.write('0.98');
 		// 금융채 5년물 가산금리
 	};
 	function addition_5v() {
-		document.write('1.09');
+		document.write('0.99');
 		// 금융채 5년물 변동 가산금리
 	};
 	function Prime_5(){
@@ -66,11 +66,11 @@
 		// 신규 코픽스
 	};
 	function addition_n6() {
-		document.write('2.16');
+		document.write('2.15');
 		// 신규 코픽스 6개월 가산금리
 	};
 	function addition_n12() {
-		document.write('2.08');
+		document.write('2.07');
 		// 신규 코픽스 12개월 가산금리
 	};
 
@@ -79,17 +79,17 @@
 		// 신잔액 코픽스
 	};
 	function addition_s6() {
-		document.write('2.50');
+		document.write('2.49');
 		// 신잔액 코픽스 6개월 가산금리
 	};
 	function addition_s12() {
-		document.write('2.59');
+		document.write('2.58');
 		// 신잔액 코픽스 12개월 가산금리
 	};
 
 	// 전세
 	function mor_2(){
-		document.write('4.04');
+		document.write('3.96');
 		// 금융채 2년물
 	};
 	function Prime_2(){
@@ -164,7 +164,7 @@
 
 	function result_mor_5(){
 		//(담보) 5년 금융채 혼합금리 
-		const a = 4.230, b = 0.990, c = 0.900;
+		const a = 4.170, b = 0.980, c = 0.900;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -175,7 +175,7 @@
 
 	function result_mor_5v(){
 		//(담보) 5년 금융채 변동금리 
-		const a = 4.230, b = 1.090, c = 0.900;
+		const a = 4.170, b = 0.990, c = 0.900;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -186,7 +186,7 @@
 
 	function result_ncofix_6(){
 		//(담보) 신규 코픽스 6개월 금리
-		const a = 3.97, b = 2.16, c = 0.90;
+		const a = 3.97, b = 2.15, c = 0.90;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -197,7 +197,7 @@
 
 	function result_ncofix_12(){
 		//(담보) 신규 코픽스 12개월 금리
-		const a = 3.97, b = 2.08, c = 0.90;
+		const a = 3.97, b = 2.07, c = 0.90;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -208,7 +208,7 @@
 
 	function result_scofix_6(){
 		//(담보) 신잔액 코픽스 6개월 금리
-		const a = 3.33, b = 2.50, c = 0.90;
+		const a = 3.33, b = 2.49, c = 0.90;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -219,7 +219,7 @@
 
 	function result_scofix_12(){
 		//(담보) 신잔액 코픽스 12개월 금리
-		const a = 3.33, b = 2.59, c = 0.90;
+		const a = 3.33, b = 2.58, c = 0.90;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -232,7 +232,7 @@
 	// HF
 	function result_hf_2(){
 		//(전세) 주신보 2년 금융채 금리 
-		const a = 4.04, b = 1.38, c = 0.90;
+		const a = 3.96, b = 1.38, c = 0.90;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -288,7 +288,7 @@
 	// SGI
 	function result_sgi_2(){
 		//(전세) 서울보증 2년 금융채 금리 
-		const a = 4.04, b = 1.64, c = 0.90;
+		const a = 3.96, b = 1.64, c = 0.90;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -344,7 +344,7 @@
 	// HUG
 	function result_hug_2(){
 		//(전세) 주택도시보증 2년 금융채 금리 
-		const a = 4.04, b = 1.41, c = 0.90;
+		const a = 3.96, b = 1.41, c = 0.90;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
