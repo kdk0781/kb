@@ -96,9 +96,9 @@ sup {font-size:20px; vertical-align:top; font-weight:bold; color:#DC143C;}
 .house .box_money .box_money_w40 {width:40%;}
 .house .box_money .box_money_w80 {width:80%;}
 
-body.android .kb_list li:first-child,
-body.nomobile .kb_list li:first-child {display:none;}
-body.ios .kb_list li:first-child {display:block;}
+body.android .kb_list li:last-child,
+body.nomobile .kb_list li:last-child {display:none;}
+body.ios .kb_list li:last-child {display:block;}
 
 
 
