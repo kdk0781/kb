@@ -36,20 +36,29 @@
 </body>
 
 <script type="text/javascript">
-checkMobile() {
-  const mobileType = navigator.userAgent.toLowerCase();
- 
-  if (mobileType.indexOf('android') > -1) {
-    return window.open("https://play.google.com/store/apps/details?id=가고싶은 앱", "_blank");
-  }
-  else if (mobileType.indexOf('iphone') > -1 || mobileType.indexOf('ipad') > -1 || mobileType.indexOf('ipod') > -1) {
-    return window.open("https://kdk0781.github.io/kb/interest.html", "_self");
-	  alert(1);
-  }
-  else {
-    return // "해당 마켓에서 앱을 검색해주세요!" 나는 예외처리를 하였다..
-  }
-};
+function deviceModel(){
+    let currentOS;
+    const mobile = (/iphone|ipad|ipod|android/i.test( navigator.userAgent.toLowerCase() ));
+
+    if (mobile)
+    {
+        const userAgent = navigator.userAgent.toLowerCase();
+        if (userAgent.search("android") > -1) {
+            currentOS = "android";
+
+        const deviceAgent = 'Mozilla/5.0 (Linux; U; Android 2.2.1; en-us; device Build/FRG83) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Safari/533.1';
+        androidversion = parseFloat(deviceAgent.match(/Android\s+([\d\.]+)/)[1]);
+        document.querySelector('body').getAttribute('data-device', androidversion);
+
+        } else if ((userAgent.search("iphone") > -1) || (userAgent.search("ipod") > -1) || (userAgent.search("ipad") > -1)) {
+            currentOS = "ios";
+        } else { currentOS = "else"; }
+    }
+    else  {  currentOS = "nomobile"; }
+
+    document.querySelector('body').classList.add(currentOS);
+}
+deviceModel();
 </script>
 	
 </html>
