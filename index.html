@@ -7,7 +7,22 @@
 <link rel="stylesheet" href="reset.css" media="all">
 <link rel="stylesheet" href="common.css" media="all">
 <link rel="stylesheet" href="style.css" media="all">
+<script type="text/javascript">
+function checkMobile() {
+  const mobileType = navigator.userAgent.toLowerCase();
+ 
+  if (mobileType.indexOf('android') > -1) {
+    return window.open("https://kdk0781.github.io/kb/card.html", "_blank");
+  }
+  else if (mobileType.indexOf('iphone') > -1 || mobileType.indexOf('ipad') > -1 || mobileType.indexOf('ipod') > -1) {
+    return window.open("https://kdk0781.github.io/kb/interest.html", "_blank");
+  }
+  else {
+    return // "해당 마켓에서 앱을 검색해주세요!" 나는 예외처리를 하였다..
+  }
+};
 
+</script>
 <body>
 	<ul class="kb_list">
 		<!-- <li><a href="Interest_rates.html">국민은행 금리표</a></li> -->
