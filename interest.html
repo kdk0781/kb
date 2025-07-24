@@ -6,8 +6,8 @@
 	<meta name="description" content="" />
 	<meta http-equiv="content-type" content="text/html;charset=utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 	<title>국민은행 금리표</title>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 </head>
 
 
@@ -30,11 +30,10 @@
 
 .point {color:#FF0000; font-weight:bold;}
 .summary {color:#FF8000; padding:10px 20px 10px 20px; position:relative;}
-.up {animation: motion .4s linear 0s infinite alternate; margin-top: 0; display:inline-block; position:absolute; right:10px;; top:10px;}
+.up {animation: motion 0.3s linear 0s infinite alternate; margin-top: 0; display:inline-block; position:absolute; right:10px;; top:10px;}
 .up img {max-width:100%; width:80px; height:80px;}
 .last {margin:30px 0 0 20px;  padding-bottom:50px;}
-.check {background:#F5DA81; animation: left 1s ease-in-out 0s infinite alternate;}
-.last span {display:inline-block;}
+.check {background:#F5DA81; /* animation: left 3s ease-in-out 0s infinite alternate; */}
 
 
 @keyframes motion {
@@ -174,9 +173,31 @@
 		document.write(result4);
 	}
 
+	function result_mor_5e(){
+		//(담보) 5년 금융채 혼합금리 전자계약X
+		const a = 2.920, b = 2.17, c = 0.900;
+
+		const result1 = Math.round(a * 100) / 100;
+		const result2 = Math.round(b * 100) / 100;
+		const result3 = Math.round(c * 100) / 100;
+		const result4 = (result1 + result2 - result3).toFixed(2);
+		document.write(result4);
+	}
+
 	function result_mor_5v(){
 		//(담보) 5년 금융채 변동금리 
 		const a = 2.920, b = 2.17, c = 1.100;
+
+		const result1 = Math.round(a * 100) / 100;
+		const result2 = Math.round(b * 100) / 100;
+		const result3 = Math.round(c * 100) / 100;
+		const result4 = (result1 + result2 - result3).toFixed(2);
+		document.write(result4);
+	}
+
+	function result_mor_5ve(){
+		//(담보) 5년 금융채 변동금리 전자계약X 
+		const a = 2.920, b = 2.17, c = 0.900;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -196,9 +217,31 @@
 		document.write(result4);
 	}
 
+	function result_ncofix_6e(){
+		//(담보) 신규 코픽스 6개월 금리 전자계약X
+		const a = 2.54, b = 2.80, c = 0.900;
+
+		const result1 = Math.round(a * 100) / 100;
+		const result2 = Math.round(b * 100) / 100;
+		const result3 = Math.round(c * 100) / 100;
+		const result4 = (result1 + result2 - result3).toFixed(2);
+		document.write(result4);
+	}
+
 	function result_ncofix_12(){
 		//(담보) 신규 코픽스 12개월 금리
 		const a = 2.54, b = 2.75, c = 1.10;
+
+		const result1 = Math.round(a * 100) / 100;
+		const result2 = Math.round(b * 100) / 100;
+		const result3 = Math.round(c * 100) / 100;
+		const result4 = (result1 + result2 - result3).toFixed(2);
+		document.write(result4);
+	}
+
+	function result_ncofix_12e(){
+		//(담보) 신규 코픽스 12개월 금리 전자계약X
+		const a = 2.54, b = 2.75, c = 0.900;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -218,9 +261,31 @@
 		document.write(result4);
 	}
 
+	function result_scofix_6e(){
+		//(담보) 신잔액 코픽스 6개월 금리 전자계약X
+		const a = 2.63, b = 3.14, c = 0.900;
+
+		const result1 = Math.round(a * 100) / 100;
+		const result2 = Math.round(b * 100) / 100;
+		const result3 = Math.round(c * 100) / 100;
+		const result4 = (result1 + result2 - result3).toFixed(2);
+		document.write(result4);
+	}
+
 	function result_scofix_12(){
 		//(담보) 신잔액 코픽스 12개월 금리
 		const a = 2.63, b = 3.26, c = 1.10;
+
+		const result1 = Math.round(a * 100) / 100;
+		const result2 = Math.round(b * 100) / 100;
+		const result3 = Math.round(c * 100) / 100;
+		const result4 = (result1 + result2 - result3).toFixed(2);
+		document.write(result4);
+	}
+
+	function result_scofix_12e(){
+		//(담보) 신잔액 코픽스 12개월 금리 전자계약X
+		const a = 2.63, b = 3.26, c = 0.900;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -241,10 +306,31 @@
 		const result4 = (result1 + result2 - result3).toFixed(2);
 		document.write(result4);
 	}
+	function result_hf_2e(){
+		//(전세) 주신보 2년 금융채 금리  전자계약X
+		const a = 2.57, b = 2.17, c = 0.900;
+
+		const result1 = Math.round(a * 100) / 100;
+		const result2 = Math.round(b * 100) / 100;
+		const result3 = Math.round(c * 100) / 100;
+		const result4 = (result1 + result2 - result3).toFixed(2);
+		document.write(result4);
+	}
 	
 	function hf_ncofix_6(){
 		//(전세) 주신보 신규 코픽스 6개월 금리
 		const a = 2.54, b = 2.56, c = 1.10;
+
+		const result1 = Math.round(a * 100) / 100;
+		const result2 = Math.round(b * 100) / 100;
+		const result3 = Math.round(c * 100) / 100;
+		const result4 = (result1 + result2 - result3).toFixed(2);
+		document.write(result4);
+	}
+	
+	function hf_ncofix_6e(){
+		//(전세) 주신보 신규 코픽스 6개월 금리 전자계약X
+		const a = 2.54, b = 2.56, c = 0.900;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -264,6 +350,17 @@
 		document.write(result4);
 	}
 
+	function hf_ncofix_12e(){
+		//(전세) 주신보 신규 코픽스 12개월 금리 전자계약X
+		const a = 2.54, b = 2.63, c = 0.900;
+
+		const result1 = Math.round(a * 100) / 100;
+		const result2 = Math.round(b * 100) / 100;
+		const result3 = Math.round(c * 100) / 100;
+		const result4 = (result1 + result2 - result3).toFixed(2);
+		document.write(result4);
+	}
+
 	function hf_scofix_6(){
 		//(전세) 주신보 신잔액 코픽스 6개월 금리
 		const a = 2.63, b = 2.81, c = 1.10;
@@ -275,9 +372,31 @@
 		document.write(result4);
 	}
 
+	function hf_scofix_6e(){
+		//(전세) 주신보 신잔액 코픽스 6개월 금리 전자계약X
+		const a = 2.63, b = 2.81, c = 0.900;
+
+		const result1 = Math.round(a * 100) / 100;
+		const result2 = Math.round(b * 100) / 100;
+		const result3 = Math.round(c * 100) / 100;
+		const result4 = (result1 + result2 - result3).toFixed(2);
+		document.write(result4);
+	}
+
 	function hf_scofix_12(){
 		//(전세) 주신보 신잔액 코픽스 12개월 금리
 		const a = 2.63, b = 3.16, c = 1.10;
+
+		const result1 = Math.round(a * 100) / 100;
+		const result2 = Math.round(b * 100) / 100;
+		const result3 = Math.round(c * 100) / 100;
+		const result4 = (result1 + result2 - result3).toFixed(2);
+		document.write(result4);
+	}
+
+	function hf_scofix_12e(){
+		//(전세) 주신보 신잔액 코픽스 12개월 금리 전자계약X
+		const a = 2.63, b = 3.16, c = 0.900;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -298,9 +417,31 @@
 		document.write(result4);
 	}
 
+	function result_hug_2e(){
+		//(전세) 주택도시보증 2년 금융채 금리 전자계약X
+		const a = 2.57, b = 2.26, c = 0.900;
+
+		const result1 = Math.round(a * 100) / 100;
+		const result2 = Math.round(b * 100) / 100;
+		const result3 = Math.round(c * 100) / 100;
+		const result4 = (result1 + result2 - result3).toFixed(2);
+		document.write(result4);
+	}
+
 	function hug_ncofix_6(){
 		//(전세) 주택도시보증 신규 코픽스 6개월 금리
 		const a = 2.54, b = 2.59, c = 1.10;
+
+		const result1 = Math.round(a * 100) / 100;
+		const result2 = Math.round(b * 100) / 100;
+		const result3 = Math.round(c * 100) / 100;
+		const result4 = (result1 + result2 - result3).toFixed(2);
+		document.write(result4);
+	}
+
+	function hug_ncofix_6e(){
+		//(전세) 주택도시보증 신규 코픽스 6개월 금리 전자계약X
+		const a = 2.54, b = 2.59, c = 0.900;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -320,6 +461,17 @@
 		document.write(result4);
 	}
 
+	function hug_ncofix_12e(){
+		//(전세) 주택도시보증 신규 코픽스 12개월 금리 전자계약X
+		const a = 2.54, b = 2.53, c = 0.900;
+
+		const result1 = Math.round(a * 100) / 100;
+		const result2 = Math.round(b * 100) / 100;
+		const result3 = Math.round(c * 100) / 100;
+		const result4 = (result1 + result2 - result3).toFixed(2);
+		document.write(result4);
+	}
+
 	function hug_scofix_6(){
 		//(전세) 주택도시보증 신잔액 코픽스 6개월 금리
 		const a = 2.63, b = 2.84, c = 1.10;
@@ -331,9 +483,31 @@
 		document.write(result4);
 	}
 
+	function hug_scofix_6e(){
+		//(전세) 주택도시보증 신잔액 코픽스 6개월 금리 전자계약X
+		const a = 2.63, b = 2.84, c = 0.900;
+
+		const result1 = Math.round(a * 100) / 100;
+		const result2 = Math.round(b * 100) / 100;
+		const result3 = Math.round(c * 100) / 100;
+		const result4 = (result1 + result2 - result3).toFixed(2);
+		document.write(result4);
+	}
+
 	function hug_scofix_12(){
 		//(전세) 주택도시보증 신잔액 코픽스 12개월 금리
 		const a = 2.63, b = 3.06, c = 1.10;
+
+		const result1 = Math.round(a * 100) / 100;
+		const result2 = Math.round(b * 100) / 100;
+		const result3 = Math.round(c * 100) / 100;
+		const result4 = (result1 + result2 - result3).toFixed(2);
+		document.write(result4);
+	}
+
+	function hug_scofix_12e(){
+		//(전세) 주택도시보증 신잔액 코픽스 12개월 금리 전자계약X
+		const a = 2.63, b = 3.06, c = 0.900;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -354,9 +528,31 @@
 		document.write(result4);
 	}
 
+	function result_sgi_2e(){
+		//(전세) 서울보증 2년 금융채 금리 전자계약X
+		const a = 2.57, b = 2.56, c = 0.900;
+
+		const result1 = Math.round(a * 100) / 100;
+		const result2 = Math.round(b * 100) / 100;
+		const result3 = Math.round(c * 100) / 100;
+		const result4 = (result1 + result2 - result3).toFixed(2);
+		document.write(result4);
+	}
+
 	function sgi_ncofix_6(){
 		//(전세) 서울보증 신규 코픽스 6개월 금리
 		const a = 2.54, b = 2.68, c = 1.10;
+
+		const result1 = Math.round(a * 100) / 100;
+		const result2 = Math.round(b * 100) / 100;
+		const result3 = Math.round(c * 100) / 100;
+		const result4 = (result1 + result2 - result3).toFixed(2);
+		document.write(result4);
+	}
+
+	function sgi_ncofix_6e(){
+		//(전세) 서울보증 신규 코픽스 6개월 금리 전자계약X
+		const a = 2.54, b = 2.68, c = 0.900;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -376,6 +572,17 @@
 		document.write(result4);
 	}
 
+	function sgi_ncofix_12e(){
+		//(전세) 서울보증 신규 코픽스 12개월 금리 전자계약X
+		const a = 2.54, b = 2.76, c = 0.900;
+
+		const result1 = Math.round(a * 100) / 100;
+		const result2 = Math.round(b * 100) / 100;
+		const result3 = Math.round(c * 100) / 100;
+		const result4 = (result1 + result2 - result3).toFixed(2);
+		document.write(result4);
+	}
+
 	function sgi_scofix_6(){
 		//(전세) 서울보증 신잔액 코픽스 6개월 금리
 		const a = 2.63, b = 3.13, c = 1.10;
@@ -387,9 +594,31 @@
 		document.write(result4);
 	}
 
+	function sgi_scofix_6e(){
+		//(전세) 서울보증 신잔액 코픽스 6개월 금리 전자계약X
+		const a = 2.63, b = 3.13, c = 0.900;
+
+		const result1 = Math.round(a * 100) / 100;
+		const result2 = Math.round(b * 100) / 100;
+		const result3 = Math.round(c * 100) / 100;
+		const result4 = (result1 + result2 - result3).toFixed(2);
+		document.write(result4);
+	}
+
 	function sgi_scofix_12(){
 		//(전세) 서울보증 신잔액 코픽스 12개월 금리
 		const a = 2.63, b = 3.50, c = 1.10;
+
+		const result1 = Math.round(a * 100) / 100;
+		const result2 = Math.round(b * 100) / 100;
+		const result3 = Math.round(c * 100) / 100;
+		const result4 = (result1 + result2 - result3).toFixed(2);
+		document.write(result4);
+	}
+
+	function sgi_scofix_12e(){
+		//(전세) 서울보증 신잔액 코픽스 12개월 금리 전자계약X
+		const a = 2.63, b = 3.50, c = 0.900;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -425,11 +654,11 @@
 			let date = today.getDate();  // 날짜
 			let day = today.getDay();  // 요일
 
-			document.write(year + '년/ ' + month + '월/ ' + date + '일')
+			document.write(year + '/' + month + '/' + date)
+			// document.write(day);
 		</script>
 		</span> (연이율, %)
 	</p>
-	<!-- <p class="data">국민은행 우대금리 : 급여이체(0.3), 신용카드(0.3), 자동이체3건 (0.1), 적금30만원(0.1), 스타뱅킹(0.1), 전자계약(0.2)</p> -->
 
 	<div id="tab01" class="tab-contents"> <!-- 혼합금리 -->
 		<h3>혼합금리</h3>
@@ -450,9 +679,9 @@
 			<div class="box check">
 				<p>5년변동</p>
 				<p>기준금리 :  <script type="text/javascript">mor_5();</script></p>
-				<p>가산금리 : <script type="text/javascript">addition_5v();</script></p>
+				<p>가산금리 : <script type="text/javascript">addition_5();</script></p>
 				<p>우대금리 : <script type="text/javascript">Prime_5();</script></p>
-				<p class="point">최저금리 : <script type="text/javascript">result_mor_5v();</script></p>
+				<p class="point">최저금리 : <script type="text/javascript">result_mor_5();</script></p>
 			</div>
 			<div class="box">
 				<p>신규 6개월 변동</p>
@@ -468,7 +697,7 @@
 				<p>우대금리 : <script type="text/javascript">Prime_5();</script></p>
 				<p class="point">최저금리 : <script type="text/javascript">result_ncofix_12();</script></p>
 			</div>
-			<div class="box ">
+			<div class="box">
 				<p>신잔액 6개월 변동</p>
 				<p>기준금리 : <script type="text/javascript">scofix();</script></p>
 				<p>가산금리 : <script type="text/javascript">addition_s6();</script></p>
@@ -494,7 +723,7 @@
 				<p>우대금리 : <script type="text/javascript">Prime_2();</script></p>
 				<p class="point">최저금리 : <script type="text/javascript">result_hf_2();</script></p>
 			</div>
-			<div class="box ">
+			<div class="box">
 				<p>신규 6개월 변동</p>
 				<p>기준금리 : <script type="text/javascript">ncofix();</script></p>
 				<p>가산금리 : <script type="text/javascript">addition_hf_n6();</script></p>
@@ -508,7 +737,7 @@
 				<p>우대금리 : <script type="text/javascript">Prime_2();</script></p>
 				<p class="point">최저금리 : <script type="text/javascript">hf_ncofix_12();</script></p>
 			</div>
-			<div class="box ">
+			<div class="box">
 				<p>신잔액 6개월 변동</p>
 				<p>기준금리 : <script type="text/javascript">scofix();</script></p>
 				<p>가산금리 : <script type="text/javascript">addition_hf_s6();</script></p>
@@ -534,7 +763,7 @@
 				<p>우대금리 : <script type="text/javascript">Prime_2();</script></p>
 				<p class="point">최저금리 : <script type="text/javascript">result_sgi_2();</script></p>
 			</div>
-			<div class="box">
+			<div class="box ">
 				<p>신규 6개월 변동</p>
 				<p>기준금리 : <script type="text/javascript">ncofix();</script></p>
 				<p>가산금리 : <script type="text/javascript">addition_sgi_n6();</script></p>
@@ -548,7 +777,7 @@
 				<p>우대금리 : <script type="text/javascript">Prime_2();</script></p>
 				<p class="point">최저금리 : <script type="text/javascript">sgi_ncofix_12();</script></p>
 			</div>
-			<div class="box ">
+			<div class="box">
 				<p>신잔액 6개월 변동</p>
 				<p>기준금리 : <script type="text/javascript">scofix();</script></p>
 				<p>가산금리 : <script type="text/javascript">addition_sgi_s6();</script></p>
@@ -604,6 +833,7 @@
 			</div>
 		</div>
 	</div>
+	<p class="point last">※ 최근 접속기록이 없는경우 이전금리가 보여 새로고침후 다시 확인해야 합니다.</p>
 </body>
 
 <script type="text/javascript">
@@ -628,9 +858,6 @@
 		console.log(select_link);
 	});
 
-	setTimeout(function(){
-		location.reload();
-	},60000); // 1000 - 1초
 </script>
 
 </html>
