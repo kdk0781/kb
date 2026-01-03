@@ -1,5 +1,4 @@
 # kb
-<p>https://kdk0781.github.io/kb/Interest_rates.html - 국민은행 금리표 </p>
 <p>https://kdk0781.github.io/kb/check_list.html - 대출 상담시 체크사항 </p>
 <p>https://kdk0781.github.io/kb/check.html   - 국민은행 우대금리 항목</p>
 <p>https://kdk0781.github.io/kb/20200714.html - 국민은행 전세자금 대출 안내</p>
