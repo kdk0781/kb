@@ -119,7 +119,7 @@ function addLoan() {
                 </div>
                 <div>
                     <label>대출 잔액 (원)</label>
-                    <input type="text" class="l-principal" onkeyup="formatComma(this)" placeholder="원금">
+					<input type="text" class="l-principal" inputmode="numeric" onkeyup="formatComma(this)" placeholder="원금">
                 </div>
                 <div>
                     <label>금리 (%)</label>
@@ -221,4 +221,5 @@ addLoan();
 </body>
 
 </html>
+
 
