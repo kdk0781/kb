@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>대출 계산기</title>
+    <style>
+        :root { --kb-yellow: #FFCC00; --kb-dark: #262626; --soft-bg: #f8f9fa; }
+        body { font-family: 'Pretendard', -apple-system, sans-serif; background: var(--soft-bg); padding: 20px; color: #333; line-height: 1.6; }
+        .container { max-width: 750px; margin: auto; background: #fff; padding: 30px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+        .header { text-align: center; margin-bottom: 30px; }
+        .header h2 { margin: 0; color: var(--kb-dark); font-weight: 800; border-bottom: 4px solid var(--kb-yellow); display: inline-block; padding-bottom: 5px; }
+        
+        /* 입력 섹션 */
+        .input-section { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
+        .input-group { display: flex; flex-direction: column; }
+        label { font-size: 13px; font-weight: 700; color: #666; margin-bottom: 8px; }
+        input, select { padding: 14px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; transition: all 0.2s; }
+        input:focus { border-color: var(--kb-yellow); outline: none; box-shadow: 0 0 0 3px rgba(255, 204, 0, 0.2); }
+        
+        button { width: 100%; padding: 16px; background: var(--kb-yellow); color: var(--kb-dark); border: none; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-bottom: 30px; }
+        button:hover { background: #edbc00; transform: translateY(-1px); }
+
+        /* 결과 리포트 */
+        .summary-card { background: #fffdf2; border: 1px solid #f2e7b5; padding: 20px; border-radius: 12px; display: none; margin-bottom: 30px; }
+        .summary-row { display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 8px; }
+        .total-val { font-weight: 800; color: #d32f2f; font-size: 1.2rem; }
+
+        /* 테이블 및 연도 구분 스타일 */
+        .table-wrapper { overflow-x: auto; display: none; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 550px; }
+        th { background: #eee; padding: 12px; font-weight: bold; border-bottom: 2px solid #ddd; }
+        td { padding: 12px; border-bottom: 1px solid #eee; text-align: right; }
+        
+        /* 1년 주기 배경색 클래스 */
+        .year-even { background-color: #ffffff; } /* 1년차, 3년차... */
+        .year-odd { background-color: #f1f5f9; }  /* 2년차, 4년차... */
+        
+        .year-divider { background-color: #e2e8f0; text-align: center !important; font-weight: bold; font-size: 12px; color: #475569; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h2>💰 대출 상환 계산기/h2>
+    </div>
+
+    <div class="input-section">
+        <div class="input-group" style="grid-column: span 2;">
+            <label>대출 원금 (원)</label>
+            <input type="text" id="amount" onkeyup="formatComma(this)" placeholder="예: 50,000,000">
+        </div>
+        <div class="input-group">
+            <label>연 이자율 (%)</label>
+            <input type="number" id="rate" step="0.1" placeholder="예: 4.5">
+        </div>
+        <div class="input-group">
+            <label>대출 기간 (개월)</label>
+            <input type="number" id="months" placeholder="예: 24">
+        </div>
+        <div class="input-group" style="grid-column: span 2;">
+            <label>상환 방식 선택</label>
+            <select id="type">
+                <option value="level">원리금균등상환 (매월 같은 금액)</option>
+                <option value="principal">원금균등상환 (매월 원금만 똑같이)</option>
+                <option value="bullet">만기일시상환 (매월 이자만, 마지막에 원금)</option>
+            </select>
+        </div>
+    </div>
+
+    <button onclick="calculateAll()">상환 계획표 생성</button>
+
+    <div id="summaryCard" class="summary-card">
+        <div class="summary-row"><span>총 이자 합계</span> <span id="sumInt">0원</span></div>
+        <div class="summary-row"><span>총 상환금액 (원금+이자)</span> <span id="sumTotal" class="total-val">0원</span></div>
+    </div>
+
+    <div id="tableWrapper" class="table-wrapper">
+        <p style="font-size: 12px; color: #888; margin-bottom: 10px;">* 1년(12개월) 단위로 색상이 구분됩니다.</p>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 15%;">회차</th>
+                    <th>상환액</th>
+                    <th>원금</th>
+                    <th>이자</th>
+                    <th>잔액</th>
+                </tr>
+            </thead>
+            <tbody id="scheduleBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+function formatComma(obj) {
+    let val = obj.value.replace(/[^0-9]/g, "");
+    obj.value = val.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+function getCleanNum(id) {
+    return Number(document.getElementById(id).value.replace(/,/g, ""));
+}
+
+function calculateAll() {
+    const P = getCleanNum('amount');
+    const annualRate = Number(document.getElementById('rate').value) / 100;
+    const r = annualRate / 12;
+    const n = Number(document.getElementById('months').value);
+    const type = document.getElementById('type').value;
+
+    if (!P || !annualRate || !n) {
+        alert("모든 항목을 올바르게 입력해주세요.");
+        return;
+    }
+
+    let schedule = [];
+    let totalInt = 0;
+    let balance = P;
+
+    if (type === 'level') {
+        const monthlyPmt = (P * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+        for (let i = 1; i <= n; i++) {
+            let interest = Math.round(balance * r);
+            let principal = Math.round(monthlyPmt - interest);
+            balance -= principal;
+            if (i === n) { principal += balance; balance = 0; }
+            totalInt += interest;
+            schedule.push({ i, pmt: Math.round(monthlyPmt), prn: principal, int: interest, bal: Math.max(0, balance) });
+        }
+    } else if (type === 'principal') {
+        const monthlyPrn = Math.floor(P / n);
+        for (let i = 1; i <= n; i++) {
+            let interest = Math.round(balance * r);
+            let actualPrn = (i === n) ? balance : monthlyPrn;
+            let pmt = actualPrn + interest;
+            balance -= actualPrn;
+            totalInt += interest;
+            schedule.push({ i, pmt, prn: actualPrn, int: interest, bal: Math.max(0, balance) });
+        }
+    } else if (type === 'bullet') {
+        const monthlyInt = Math.round(P * r);
+        for (let i = 1; i <= n; i++) {
+            let interest = monthlyInt;
+            let principal = (i === n) ? P : 0;
+            let pmt = principal + interest;
+            totalInt += interest;
+            schedule.push({ i, pmt, prn: principal, int: interest, bal: (i === n ? 0 : P) });
+        }
+    }
+
+    render(schedule, P, totalInt);
+}
+
+function render(schedule, P, totalInt) {
+    document.getElementById('summaryCard').style.display = 'block';
+    document.getElementById('sumInt').innerText = Math.round(totalInt).toLocaleString() + "원";
+    document.getElementById('sumTotal').innerText = Math.round(P + totalInt).toLocaleString() + "원";
+
+    const body = document.getElementById('scheduleBody');
+    body.innerHTML = '';
+    
+    schedule.forEach((row, idx) => {
+        // 1년(12개월) 단위로 연도 계산 및 클래스 지정
+        const yearNum = Math.floor((row.i - 1) / 12) + 1;
+        const yearClass = (yearNum % 2 === 0) ? 'year-odd' : 'year-even';
+
+        // 연도가 바뀔 때 구분선 행 추가 (선택사항)
+        if (row.i > 1 && (row.i - 1) % 12 === 0) {
+            const divider = document.createElement('tr');
+            divider.innerHTML = `<td colspan="5" class="year-divider">▲ 대출 ${yearNum-1}년차 종료 / ${yearNum}년차 시작 ▼</td>`;
+            body.appendChild(divider);
+        }
+
+        const tr = document.createElement('tr');
+        tr.className = yearClass;
+        tr.innerHTML = `
+            <td style="text-align:center">${row.i}회</td>
+            <td><b>${row.pmt.toLocaleString()}</b></td>
+            <td>${row.prn.toLocaleString()}</td>
+            <td>${row.int.toLocaleString()}</td>
+            <td>${row.bal.toLocaleString()}</td>
+        `;
+        body.appendChild(tr);
+    });
+    
+    document.getElementById('tableWrapper').style.display = 'block';
+}
+</script>
+
+</body>
+</html>
