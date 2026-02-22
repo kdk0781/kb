@@ -48,11 +48,18 @@
         <h2>📊 DSR 시뮬레이터</h2>
     </div>
 
-    <div class="section-title">연소득 정보</div>
-    <div class="input-card">
-        <label>연간 세전 소득 (원)</label>
-        <input type="text" id="income" onkeyup="formatComma(this)" placeholder="예: 60,000,000">
-    </div>
+	<div class="section-title">연소득 정보</div>
+	<div class="input-card">
+		<label>연간 세전 소득 (원)</label>
+		<input 
+			type="text" 
+			id="income" 
+			inputmode="numeric" 
+			pattern="[0-9]*" 
+			onkeyup="formatComma(this)" 
+			placeholder="예: 60,000,000"
+		>
+	</div>
 
     <div class="section-title">대출 항목 상세 설정</div>
     <div id="loanList"></div>
@@ -214,3 +221,4 @@ addLoan();
 </body>
 
 </html>
+
