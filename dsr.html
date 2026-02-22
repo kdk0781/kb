@@ -3,151 +3,155 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DSR 시뮬레이터</title>
+    <title>KB 통합 DSR 분석기</title>
     <style>
-        :root { --kb-yellow: #FFCC00; --kb-dark: #262626; --safe: #2ecc71; --warning: #f1c40f; --danger: #e74c3c; }
-        body { font-family: 'Pretendard', -apple-system, sans-serif; background: #f0f2f5; margin: 0; padding: 15px; color: #333; }
+        :root { --kb-yellow: #FFCC00; --kb-dark: #262626; --safe: #2ecc71; --danger: #e74c3c; --blue: #3498db; }
+        body { font-family: 'Pretendard', sans-serif; background: #f0f2f5; margin: 0; padding: 15px; color: #333; }
         .container { max-width: 900px; margin: auto; background: #fff; padding: 25px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); }
-        
         .header { text-align: center; margin-bottom: 25px; }
-        .header h2 { font-weight: 800; border-bottom: 5px solid var(--kb-yellow); display: inline-block; padding-bottom: 5px; margin-bottom: 10px; }
-        .header p { font-size: 13px; color: #666; margin: 0; }
-
+        .header h2 { font-weight: 800; border-bottom: 5px solid var(--kb-yellow); display: inline-block; padding-bottom: 5px; }
         .section-title { font-size: 18px; font-weight: bold; margin: 25px 0 10px; display: flex; align-items: center; color: var(--kb-dark); }
         .section-title::before { content: ""; width: 4px; height: 18px; background: var(--kb-yellow); margin-right: 10px; border-radius: 2px; }
-
         .input-card { background: #fdfdfd; padding: 20px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #eef0f2; position: relative; }
         .grid-row { display: grid; grid-template-columns: 1.8fr 1.2fr 0.8fr 0.8fr; gap: 12px; }
-        
         @media (max-width: 768px) { .grid-row { grid-template-columns: 1fr 1fr; } }
-        @media (max-width: 480px) { .grid-row { grid-template-columns: 1fr; } }
-
         label { display: block; font-size: 11px; font-weight: 700; color: #888; margin-bottom: 5px; }
         input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
-        
-        .btn-add { background: #fff; border: 2px dashed #ddd; padding: 15px; border-radius: 10px; width: 100%; cursor: pointer; font-weight: bold; margin-bottom: 20px; color: #777; transition: 0.2s; }
-        .btn-add:hover { border-color: var(--kb-yellow); background: #fffdf0; }
-        
+        input::placeholder { color: #ccc; font-style: italic; }
+        .btn-add { background: #fff; border: 2px dashed #ddd; padding: 15px; border-radius: 10px; width: 100%; cursor: pointer; font-weight: bold; margin-bottom: 20px; color: #777; }
         .btn-calc { width: 100%; padding: 20px; background: var(--kb-dark); color: var(--kb-yellow); border: none; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; }
-
         .result-box { margin-top: 30px; display: none; padding: 30px; border-radius: 20px; background: #fffdf2; border: 1px solid #ffe58f; }
         .dsr-main-val { font-size: 3.5rem; font-weight: 900; margin: 5px 0; text-align: center; }
-        .progress-container { background: #eee; height: 12px; border-radius: 6px; margin: 20px 0; overflow: hidden; }
-        .progress-bar { height: 100%; width: 0%; transition: width 1s ease; }
-        
+        .max-limit-card { background: var(--kb-dark); color: #fff; padding: 25px; border-radius: 15px; margin-top: 20px; }
+        .max-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+        .max-item { text-align: center; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 10px; }
+        .max-item label { color: var(--kb-yellow); font-size: 13px; margin-bottom: 8px; display: block; }
+        .max-val { font-size: 1.6rem; font-weight: 900; color: #fff; }
+        .pros-cons-box { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .method-guide { background: #fff; padding: 15px; border-radius: 10px; color: #333; }
+        .method-guide strong { display: block; margin-bottom: 10px; font-size: 14px; border-bottom: 1px solid #eee; padding-bottom: 5px; color: var(--kb-dark); }
+        .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; margin-right: 5px; }
+        .badge.plus { background: #e8f8f0; color: #2ecc71; }
+        .badge.minus { background: #fef1f0; color: #e74c3c; }
+        .guide-item { margin-bottom: 8px; font-size: 11px; display: flex; align-items: flex-start; line-height: 1.4; }
+        .limit-card { background: #fff; border: 2.8px solid var(--blue); padding: 20px; border-radius: 15px; text-align: center; margin-top: 20px; }
+        .limit-val { font-size: 2.2rem; font-weight: 900; color: var(--blue); margin: 5px 0; }
         .btn-remove { position: absolute; top: 0px; right: 12px; color: #ccc; cursor: pointer; border: none; background: none; font-size: 30px; }
-        .btn-remove:hover { color: #ff4d4d; }
-
-        .guide-box { font-size: 12px; color: #777; background: #f8f9fa; padding: 15px; border-radius: 10px; margin-top: 20px; line-height: 1.6; }
+        .wiki-guide { margin-top: 25px; background: #f8f9fa; padding: 20px; border-radius: 15px; border: 1px solid #eee; font-size: 12px; }
+        .wiki-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .wiki-table th, .wiki-table td { border-bottom: 1px solid #eee; padding: 6px 2px; text-align: left; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="header">
-        <h2>📊 DSR 시뮬레이터</h2>
+    <div class="header"><h2>📊 DSR 통합 분석기</h2></div>
+
+    <div class="section-title">1. 연소득 정보</div>
+    <div class="input-card">
+        <label>연간 세전 소득 (원)</label>
+        <input type="text" id="income" inputmode="numeric" onkeyup="formatComma(this)" placeholder="예: 50,000,000">
     </div>
 
-	<div class="section-title">연소득 정보</div>
-	<div class="input-card">
-		<label>연간 세전 소득 (원)</label>
-		<input 
-			type="text" 
-			id="income" 
-			inputmode="numeric" 
-			pattern="[0-9]*" 
-			onkeyup="formatComma(this)" 
-			placeholder="예: 60,000,000"
-		>
-	</div>
-
-    <div class="section-title">대출 항목 상세 설정</div>
+    <div class="section-title">2. 부채 상세 설정 (금리 직접 입력)</div>
     <div id="loanList"></div>
-    <button class="btn-add" onclick="addLoan()">+ 대출 항목 추가</button>
+    <button class="btn-add" onclick="addLoan()">+ 부채 항목 추가</button>
 
     <button class="btn-calc" onclick="calculateTotalDSR()">분석 시작</button>
 
     <div id="resultArea" class="result-box">
-        <div style="font-weight: bold; font-size: 18px; color: #444; text-align: center;">종합 DSR 결과</div>
+        <div style="font-weight: bold; font-size: 16px; color: #444; text-align: center;">종합 분석 결과</div>
         <div id="dsrVal" class="dsr-main-val">0%</div>
-        <div class="progress-container">
-            <div id="dsrBar" class="progress-bar"></div>
+        <p id="dsrMsg" style="font-weight: bold; font-size: 16px; text-align: center; margin-bottom: 20px;"></p>
+
+        <div class="max-limit-card">
+            <div class="max-grid">
+                <div class="max-item">
+                    <label>원리금균등 최대 한도</label>
+                    <div id="absMaxLevel" class="max-val">0원</div>
+                </div>
+                <div class="max-item">
+                    <label>원금균등 최대 한도</label>
+                    <div id="absMaxPrin" class="max-val">0원</div>
+                </div>
+            </div>
+            <div class="pros-cons-box">
+                <div class="method-guide">
+                    <strong>⚖️ 원리금균등</strong>
+                    <div class="guide-item"><span class="badge plus">장점</span> 매달 지출 금액이 일정함</div>
+                    <div class="guide-item"><span class="badge minus">단점</span> 대출 가능 한도가 낮게 산출됨</div>
+                    <div class="guide-item"><span class="badge minus">단점</span> 총 이자 부담이 큼</div>
+                </div>
+                <div class="method-guide">
+                    <strong>⚖️ 원금균등</strong>
+                    <div class="guide-item"><span class="badge plus">장점</span> 이자 절감 효과 최대</div>
+                    <div class="guide-item"><span class="badge minus">장점</span> 대출 한도가 더 많이 나옴<</div>
+                    <div class="guide-item"><span class="badge minus">단점</span> 초기 상환액 부담이 매우 높음<</div>
+                </div>
+            </div>
         </div>
-        <p id="dsrMsg" style="font-weight: bold; font-size: 18px; text-align: center;"></p>
-        
-        <div id="detailInfo" style="font-size: 14px; color: #444; background: #fff; padding: 20px; border-radius: 12px; margin-top: 20px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);"></div>
-        
-        <div class="guide-box">
-            <strong>💡 대출별 DSR 산정 방식 안내</strong><br>
-            • <b>중도금/이주비:</b> 원금 제외, 1년치 <b>이자</b>만 반영<br>
-            • <b>비주택 담보:</b> 실제 상환 방식과 상관없이 <b>가상 만기(8년)</b> 분할상환 적용<br>
-            • <b>예적금/보험계약 담보:</b> 원금 제외, 1년치 <b>이자</b>만 반영<br>
-            • <b>신용대출:</b> 실제 기간과 무관하게 <b>5년</b> 분할상환 가정
+
+        <div class="limit-card">
+            <div style="font-weight:bold; color:#555; font-size:14px;">기존 부채 제외 추가 가능액</div>
+            <div id="remainingLimit" class="limit-val">0원</div>
+            <p id="limitGuide" style="font-size:11px; color:#888; margin-top:8px;"></p>
+        </div>
+
+        <div class="wiki-guide">
+            <strong>💡 부채 산정 방식 (부동산 위키 기준)</strong>
+            <table class="wiki-table">
+                <thead><tr><th>종류</th><th>원금 산정</th><th>이자</th></tr></thead>
+                <tbody>
+                    <tr><td><b>주담대</b></td><td>실제 상환 (일시 10년)</td><td>실제</td></tr>
+                    <tr><td><b>전세</b></td><td><b>제외</b></td><td>실제 이자</td></tr>
+                    <tr><td><b>신용</b></td><td>총액 / 5년</td><td>실제</td></tr>
+                    <tr><td><b>카드론</b></td><td>총액 / 3년</td><td>실제</td></tr>
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
 
 <script>
-let loanCount = 0;
-
 function formatComma(obj) {
     let val = obj.value.replace(/[^0-9]/g, "");
     obj.value = val.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
+function getNum(val) { return Number(val.replace(/,/g, "")) || 0; }
 
-function getNum(val) {
-    return Number(val.replace(/,/g, "")) || 0;
-}
-
+let loanCount = 0;
 function addLoan() {
     loanCount++;
-    const loanHtml = `
+    const html = `
         <div class="input-card" id="loan_${loanCount}">
-            <button class="btn-remove" onclick="removeLoan(${loanCount})">&times;</button>
+            <button class="btn-remove" onclick="document.getElementById('loan_${loanCount}').remove()">&times;</button>
             <div class="grid-row">
                 <div>
                     <label>대출 종류</label>
                     <select class="l-category" onchange="applyPolicy(${loanCount})">
                         <option value="mortgage_level">주택담보 (원리금균등)</option>
                         <option value="mortgage_prin">주택담보 (원금균등)</option>
-                        <option value="credit">신용대출 (가상 5년)</option>
-                        <option value="non_house">비주택 담보 (가상 8년)</option>
                         <option value="jeonse">전세자금대출 (이자만)</option>
-                        <option value="interim">중도금 / 이주비 (이자만)</option>
-                        <option value="deposit">예적금 / 보험계약 담보 (이자만)</option>
+                        <option value="credit">신용대출 (가상 5년)</option>
+                        <option value="card_loan">장기카드대출 (가상 3년)</option>
                     </select>
                 </div>
-                <div>
-                    <label>대출 잔액 (원)</label>
-					<input type="text" class="l-principal" inputmode="numeric" onkeyup="formatComma(this)" placeholder="원금">
-                </div>
-                <div>
-                    <label>금리 (%)</label>
-                    <input type="number" class="l-rate" step="0.1" placeholder="금리">
-                </div>
-                <div>
-                    <label class="l-months-label">기간 (개월)</label>
-                    <input type="number" class="l-months" placeholder="기간">
-                </div>
+                <div><label>원금/잔액 (원)</label><input type="text" class="l-p" onkeyup="formatComma(this)" inputmode="numeric"></div>
+                <div><label>금리 (%)</label><input type="number" class="l-r" step="0.01" placeholder="예: 4.5"></div>
+                <div><label>기간 (개월)</label><input type="number" class="l-m" placeholder="360" value="360"></div>
             </div>
-        </div>
-    `;
-    document.getElementById('loanList').insertAdjacentHTML('beforeend', loanHtml);
+        </div>`;
+    document.getElementById('loanList').insertAdjacentHTML('beforeend', html);
 }
-
-function removeLoan(id) { document.getElementById(`loan_${id}`).remove(); }
 
 function applyPolicy(id) {
     const card = document.getElementById(`loan_${id}`);
     const cat = card.querySelector('.l-category').value;
-    const months = card.querySelector('.l-months');
-    const label = card.querySelector('.l-months-label');
-
-    months.readOnly = false;
-    if(cat === 'credit') { months.value = 60; label.innerText = "가상 기간 (60)"; }
-    else if(cat === 'non_house') { months.value = 96; label.innerText = "가상 기간 (96)"; }
-    else if(['interim', 'deposit', 'jeonse'].includes(cat)) { months.value = 24; label.innerText = "약정 기간 (개월)"; }
-    else { label.innerText = "상환 기간 (개월)"; }
+    const m = card.querySelector('.l-m');
+    if(cat === 'credit') m.value = "60";
+    else if(cat === 'card_loan') m.value = "36";
+    else if(cat === 'jeonse') m.value = "24";
+    else m.value = "360";
 }
 
 function calculateTotalDSR() {
@@ -155,72 +159,61 @@ function calculateTotalDSR() {
     if (income <= 0) { alert("연소득을 입력해주세요."); return; }
 
     let totalAnnualPay = 0;
+    let firstRate = 0;
+    let isSelectedPrin = false;
     const items = document.querySelectorAll('[id^="loan_"]');
+    
+    if(items.length === 0) { alert("대출 항목을 추가해주세요."); return; }
 
-    items.forEach(item => {
+    let valid = true;
+    items.forEach((item, index) => {
         const cat = item.querySelector('.l-category').value;
-        const P = getNum(item.querySelector('.l-principal').value);
-        const R = Number(item.querySelector('.l-rate').value) / 100;
-        const n = Number(item.querySelector('.l-months').value);
+        const P = getNum(item.querySelector('.l-p').value);
+        const R_raw = item.querySelector('.l-r').value;
+        const n_raw = item.querySelector('.l-m').value;
+        
+        if (P > 0) {
+            if (!R_raw) { valid = false; return; }
+            const R = Number(R_raw) / 100;
+            const n = Number(n_raw);
+            if (index === 0) { firstRate = Number(R_raw); isSelectedPrin = (cat === 'mortgage_prin'); }
 
-        if (P > 0 && R > 0) {
             let annual = 0;
             const r = R / 12;
-
-            if (['mortgage_level', 'credit', 'non_house'].includes(cat)) {
-                // 원리금균등 방식 (비주택은 가상 8년 반영된 n값 사용)
-                annual = ((P * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1)) * 12;
-            } else if (cat === 'mortgage_prin') {
-                // 원금균등 방식
-                annual = (P / n + (P * r + (P - P/n * (n-1)) * r) / 2) * 12;
-            } else {
-                // 이자만 반영하는 대출들
-                annual = P * R;
-            }
+            if (cat === 'jeonse') annual = P * R;
+            else if (cat === 'mortgage_prin') annual = (P / n + (P * r + (P - P/n * (n-1)) * r) / 2) * 12;
+            else annual = ((P * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1)) * 12;
             totalAnnualPay += annual;
         }
     });
 
-    const dsr = (totalAnnualPay / income) * 100;
-    renderResult(dsr, totalAnnualPay);
-}
+    if(!valid) { alert("입력된 대출 항목의 금리를 모두 입력해주세요."); return; }
 
-function renderResult(dsr, totalPay) {
-    const area = document.getElementById('resultArea');
-    area.style.display = 'block';
-    document.getElementById('dsrVal').innerText = dsr.toFixed(2) + "%";
-    
-    const bar = document.getElementById('dsrBar');
-    bar.style.width = Math.min(dsr, 100) + "%";
-    
-    if(dsr > 40) {
-        document.getElementById('dsrVal').style.color = "var(--danger)";
-        bar.style.background = "var(--danger)";
-        document.getElementById('dsrMsg').innerText = "🚨 규제 기준(40%)을 초과하여 대출이 어려울 수 있습니다.";
-    } else {
-        document.getElementById('dsrVal').style.color = "var(--safe)";
-        bar.style.background = "var(--safe)";
-        document.getElementById('dsrMsg').innerText = "✅ 규제 기준 내에 있으며, 추가 대출이 가능할 수 있습니다.";
+    const dsr = (totalAnnualPay / income) * 100;
+    const dsrLimitAmt = income * 0.4;
+    const r_base = (firstRate / 100) / 12;
+    const n_base = 360; 
+
+    const maxL = ((dsrLimitAmt / 12) * (Math.pow(1 + r_base, n_base) - 1)) / (r_base * Math.pow(1 + r_base, n_base));
+    const maxP = (dsrLimitAmt / 12) / (1/n_base + (r_base*12 + (r_base*12 - (r_base*12/n_base)*(n_base-1)))/2 / 12);
+
+    const remainingBudget = dsrLimitAmt - totalAnnualPay;
+    let addLimit = 0;
+    if (remainingBudget > 0) {
+        if (isSelectedPrin) addLimit = (remainingBudget / 12) / (1/n_base + (r_base*12 + (r_base*12 - (r_base*12/n_base)*(n_base-1)))/2 / 12);
+        else addLimit = ((remainingBudget / 12) * (Math.pow(1 + r_base, n_base) - 1)) / (r_base * Math.pow(1 + r_base, n_base));
     }
 
-    document.getElementById('detailInfo').innerHTML = `
-        <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-            <span>연간 총 상환 원리금</span>
-            <strong>${Math.round(totalPay).toLocaleString()} 원</strong>
-        </div>
-        <div style="display:flex; justify-content:space-between;">
-            <span>월 평균 부채 상환액</span>
-            <strong>${Math.round(totalPay/12).toLocaleString()} 원</strong>
-        </div>
-    `;
-    area.scrollIntoView({ behavior: 'smooth' });
+    document.getElementById('resultArea').style.display = 'block';
+    document.getElementById('dsrVal').innerText = dsr.toFixed(2) + "%";
+    document.getElementById('dsrVal').style.color = dsr > 40 ? "var(--danger)" : "var(--safe)";
+    document.getElementById('dsrMsg').innerText = dsr > 40 ? "🚨 DSR 규제 한도를 초과했습니다." : "✅ 규제 범위 내 적정 수준입니다.";
+    document.getElementById('absMaxLevel').innerText = (Math.floor(maxL / 10000) * 10000).toLocaleString() + " 원";
+    document.getElementById('absMaxPrin').innerText = (Math.floor(maxP / 10000) * 10000).toLocaleString() + " 원";
+    document.getElementById('remainingLimit').innerText = (Math.floor(addLimit / 10000) * 10000).toLocaleString() + " 원";
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
 }
-
 addLoan();
 </script>
 </body>
-
 </html>
-
-
-
