@@ -38,16 +38,127 @@
 .last span {display:inline-block;}
 
 
+	:root { 
+		--kb-yellow: #FFCC00; 
+		--kb-dark: #262626; 
+		--bg-light: #F4F6F8;
+		--white: #ffffff;
+		--gray-text: #666;
+		--border-color: #e1e4e8;
+	}
+
+	/* 전체 레이아웃 설정 */
+	body { 
+		font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; 
+		background: var(--bg-light); 
+		margin: 0; 
+		padding: 10px; /* 모바일 여백 */
+		color: #333; 
+	}
+
+	.container { 
+		max-width: 800px; 
+		margin: 20px auto; 
+		background: var(--white); 
+		padding: 25px; 
+		border-radius: 20px; 
+		box-shadow: 0 10px 25px rgba(0,0,0,0.05); 
+	}
+
+	.header { text-align: center; margin-bottom: 30px; }
+	.header h2 { 
+		margin: 0; 
+		font-size: 1.5rem; 
+		color: var(--kb-dark); 
+		border-bottom: 5px solid var(--kb-yellow); 
+		display: inline-block; 
+		padding-bottom: 5px; 
+	}
+
+	/* 반응형 입력 그리드 */
+	.input-section { 
+		display: grid; 
+		grid-template-columns: repeat(2, 1fr); /* 기본 2열 */
+		gap: 15px; 
+		margin-bottom: 25px; 
+	}
+
+	/* 모바일에서는 1열로 변경 */
+	@media (max-width: 600px) {
+		.input-section { grid-template-columns: 1fr; }
+		.container { padding: 15px; margin: 10px auto; }
+		.header h2 { font-size: 1.25rem; }
+	}
+
+	.input-group { display: flex; flex-direction: column; }
+	.full-width { grid-column: span 2; }
+	@media (max-width: 600px) { .full-width { grid-column: span 1; } }
+
+	label { font-size: 13px; font-weight: 700; color: var(--gray-text); margin-bottom: 6px; }
+	input, select { 
+		padding: 12px; 
+		border: 1px solid var(--border-color); 
+		border-radius: 10px; 
+		font-size: 16px; 
+		background: #fff;
+		-webkit-appearance: none; /* iOS 기본 스타일 제거 */
+	}
+	input:focus { border-color: var(--kb-yellow); outline: none; box-shadow: 0 0 0 3px rgba(255, 204, 0, 0.2); }
+
+	button { 
+		width: 100%; 
+		padding: 16px; 
+		background: var(--kb-yellow); 
+		color: var(--kb-dark); 
+		border: none; 
+		border-radius: 12px; 
+		font-size: 18px; 
+		font-weight: bold; 
+		cursor: pointer; 
+		transition: 0.2s;
+	}
+	button:active { transform: scale(0.98); background: #edbc00; }
+
+	/* 결과 요약 카드 */
+	.summary-card { 
+		background: #FFFBE6; 
+		border: 1px solid #FFE58F; 
+		padding: 20px; 
+		border-radius: 12px; 
+		display: none; 
+		margin-top: 25px;
+	}
+	.summary-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; }
+	.total-val { font-weight: 800; color: #d32f2f; font-size: 1.1rem; }
+
+	/* 반응형 테이블 */
+	.table-wrapper { 
+		margin-top: 30px; 
+		overflow-x: auto; /* 가로 스크롤 허용 */
+		display: none; 
+		-webkit-overflow-scrolling: touch;
+	}
+	table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 500px; }
+	th { background: #f8f9fa; padding: 12px; font-weight: bold; border-bottom: 2px solid #ddd; position: sticky; top: 0; }
+	td { padding: 12px; border-bottom: 1px solid #f0f0f0; text-align: right; }
+
+	/* 1년 주기 색상 */
+	.year-even { background-color: #ffffff; }
+	.year-odd { background-color: #fafafa; }
+	.year-divider { background-color: #f1f1f1; text-align: center !important; font-weight: bold; font-size: 11px; color: #999; }
+
+/* select animation effect
 @keyframes motion {
 	0% {margin-top: 0px;}
 	100% {margin-top: 10px;}
 }
+*/
 </style>
 
 <script type="text/javascript">
 	// 담보
 	function mor_5(){
-		document.write('3.25');
+		document.write('3.34');
 		// 금융채 5년물
 	};
 	function addition_5() {
@@ -64,7 +175,7 @@
 	};
 
 	function ncofix(){
-		document.write('2.52');
+		document.write('2.57');
 		// 신규 코픽스
 	};
 	function addition_n6() {
@@ -77,7 +188,7 @@
 	};
 
 	function scofix(){
-		document.write('2.49');
+		document.write('2.48');
 		// 신잔액 코픽스
 	};
 	function addition_s6() {
@@ -91,7 +202,7 @@
 
 	// 전세
 	function mor_2(){
-		document.write('2.90');
+		document.write('3.03');
 		// 금융채 2년물
 	};
 	function Prime_2(){
@@ -166,7 +277,7 @@
 
 	function result_mor_5(){
 		//(담보) 5년 금융채 혼합금리 
-		const a = 3.250, b = 2.17, c = 1.100;
+		const a = 3.340, b = 2.17, c = 1.100;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -177,7 +288,7 @@
 
 	function result_mor_5e(){
 		//(담보) 5년 금융채 혼합금리 전자계약X
-		const a = 3.250, b = 2.17, c = 0.900;
+		const a = 3.340, b = 2.17, c = 0.900;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -188,7 +299,7 @@
 
 	function result_mor_5v(){
 		//(담보) 5년 금융채 변동금리 
-		const a = 3.250, b = 2.17, c = 1.100;
+		const a = 3.340, b = 2.17, c = 1.100;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -199,7 +310,7 @@
 
 	function result_mor_5ve(){
 		//(담보) 5년 금융채 변동금리 전자계약X 
-		const a = 3.250, b = 2.17, c = 0.900;
+		const a = 3.340, b = 2.17, c = 0.900;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -210,7 +321,7 @@
 
 	function result_ncofix_6(){
 		//(담보) 신규 코픽스 6개월 금리
-		const a = 2.52, b = 2.76, c = 1.10;
+		const a = 2.57, b = 2.76, c = 1.10;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -221,7 +332,7 @@
 
 	function result_ncofix_6e(){
 		//(담보) 신규 코픽스 6개월 금리 전자계약X
-		const a = 2.52, b = 2.76, c = 0.900;
+		const a = 2.57, b = 2.76, c = 0.900;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -232,7 +343,7 @@
 
 	function result_ncofix_12(){
 		//(담보) 신규 코픽스 12개월 금리
-		const a = 2.52, b = 2.71, c = 1.10;
+		const a = 2.57, b = 2.71, c = 1.10;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -243,7 +354,7 @@
 
 	function result_ncofix_12e(){
 		//(담보) 신규 코픽스 12개월 금리 전자계약X
-		const a = 2.52, b = 2.71, c = 0.900;
+		const a = 2.57, b = 2.71, c = 0.900;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -254,7 +365,7 @@
 
 	function result_scofix_6(){
 		//(담보) 신잔액 코픽스 6개월 금리
-		const a = 2.49, b = 3.10, c = 1.10;
+		const a = 2.48, b = 3.10, c = 1.10;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -265,7 +376,7 @@
 
 	function result_scofix_6e(){
 		//(담보) 신잔액 코픽스 6개월 금리 전자계약X
-		const a = 2.49, b = 3.10, c = 0.900;
+		const a = 2.48, b = 3.10, c = 0.900;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -276,7 +387,7 @@
 
 	function result_scofix_12(){
 		//(담보) 신잔액 코픽스 12개월 금리
-		const a = 2.49, b = 3.22, c = 1.10;
+		const a = 2.48, b = 3.22, c = 1.10;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -287,7 +398,7 @@
 
 	function result_scofix_12e(){
 		//(담보) 신잔액 코픽스 12개월 금리 전자계약X
-		const a = 2.49, b = 3.22, c = 0.900;
+		const a = 2.48, b = 3.22, c = 0.900;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -300,7 +411,7 @@
 	// HF
 	function result_hf_2(){
 		//(전세) 주신보 2년 금융채 금리 
-		const a = 2.90, b = 2.17, c = 1.10;
+		const a = 3.03, b = 2.17, c = 1.10;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -310,7 +421,7 @@
 	}
 	function result_hf_2e(){
 		//(전세) 주신보 2년 금융채 금리  전자계약X
-		const a = 2.90, b = 2.17, c = 0.900;
+		const a = 3.03, b = 2.17, c = 0.900;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -321,7 +432,7 @@
 	
 	function hf_ncofix_6(){
 		//(전세) 주신보 신규 코픽스 6개월 금리
-		const a = 2.52, b = 2.51, c = 1.10;
+		const a = 2.57, b = 2.51, c = 1.10;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -332,7 +443,7 @@
 	
 	function hf_ncofix_6e(){
 		//(전세) 주신보 신규 코픽스 6개월 금리 전자계약X
-		const a = 2.52, b = 2.51, c = 0.900;
+		const a = 2.57, b = 2.51, c = 0.900;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -343,7 +454,7 @@
 
 	function hf_ncofix_12(){
 		//(전세) 주신보 신규 코픽스 12개월 금리
-		const a = 2.52, b = 2.60, c = 1.10;
+		const a = 2.57, b = 2.60, c = 1.10;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -354,7 +465,7 @@
 
 	function hf_ncofix_12e(){
 		//(전세) 주신보 신규 코픽스 12개월 금리 전자계약X
-		const a = 2.52, b = 2.60, c = 0.900;
+		const a = 2.57, b = 2.60, c = 0.900;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -365,7 +476,7 @@
 
 	function hf_scofix_6(){
 		//(전세) 주신보 신잔액 코픽스 6개월 금리
-		const a = 2.49, b = 2.76, c = 1.10;
+		const a = 2.48, b = 2.76, c = 1.10;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -376,7 +487,7 @@
 
 	function hf_scofix_6e(){
 		//(전세) 주신보 신잔액 코픽스 6개월 금리 전자계약X
-		const a = 2.49, b = 2.76, c = 0.900;
+		const a = 2.48, b = 2.76, c = 0.900;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -387,7 +498,7 @@
 
 	function hf_scofix_12(){
 		//(전세) 주신보 신잔액 코픽스 12개월 금리
-		const a = 2.49, b = 3.13, c = 1.10;
+		const a = 2.48, b = 3.13, c = 1.10;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -398,7 +509,7 @@
 
 	function hf_scofix_12e(){
 		//(전세) 주신보 신잔액 코픽스 12개월 금리 전자계약X
-		const a = 2.49, b = 3.13, c = 0.900;
+		const a = 2.48, b = 3.13, c = 0.900;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -410,7 +521,7 @@
 	// HUG
 	function result_hug_2(){
 		//(전세) 주택도시보증 2년 금융채 금리 
-		const a = 2.90, b = 2.26, c = 1.10;
+		const a = 3.03, b = 2.26, c = 1.10;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -421,7 +532,7 @@
 
 	function result_hug_2e(){
 		//(전세) 주택도시보증 2년 금융채 금리 전자계약X
-		const a = 2.90, b = 2.26, c = 0.900;
+		const a = 3.03, b = 2.26, c = 0.900;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -432,7 +543,7 @@
 
 	function hug_ncofix_6(){
 		//(전세) 주택도시보증 신규 코픽스 6개월 금리
-		const a = 2.52, b = 2.54, c = 1.10;
+		const a = 2.57, b = 2.54, c = 1.10;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -443,7 +554,7 @@
 
 	function hug_ncofix_6e(){
 		//(전세) 주택도시보증 신규 코픽스 6개월 금리 전자계약X
-		const a = 2.52, b = 2.54, c = 0.900;
+		const a = 2.57, b = 2.54, c = 0.900;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -454,7 +565,7 @@
 
 	function hug_ncofix_12(){
 		//(전세) 주택도시보증 신규 코픽스 12개월 금리
-		const a = 2.52, b = 2.50, c = 1.10;
+		const a = 2.57, b = 2.50, c = 1.10;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -465,7 +576,7 @@
 
 	function hug_ncofix_12e(){
 		//(전세) 주택도시보증 신규 코픽스 12개월 금리 전자계약X
-		const a = 2.52, b = 2.50, c = 0.900;
+		const a = 2.57, b = 2.50, c = 0.900;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -476,7 +587,7 @@
 
 	function hug_scofix_6(){
 		//(전세) 주택도시보증 신잔액 코픽스 6개월 금리
-		const a = 2.49, b = 2.79, c = 1.10;
+		const a = 2.48, b = 2.79, c = 1.10;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -487,7 +598,7 @@
 
 	function hug_scofix_6e(){
 		//(전세) 주택도시보증 신잔액 코픽스 6개월 금리 전자계약X
-		const a = 2.49, b = 2.79, c = 0.900;
+		const a = 2.48, b = 2.79, c = 0.900;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -498,7 +609,7 @@
 
 	function hug_scofix_12(){
 		//(전세) 주택도시보증 신잔액 코픽스 12개월 금리
-		const a = 2.49, b = 3.03, c = 1.10;
+		const a = 2.48, b = 3.03, c = 1.10;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -509,7 +620,7 @@
 
 	function hug_scofix_12e(){
 		//(전세) 주택도시보증 신잔액 코픽스 12개월 금리 전자계약X
-		const a = 2.49, b = 3.03, c = 0.900;
+		const a = 2.48, b = 3.03, c = 0.900;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -521,7 +632,7 @@
 	// SGI
 	function result_sgi_2(){
 		//(전세) 서울보증 2년 금융채 금리 
-		const a = 2.90, b = 2.56, c = 1.10;
+		const a = 3.03, b = 2.56, c = 1.10;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -532,7 +643,7 @@
 
 	function result_sgi_2e(){
 		//(전세) 서울보증 2년 금융채 금리 전자계약X
-		const a = 2.90, b = 2.56, c = 0.900;
+		const a = 3.03, b = 2.56, c = 0.900;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -543,7 +654,7 @@
 
 	function sgi_ncofix_6(){
 		//(전세) 서울보증 신규 코픽스 6개월 금리
-		const a = 2.52, b = 2.63, c = 1.10;
+		const a = 2.57, b = 2.63, c = 1.10;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -554,7 +665,7 @@
 
 	function sgi_ncofix_6e(){
 		//(전세) 서울보증 신규 코픽스 6개월 금리 전자계약X
-		const a = 2.52, b = 2.63, c = 0.900;
+		const a = 2.57, b = 2.63, c = 0.900;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -565,7 +676,7 @@
 
 	function sgi_ncofix_12(){
 		//(전세) 서울보증 신규 코픽스 12개월 금리
-		const a = 2.52, b = 2.73, c = 1.10;
+		const a = 2.57, b = 2.73, c = 1.10;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -576,7 +687,7 @@
 
 	function sgi_ncofix_12e(){
 		//(전세) 서울보증 신규 코픽스 12개월 금리 전자계약X
-		const a = 2.52, b = 2.73, c = 0.900;
+		const a = 2.57, b = 2.73, c = 0.900;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -587,7 +698,7 @@
 
 	function sgi_scofix_6(){
 		//(전세) 서울보증 신잔액 코픽스 6개월 금리
-		const a = 2.49, b = 3.08, c = 1.10;
+		const a = 2.48, b = 3.08, c = 1.10;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -598,7 +709,7 @@
 
 	function sgi_scofix_6e(){
 		//(전세) 서울보증 신잔액 코픽스 6개월 금리 전자계약X
-		const a = 2.49, b = 3.08, c = 0.900;
+		const a = 2.48, b = 3.08, c = 0.900;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -609,7 +720,7 @@
 
 	function sgi_scofix_12(){
 		//(전세) 서울보증 신잔액 코픽스 12개월 금리
-		const a = 2.49, b = 3.46, c = 1.10;
+		const a = 2.48, b = 3.46, c = 1.10;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -620,7 +731,7 @@
 
 	function sgi_scofix_12e(){
 		//(전세) 서울보증 신잔액 코픽스 12개월 금리 전자계약X
-		const a = 2.49, b = 3.46, c = 0.900;
+		const a = 2.48, b = 3.46, c = 0.900;
 
 		const result1 = Math.round(a * 100) / 100;
 		const result2 = Math.round(b * 100) / 100;
@@ -631,22 +742,22 @@
 </script>
 <body>
 
-<div class="tabmenu">
-	<div class="sm_select">
-		<select name="" id="tabmenu">
-			<optgroup label="담보">
-				<option value="#tab01">혼합금리</option>
-				<option value="#tab02">변동금리</option>
-			</optgroup>
-			<optgroup label="전세">
-				<option value="#tab03">은행제원 협약전세 (HF)</option>
-				<option value="#tab04">KB 플러스 전세 (SGI)</option>
-				<option value="#tab05">KB 안심전세 (HUG)</option>
-			</optgroup>
-		</select>
+	<div class="tabmenu">
+		<div class="sm_select">
+			<select name="" id="tabmenu">
+				<optgroup label="담보">
+					<option value="#tab01">혼합금리</option>
+					<option value="#tab02">변동금리</option>
+				</optgroup>
+				<optgroup label="전세">
+					<option value="#tab03">은행제원 협약전세 (HF)</option>
+					<option value="#tab04">KB 플러스 전세 (SGI)</option>
+					<option value="#tab05">KB 안심전세 (HUG)</option>
+				</optgroup>
+			</select>
+		</div>
 	</div>
-  </div>
-	<p class="summary"><span class="up"><img src="./click.png" alt="클릭" /></span> &uarr; 클릭시 담보 전세 금리 확인가능</p>
+	<p class="summary"><!--span class="up"><img src="./click.png" alt="클릭" /></span-->  &uarr; 클릭시 담보 전세 금리 확인가능</p>
 	<p class="data">기준일 : <span>
 		<script type="text/javascript">
 			let today = new Date();   
@@ -660,7 +771,6 @@
 		</script>
 		</span> (연이율, %)
 	</p>
-	<!-- <p class="data">국민은행 우대금리 : 급여이체(0.3), 신용카드(0.3), 자동이체3건 (0.1), 적금30만원(0.1), 스타뱅킹(0.1), 전자계약(0.2)</p> -->
 
 	<div id="tab01" class="tab-contents"> <!-- 혼합금리 -->
 		<h3>혼합금리</h3>
@@ -856,6 +966,60 @@
 			</div>
 		</div>
 	</div>
+
+<div class="container">
+    <div class="header">
+        <h2>💰 KB 대출 계산기</h2>
+    </div>
+
+    <div class="input-section">
+        <div class="input-group full-width">
+            <label>대출 원금 (원)</label>
+            <input type="text" id="amount" inputmode="numeric" onkeyup="formatComma(this)" placeholder="예: 50,000,000">
+        </div>
+        <div class="input-group">
+            <label>연 이자율 (%)</label>
+            <input type="number" id="rate" step="0.1" inputmode="decimal" placeholder="예: 4.5">
+        </div>
+        <div class="input-group">
+            <label>대출 기간 (개월)</label>
+            <input type="number" id="months" inputmode="numeric" placeholder="예: 24">
+        </div>
+        <div class="input-group full-width">
+            <label>상환 방식</label>
+            <select id="type">
+                <option value="level">원리금균등 (매달 같은 금액)</option>
+                <option value="principal">원금균등 (매달 같은 원금)</option>
+                <option value="bullet">만기일시 (매달 이자만)</option>
+            </select>
+        </div>
+    </div>
+
+    <button onclick="calculateAll()">계산하기</button>
+
+    <div id="summaryCard" class="summary-card">
+        <div class="summary-row"><span>대출 원금</span> <span id="sumP">0원</span></div>
+        <div class="summary-row"><span>총 이자 합계</span> <span id="sumInt">0원</span></div>
+        <div class="summary-row"><span>총 상환금액</span> <span id="sumTotal" class="total-val">0원</span></div>
+    </div>
+
+    <div id="tableWrapper" class="table-wrapper">
+        <p style="font-size: 13px; color:#d32f2f; text-align: left;">* 모바일에서 가로로 밀어서 상세 내역을 확인하세요.</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>회차</th>
+                    <th>상환액</th>
+                    <th>원금</th>
+                    <th>이자</th>
+                    <th>잔액</th>
+                </tr>
+            </thead>
+            <tbody id="scheduleBody"></tbody>
+        </table>
+    </div>
+</div>
+
 </body>
 
 <script type="text/javascript">
@@ -883,6 +1047,102 @@
 	setTimeout(function(){
 		location.reload();
 	},60000); // 1000 - 1초
+
+	//calc
+	// 세자리 콤마 포맷팅
+	function formatComma(obj) {
+		let val = obj.value.replace(/[^0-9]/g, "");
+		obj.value = val.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+	}
+
+	// 콤마 제거 후 숫자 반환
+	function getCleanNum(id) {
+		return Number(document.getElementById(id).value.replace(/,/g, ""));
+	}
+
+	function calculateAll() {
+		const P = getCleanNum('amount');
+		const annualRate = Number(document.getElementById('rate').value) / 100;
+		const r = annualRate / 12;
+		const n = Number(document.getElementById('months').value);
+		const type = document.getElementById('type').value;
+
+		if (!P || !annualRate || !n) {
+			alert("입력값을 확인해주세요.");
+			return;
+		}
+
+		let schedule = [];
+		let totalInt = 0;
+		let balance = P;
+
+		// 계산 로직 (원리금/원금/만기일시)
+		if (type === 'level') {
+			const monthlyPmt = (P * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+			for (let i = 1; i <= n; i++) {
+				let interest = Math.round(balance * r);
+				let principal = Math.round(monthlyPmt - interest);
+				balance -= principal;
+				if (i === n) { principal += balance; balance = 0; }
+				totalInt += interest;
+				schedule.push({ i, pmt: Math.round(monthlyPmt), prn: principal, int: interest, bal: Math.max(0, balance) });
+			}
+		} else if (type === 'principal') {
+			const monthlyPrn = Math.floor(P / n);
+			for (let i = 1; i <= n; i++) {
+				let interest = Math.round(balance * r);
+				let actualPrn = (i === n) ? balance : monthlyPrn;
+				let pmt = actualPrn + interest;
+				balance -= actualPrn;
+				totalInt += interest;
+				schedule.push({ i, pmt, prn: actualPrn, int: interest, bal: Math.max(0, balance) });
+			}
+		} else {
+			const monthlyInt = Math.round(P * r);
+			for (let i = 1; i <= n; i++) {
+				let interest = monthlyInt;
+				let principal = (i === n) ? P : 0;
+				totalInt += interest;
+				schedule.push({ i, pmt: principal + interest, prn: principal, int: interest, bal: (i === n ? 0 : P) });
+			}
+		}
+
+		render(schedule, P, totalInt);
+	}
+
+	function render(schedule, P, totalInt) {
+		document.getElementById('summaryCard').style.display = 'block';
+		document.getElementById('sumP').innerText = P.toLocaleString() + "원";
+		document.getElementById('sumInt').innerText = Math.round(totalInt).toLocaleString() + "원";
+		document.getElementById('sumTotal').innerText = Math.round(P + totalInt).toLocaleString() + "원";
+
+		const body = document.getElementById('scheduleBody');
+		body.innerHTML = '';
+		
+		schedule.forEach((row) => {
+			const yearNum = Math.floor((row.i - 1) / 12) + 1;
+			const yearClass = (yearNum % 2 === 0) ? 'year-odd' : 'year-even';
+
+			if (row.i > 1 && (row.i - 1) % 12 === 0) {
+				body.innerHTML += `<tr><td colspan="5" class="year-divider">--- ${yearNum}년차 시작 ---</td></tr>`;
+			}
+
+			body.innerHTML += `
+				<tr class="${yearClass}">
+					<td style="text-align:center">${row.i}회</td>
+					<td style="font-weight:bold">${row.pmt.toLocaleString()}</td>
+					<td>${row.prn.toLocaleString()}</td>
+					<td>${row.int.toLocaleString()}</td>
+					<td>${row.bal.toLocaleString()}</td>
+				</tr>`;
+		});
+		
+		document.getElementById('tableWrapper').style.display = 'block';
+		// 결과로 자동 스크롤
+		document.getElementById('summaryCard').scrollIntoView({ behavior: 'smooth' });
+	}
+
+
 </script>
 
 </html>
