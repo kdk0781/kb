@@ -15,6 +15,13 @@
     <meta name="apple-mobile-web-app-title" content="DTI계산기">
     <meta name="mobile-web-app-capable" content="yes">
     <title>금융 대출 계산기 (DTI)</title>
+	<script type="text/javascript">
+			// [앱 모드 최적화] 안드로이드 및 iOS 주소창 제어
+		window.addEventListener("load", function() {
+			// 실행 시 화면을 살짝 내려 주소창을 숨김 처리
+			setTimeout(function() { window.scrollTo(0, 1); }, 100);
+		});
+	</script>
     <style>
         :root { --primary: #2c3e50; --accent: #3498db; --bg: #f8f9fa; }
         body { font-family: 'Pretendard', -apple-system, sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; margin: 0; }
@@ -270,7 +277,14 @@
         document.getElementById('method_desc').innerText = "* " + desc;
     }
 </script>
+<script type="text/javascript">
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('data:text/javascript;base64,c2VsZi.addEventListener("fetch", function(e) { e.respondWith(fetch(e.request)); });')
+        .catch(function(err) { console.log("SW 등록 실패", err); });
+    }
+</script>
 
 </body>
 </html>
+
 
