@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DSR 정밀 진단기</title>
+    <title>DSR계산기</title>
     <style>
         :root { --kb-yellow: #FFCC00; --kb-dark: #262626; --safe: #2ecc71; --danger: #e74c3c; --blue: #3498db; --gray: #f8f9fa; --border: #ececec; }
         body { font-family: 'Pretendard', system-ui, sans-serif; background: #f0f2f5; margin: 0; padding: 20px 15px; color: #333; -webkit-tap-highlight-color: transparent; }
@@ -68,7 +68,7 @@
 <body>
 
 <div class="container">
-    <div class="header"><h2>📊 DSR 정밀 진단기</h2></div>
+    <div class="header"><h2>📊 DSR계산기</h2></div>
 
     <div class="section-title">1. 연소득 정보</div>
     <div class="input-card">
@@ -184,7 +184,7 @@ function applyPolicy(id) {
     const r = card.querySelector('.l-r');
     if(cat === 'credit') { m.value = "60"; r.placeholder = "6.0"; }
     else if(cat === 'card_loan') { m.value = "36"; r.placeholder = "14.0"; }
-    else if(cat === 'jeonse') { m.value = "1"; r.placeholder = "4.2"; }
+    else if(cat === 'jeonse') { m.value = "24"; r.placeholder = "4.2"; }
     else { m.value = "360"; r.placeholder = "4.5"; }
 }
 
@@ -251,3 +251,4 @@ addLoan();
 </script>
 </body>
 </html>
+
