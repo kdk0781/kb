@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DSR계산기</title>
+    <title>DSR 정밀 진단기</title>
     <style>
         :root { --kb-yellow: #FFCC00; --kb-dark: #262626; --safe: #2ecc71; --danger: #e74c3c; --blue: #3498db; --gray: #f8f9fa; --border: #ececec; }
         body { font-family: 'Pretendard', system-ui, sans-serif; background: #f0f2f5; margin: 0; padding: 20px 15px; color: #333; -webkit-tap-highlight-color: transparent; }
@@ -29,7 +29,6 @@
 
         .btn-calc { width: 100%; padding: 20px; background: var(--kb-dark); color: var(--kb-yellow); border: none; border-radius: 16px; font-size: 1.2rem; font-weight: 800; cursor: pointer; transition: 0.3s; margin-top: 10px; }
 
-        /* 결과 및 가이드 영역 */
         .result-box { margin-top: 35px; display: none; padding: 25px; border-radius: 24px; background: #fffdf2; border: 1px solid #ffe58f; animation: slideUp 0.5s ease-out; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -45,7 +44,6 @@
         .rec-badge { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--safe); color: #fff; font-size: 11px; padding: 4px 14px; border-radius: 20px; font-weight: 800; white-space: nowrap; }
         .max-val { font-size: 1.8rem; font-weight: 900; color: var(--kb-yellow); }
 
-        /* 가이드 박스 복구 */
         .method-guide { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; margin: 25px 0; }
         .guide-col { background: #fff; padding: 20px; border-radius: 16px; border: 1px solid #eee; box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
         .guide-col strong { display: block; margin-bottom: 12px; font-size: 14px; border-bottom: 2px solid var(--gray); padding-bottom: 8px; }
@@ -56,7 +54,6 @@
         .limit-card { background: #fff; border: 3.5px solid var(--blue); padding: 25px; border-radius: 20px; text-align: center; margin-top: 25px; }
         .limit-val { font-size: 2.2rem; font-weight: 900; color: var(--blue); }
 
-        /* 위키 표 복구 */
         .wiki-table-wrapper { width: 100%; overflow-x: auto; margin-top: 20px; border-radius: 12px; border: 1px solid #eee; }
         .wiki-table { width: 100%; border-collapse: collapse; min-width: 500px; font-size: 12px; background: #fff; }
         .wiki-table th { background: var(--gray); padding: 12px; text-align: left; }
@@ -68,7 +65,7 @@
 <body>
 
 <div class="container">
-    <div class="header"><h2>📊 DSR계산기</h2></div>
+    <div class="header"><h2>📊 DSR 정밀 진단기</h2></div>
 
     <div class="section-title">1. 연소득 정보</div>
     <div class="input-card">
@@ -116,7 +113,7 @@
             <div class="guide-col">
                 <strong>💡 원리금균등 상환</strong>
                 <div style="font-size:12px; margin-bottom:8px;"><span class="badge plus">안정</span> 매월 상환액이 일정함</div>
-                <div style="font-size:12px;"><span class="badge minus">비용</span> 원금균등 대비 이자가 많음</div>
+                <div style="font-size:12px;"><span class="badge minus">비용</span> 원리금균등 대비 이자가 많음</div>
             </div>
         </div>
 
@@ -134,6 +131,7 @@
                 </thead>
                 <tbody>
                     <tr><td><b>주택담보대출</b></td><td>실제 상환액 (총 기간 반영)</td><td>일시상환 시 가상 10년</td></tr>
+                    <tr><td><b>오피스텔(비주거)</b></td><td>실제 상환액 또는 8년 분할</td><td>비주담대 가이드 준수</td></tr>
                     <tr><td><b>전세자금대출</b></td><td><b style="color:var(--blue)">원금 상환액 제외</b></td><td>연간 이자만 합산</td></tr>
                     <tr><td><b>신용대출</b></td><td>대출총액 / 5년 가상 분할</td><td>실제 만기 무관</td></tr>
                     <tr><td><b>장기카드대출</b></td><td>대출총액 / 3년 가상 분할</td><td>금융위 가이드 준수</td></tr>
@@ -164,6 +162,7 @@ function addLoan() {
                     <select class="l-category" onchange="applyPolicy(${loanCount})">
                         <option value="mortgage_prin">주택담보 (원금균등)</option>
                         <option value="mortgage_level">주택담보 (원리금균등)</option>
+                        <option value="officetel">비주거 오피스텔 (8년)</option>
                         <option value="jeonse">전세자금 (이자만)</option>
                         <option value="credit">신용대출 (5년)</option>
                         <option value="card_loan">카드론 (3년)</option>
@@ -184,7 +183,8 @@ function applyPolicy(id) {
     const r = card.querySelector('.l-r');
     if(cat === 'credit') { m.value = "60"; r.placeholder = "6.0"; }
     else if(cat === 'card_loan') { m.value = "36"; r.placeholder = "14.0"; }
-    else if(cat === 'jeonse') { m.value = "24"; r.placeholder = "4.2"; }
+    else if(cat === 'jeonse') { m.value = "1"; r.placeholder = "4.2"; }
+    else if(cat === 'officetel') { m.value = "96"; r.placeholder = "5.5"; }
     else { m.value = "360"; r.placeholder = "4.5"; }
 }
 
@@ -213,7 +213,6 @@ function calculateTotalDSR() {
             if (cat === 'jeonse') {
                 totalAnnualPay += P * R;
             } else if (cat === 'mortgage_prin') {
-                // 원금균등: 산술 평균 원리금 상환액 로직 (원리금균등보다 한도가 높게 나오도록 이자 가중치를 0.5로 적용)
                 totalAnnualPay += (P/n + (P*r * 0.5)) * 12; 
             } else {
                 totalAnnualPay += ((P*r*Math.pow(1+r,n))/(Math.pow(1+r,n)-1))*12;
@@ -225,7 +224,7 @@ function calculateTotalDSR() {
     const r_b = (baseRate / 100) / 12;
     const n_b = firstMonths;
 
-    // [중요 수식 수정] 원금균등 한도가 원리금보다 확실히 높게 나오도록 분모 가중치 조정
+    // 원금균등 한도가 원리금보다 높게 나오도록 0.5 가중치 적용
     const maxP = (dsrLimit / 12) / (1/n_b + (r_b * 0.5)); 
     const maxL = ((dsrLimit / 12) * (Math.pow(1+r_b, n_b)-1)) / (r_b * Math.pow(1+r_b, n_b));
 
@@ -251,4 +250,3 @@ addLoan();
 </script>
 </body>
 </html>
-
