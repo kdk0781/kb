@@ -170,8 +170,8 @@ function addLoan() {
                 <div>
                     <label>대출 종류</label>
                     <select class="l-category" onchange="applyPolicy(${loanCount})">
-                        <option value="mortgage_prin">주택담보 (원금균등)</option>
                         <option value="mortgage_level">주택담보 (원리금균등)</option>
+                        <option value="mortgage_prin">주택담보 (원금균등)</option>
                         <option value="jeonse">전세대출 (만기일시상환)</option>
                         <option value="officetel">오피스텔 (원리금균등)</option>
                         <option value="credit">신용대출 (원리금균등)</option>
@@ -193,7 +193,7 @@ function applyPolicy(id) {
     const r = card.querySelector('.l-r');
     if(cat === 'credit') { m.value = "60"; r.placeholder = "6.0"; }
     else if(cat === 'card_loan') { m.value = "36"; r.placeholder = "14.0"; }
-    else if(cat === 'jeonse') { m.value = "1"; r.placeholder = "4.2"; }
+    else if(cat === 'jeonse') { m.value = "24"; r.placeholder = "4.2"; }
     else if(cat === 'officetel') { m.value = "96"; r.placeholder = "5.5"; }
     else { m.value = "360"; r.placeholder = "4.5"; }
 }
@@ -274,3 +274,4 @@ addLoan();
 </script>
 </body>
 </html>
+
