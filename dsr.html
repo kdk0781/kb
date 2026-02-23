@@ -25,6 +25,10 @@
         .section-title::before { content: ""; width: 5px; height: 18px; background: var(--kb-yellow); margin-right: 10px; border-radius: 3px; }
         
         .input-card { background: var(--gray); padding: 20px; border-radius: 18px; margin-bottom: 15px; border: 1px solid #eee; position: relative; }
+
+        /* 유동 가이드 문구 스타일 */
+        .dynamic-guide { font-size: 12px; color: var(--danger); margin-top: 10px; padding: 10px; background: #ebf5ff; border-radius: 10px; display: none; font-weight: 600; line-height: 1.4; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
         
         .grid-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
         @media (max-width: 768px) {
@@ -191,20 +195,36 @@ function addLoan() {
                 <div><label>금리 (%)</label><input type="text" class="l-r" inputmode="decimal" placeholder="4.5"></div>
                 <div><label>기간 (개월)</label><input type="text" class="l-m" inputmode="numeric" value="360"></div>
             </div>
+			<div class="dynamic-guide" id="guide_${loanCount}"></div>
         </div>`;
     document.getElementById('loanList').insertAdjacentHTML('beforeend', html);
 }
-
 function applyPolicy(id) {
     const card = document.getElementById(`loan_${id}`);
     const cat = card.querySelector('.l-category').value;
     const m = card.querySelector('.l-m');
     const r = card.querySelector('.l-r');
-    if(cat === 'credit') { m.value = "60"; r.placeholder = "6.0"; }
-    else if(cat === 'card_loan') { m.value = "36"; r.placeholder = "14.0"; }
-    else if(cat === 'jeonse') { m.value = "1"; r.placeholder = "4.2"; }
-    else if(cat === 'officetel') { m.value = "96"; r.placeholder = "5.5"; }
-    else { m.value = "360"; r.placeholder = "4.5"; }
+    
+    // 개별 카드 내에 존재하는 가이드 박스 엘리먼트 (없다면 생성하거나 선택)
+    let guide = card.querySelector('.dynamic-guide'); 
+    if (!guide) {
+        guide = document.createElement('div');
+        guide.className = 'dynamic-guide';
+        card.appendChild(guide);
+    }
+
+    if(cat === 'officetel') {
+        guide.style.display = 'block';
+        guide.innerHTML = "🏢 <b>오피스텔 체크포인트:</b><br>- 신규 구입인 경우 '주택담보대출' 항목을 선택하여 계산하는 것이 더 정확할 수 있습니다.<br>- 이미 소유 중인 오피스텔에 담보대출이 있다면 이 항목(8년 상환 가정)을 유지해주세요.";
+        m.value = "96"; 
+        r.placeholder = "5.5";
+    } else {
+        guide.style.display = 'none';
+        if(cat === 'credit') { m.value = "60"; r.placeholder = "6.0"; }
+        else if(cat === 'card_loan') { m.value = "36"; r.placeholder = "14.0"; }
+        else if(cat === 'jeonse') { m.value = "24"; r.placeholder = "4.2"; }
+        else { m.value = "360"; r.placeholder = "4.5"; }
+    }
 }
 
 function calculateTotalDSR() {
