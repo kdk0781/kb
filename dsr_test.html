@@ -162,10 +162,13 @@ function addLoan() {
                     <select class="l-category" onchange="applyPolicy(${loanCount})">
                         <option value="mortgage_prin">주택담보 (원금균등)</option>
                         <option value="mortgage_level">주택담보 (원리금균등)</option>
-                        <option value="officetel">비주거 오피스텔 (8년)</option>
+                        <option value="officetel_prin">오피스텔 (원금균등)</option>
+                        <option value="officetel_level">오피스텔 (원리금균등)</option>
                         <option value="jeonse">전세자금 (이자만)</option>
-                        <option value="credit">신용대출 (5년)</option>
-                        <option value="card_loan">카드론 (3년)</option>
+                        <option value="credit_prin">신용대출 (원금균등)</option>
+                        <option value="credit_level">신용대출 (원리금균등)</option>
+                        <option value="card_loan_prin">카드론 (원금균등)</option>
+                        <option value="card_loan_level">카드론 (원리금균등)</option>
                     </select>
                 </div>
                 <div><label>원금/잔액 (원)</label><input type="text" class="l-p" inputmode="numeric" onkeyup="formatComma(this)" placeholder="0"></div>
@@ -181,10 +184,10 @@ function applyPolicy(id) {
     const cat = card.querySelector('.l-category').value;
     const m = card.querySelector('.l-m');
     const r = card.querySelector('.l-r');
-    if(cat === 'credit') { m.value = "60"; r.placeholder = "6.0"; }
-    else if(cat === 'card_loan') { m.value = "36"; r.placeholder = "14.0"; }
+    if(cat.includes('credit')) { m.value = "60"; r.placeholder = "6.0"; }
+    else if(cat.includes('card_loan')) { m.value = "36"; r.placeholder = "14.0"; }
     else if(cat === 'jeonse') { m.value = "1"; r.placeholder = "4.2"; }
-    else if(cat === 'officetel') { m.value = "96"; r.placeholder = "5.5"; }
+    else if(cat.includes('officetel')) { m.value = "96"; r.placeholder = "5.5"; }
     else { m.value = "360"; r.placeholder = "4.5"; }
 }
 
@@ -193,7 +196,7 @@ function calculateTotalDSR() {
     if (income <= 0) { alert("연소득을 입력해주세요."); return; }
 
     let totalAnnualPay = 0;
-    let baseRate = 0;
+    let baseRate = 4.5;
     let firstMonths = 360;
     const items = document.querySelectorAll('[id^="loan_"]');
     
@@ -212,9 +215,11 @@ function calculateTotalDSR() {
 
             if (cat === 'jeonse') {
                 totalAnnualPay += P * R;
-            } else if (cat === 'mortgage_prin') {
+            } else if (cat.includes('_prin')) {
+                // 원금균등: 산술 평균 원리금 상환액 로직 적용 (이자 가중치 0.5로 낮추어 한도 상향)
                 totalAnnualPay += (P/n + (P*r * 0.5)) * 12; 
             } else {
+                // 원리금균등: 표준 상환 공식
                 totalAnnualPay += ((P*r*Math.pow(1+r,n))/(Math.pow(1+r,n)-1))*12;
             }
         }
@@ -224,7 +229,7 @@ function calculateTotalDSR() {
     const r_b = (baseRate / 100) / 12;
     const n_b = firstMonths;
 
-    // 원금균등 한도가 원리금보다 높게 나오도록 0.5 가중치 적용
+    // 원금균등 한도가 원리금보다 높게 나오도록 분모 가중치 보정
     const maxP = (dsrLimit / 12) / (1/n_b + (r_b * 0.5)); 
     const maxL = ((dsrLimit / 12) * (Math.pow(1+r_b, n_b)-1)) / (r_b * Math.pow(1+r_b, n_b));
 
