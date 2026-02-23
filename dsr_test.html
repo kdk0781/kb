@@ -8,13 +8,12 @@
     <link rel="shortcut icon" href="https://raw.githubusercontent.com/kdk0781/kb/main/ico/dsrcalc.png">
     <link rel="icon" href="https://raw.githubusercontent.com/kdk0781/kb/main/ico/dsrcalc.png">
 
-    <link rel="manifest" href='data:application/manifest+json,{"name":"DSR 계산기","short_name":"DSR","start_url":".","display":"standalone","orientation":"portrait","background_color":"#FFFFFF","theme_color":"#FFCC00","icons":[{"src":"https://raw.githubusercontent.com/kdk0781/kb/main/ico/dsrcalc.png","sizes":"192x192","type":"image/png"}]}'>
-    
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#FFCC00">
+    <meta name="apple-mobile-web-app-title" content="DSR계산기">
+    <meta name="mobile-web-app-capable" content="yes">
 
-    <title>DSR 정밀 진단기</title>
+    <title>DSR 계산기</title>
     <style>
         :root { --kb-yellow: #FFCC00; --kb-dark: #262626; --safe: #2ecc71; --danger: #e74c3c; --blue: #3498db; --gray: #f8f9fa; }
         body { font-family: 'Pretendard', system-ui, sans-serif; background: #f0f2f5; margin: 0; padding: 20px 15px; color: #333; -webkit-tap-highlight-color: transparent; }
@@ -68,7 +67,7 @@
 <body>
 
 <div class="container">
-    <div class="header"><h2>📊 DSR 정밀 진단기</h2></div>
+    <div class="header"><h2>📊 DSR 계산기/h2></div>
 
     <div class="section-title">1. 연소득 정보</div>
     <div class="input-card">
@@ -80,7 +79,7 @@
     <div id="loanList"></div>
     <button style="background: #fff; border: 2px dashed #ddd; padding: 15px; border-radius: 12px; width: 100%; cursor: pointer; font-weight: 700; margin-bottom: 25px; color: #777;" onclick="addLoan()">+ 부채 항목 추가</button>
 
-    <button class="btn-calc" onclick="calculateTotalDSR()">분석 및 고도화 한도 확인</button>
+    <button class="btn-calc" onclick="calculateTotalDSR()">DSR 계산 및 한도 확인</button>
 
     <div id="resultArea" class="result-box">
         <div id="recommendationBox" class="recommendation-box">
