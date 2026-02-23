@@ -1,8 +1,17 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
+<meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/kdk0781/kb/main/ico/calculator.png">
+    <link rel="shortcut icon" href="https://raw.githubusercontent.com/kdk0781/kb/main/ico/calculator.png">
+    <link rel="icon" href="https://raw.githubusercontent.com/kdk0781/kb/main/ico/calculator.png">
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="DSR진단">
+    <meta name="mobile-web-app-capable" content="yes">
     <title>DSR 계산기</title>
     <style>
         :root { --kb-yellow: #FFCC00; --kb-dark: #262626; --safe: #2ecc71; --danger: #e74c3c; --blue: #3498db; --gray: #f8f9fa; --border: #ececec; }
@@ -193,7 +202,7 @@ function applyPolicy(id) {
     const r = card.querySelector('.l-r');
     if(cat === 'credit') { m.value = "60"; r.placeholder = "6.0"; }
     else if(cat === 'card_loan') { m.value = "36"; r.placeholder = "14.0"; }
-    else if(cat === 'jeonse') { m.value = "24"; r.placeholder = "4.2"; }
+    else if(cat === 'jeonse') { m.value = "1"; r.placeholder = "4.2"; }
     else if(cat === 'officetel') { m.value = "96"; r.placeholder = "5.5"; }
     else { m.value = "360"; r.placeholder = "4.5"; }
 }
@@ -272,6 +281,11 @@ function provideRecommendation(dsr, income, addLim) {
 
 addLoan();
 </script>
+<script>
+// 전체 화면 모드로 실행 중인지 확인하여 UI 조정 (선택 사항)
+if (window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches) {
+    console.log("앱 모드로 실행 중입니다.");
+}
+</script>
 </body>
 </html>
-
