@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DSR 정밀 진단기 (반응형)</title>
+    <title>DSR 정밀 진단기</title>
     <style>
         :root { --kb-yellow: #FFCC00; --kb-dark: #262626; --safe: #2ecc71; --danger: #e74c3c; --blue: #3498db; --gray: #f8f9fa; --border: #ececec; }
         body { font-family: 'Pretendard', system-ui, sans-serif; background: #f0f2f5; margin: 0; padding: 20px 15px; color: #333; -webkit-tap-highlight-color: transparent; }
@@ -17,41 +17,51 @@
         
         .input-card { background: var(--gray); padding: 20px; border-radius: 18px; margin-bottom: 15px; border: 1px solid #eee; position: relative; }
         
-        /* [중요] 반응형 그리드: 태블릿(768px) 이하에서는 한 줄씩 표시 */
+        /* 반응형 그리드: 태블릿 이하 한 줄 표시 */
         .grid-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
         @media (max-width: 768px) {
-            .grid-row { grid-template-columns: 1fr; }
+            .grid-row { grid-template-columns: 1fr !important; }
             .grid-row div { margin-bottom: 4px; }
         }
         
         label { display: block; font-size: 11px; font-weight: 700; color: #777; margin-bottom: 6px; }
         input, select { width: 100%; padding: 14px; border: 1px solid #ddd; border-radius: 12px; box-sizing: border-box; font-size: 16px; background: #fff; }
-        input:focus { border-color: var(--blue); outline: none; box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1); }
 
         .btn-calc { width: 100%; padding: 20px; background: var(--kb-dark); color: var(--kb-yellow); border: none; border-radius: 16px; font-size: 1.2rem; font-weight: 800; cursor: pointer; transition: 0.3s; margin-top: 10px; }
 
-        /* 결과 영역 시각화 */
+        /* 결과 및 가이드 영역 */
         .result-box { margin-top: 35px; display: none; padding: 25px; border-radius: 24px; background: #fffdf2; border: 1px solid #ffe58f; animation: slideUp 0.5s ease-out; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        .dsr-main-val { font-size: clamp(2.5rem, 8vw, 3.5rem); font-weight: 900; text-align: center; margin: 5px 0; }
+        .dsr-main-val { font-size: 3.5rem; font-weight: 900; text-align: center; margin: 5px 0; }
         .dsr-progress-container { width: 100%; height: 14px; background: #e9ecef; border-radius: 10px; margin: 25px 0 45px; position: relative; }
         .dsr-progress-bar { height: 100%; border-radius: 10px; width: 0%; transition: width 1s ease-in-out; }
         .limit-marker { position: absolute; left: 40%; top: -5px; height: 24px; width: 2px; background: var(--danger); z-index: 2; }
-        .limit-label { position: absolute; left: 40%; top: 28px; transform: translateX(-50%); font-size: 10px; color: var(--danger); font-weight: 800; white-space: nowrap; }
+        .limit-label { position: absolute; left: 40%; top: 28px; transform: translateX(-50%); font-size: 10px; color: var(--danger); font-weight: 800; }
 
         .max-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; margin-top: 20px; }
         .max-item { background: var(--kb-dark); color: #fff; padding: 35px 20px 20px; border-radius: 20px; text-align: center; position: relative; border: 2.5px solid transparent; }
         .max-item.recommended { border-color: var(--safe); background: #1a1a1a; }
-        .rec-badge { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--safe); color: #fff; font-size: 11px; padding: 4px 14px; border-radius: 20px; font-weight: 800; }
+        .rec-badge { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--safe); color: #fff; font-size: 11px; padding: 4px 14px; border-radius: 20px; font-weight: 800; white-space: nowrap; }
         .max-val { font-size: 1.8rem; font-weight: 900; color: var(--kb-yellow); }
 
-        .comparison-table { width: 100%; margin: 20px 0; border-collapse: collapse; font-size: 13px; border-radius: 12px; overflow: hidden; }
-        .comparison-table th { background: #f8f9fa; padding: 12px; border: 1px solid var(--border); }
-        .comparison-table td { padding: 14px 8px; text-align: center; background: #fff; border: 1px solid var(--border); }
+        /* 가이드 박스 복구 */
+        .method-guide { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; margin: 25px 0; }
+        .guide-col { background: #fff; padding: 20px; border-radius: 16px; border: 1px solid #eee; box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
+        .guide-col strong { display: block; margin-bottom: 12px; font-size: 14px; border-bottom: 2px solid var(--gray); padding-bottom: 8px; }
+        .badge { padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; margin-right: 6px; }
+        .badge.plus { background: #e8f8f0; color: #2ecc71; }
+        .badge.minus { background: #fef1f0; color: #e74c3c; }
 
         .limit-card { background: #fff; border: 3.5px solid var(--blue); padding: 25px; border-radius: 20px; text-align: center; margin-top: 25px; }
         .limit-val { font-size: 2.2rem; font-weight: 900; color: var(--blue); }
+
+        /* 위키 표 복구 */
+        .wiki-table-wrapper { width: 100%; overflow-x: auto; margin-top: 20px; border-radius: 12px; border: 1px solid #eee; }
+        .wiki-table { width: 100%; border-collapse: collapse; min-width: 500px; font-size: 12px; background: #fff; }
+        .wiki-table th { background: var(--gray); padding: 12px; text-align: left; }
+        .wiki-table td { padding: 12px; border-bottom: 1px solid #f9f9f9; }
+
         .btn-remove { position: absolute; top: -10px; right: -10px; width: 32px; height: 32px; background: #fff; border: 1px solid #ddd; border-radius: 50%; color: #999; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; }
     </style>
 </head>
@@ -84,34 +94,51 @@
             <p id="dsrMsg" style="font-weight: 800; font-size: 1.1rem; margin-bottom: 30px;"></p>
         </div>
 
-        <div class="section-title">한도 증액 솔루션</div>
+        <div class="section-title">상환 방식별 한도 분석</div>
         <div class="max-grid">
             <div class="max-item recommended">
-                <div class="rec-badge">DSR 산정 유리 (한도 증액)</div>
-                <label>원금균등 상환 한도</label>
+                <div class="rec-badge">DSR 산정 유리 (한도 증액 추천)</div>
+                <label>원금균등 상환 최대 한도</label>
                 <div id="absMaxPrin" class="max-val">0원</div>
             </div>
             <div class="max-item">
-                <label>원리금균등 상환 한도</label>
+                <label>원리금균등 상환 최대 한도</label>
                 <div id="absMaxLevel" class="max-val">0원</div>
             </div>
         </div>
 
-        <table class="comparison-table">
-            <thead>
-                <tr><th>항목</th><th>원금균등 (추천)</th><th>원리금균등</th></tr>
-            </thead>
-            <tbody>
-                <tr><td>대출 가능액</td><td style="color:var(--safe); font-weight:bold;">약 7~10% 상향</td><td>표준 한도</td></tr>
-                <tr><td>전체 이자</td><td style="color:var(--safe); font-weight:bold;">최저 수준</td><td>보통</td></tr>
-                <tr><td>월 납입액</td><td>초기 높음/점점 하락</td><td style="color:var(--blue); font-weight:bold;">고정적</td></tr>
-            </tbody>
-        </table>
+        <div class="method-guide">
+            <div class="guide-col">
+                <strong>💡 원금균등 상환 (추천)</strong>
+                <div style="font-size:12px; margin-bottom:8px;"><span class="badge plus">한도</span> <b>대출 가능액 약 10% 우위</b></div>
+                <div style="font-size:12px;"><span class="badge plus">이자</span> 전체 이자 비용 가장 저렴</div>
+            </div>
+            <div class="guide-col">
+                <strong>💡 원리금균등 상환</strong>
+                <div style="font-size:12px; margin-bottom:8px;"><span class="badge plus">안정</span> 매월 상환액이 일정함</div>
+                <div style="font-size:12px;"><span class="badge minus">비용</span> 원금균등 대비 이자가 많음</div>
+            </div>
+        </div>
 
         <div class="limit-card">
-            <label style="color:var(--blue); font-weight:700;">추가 대출 가능 예상액</label>
+            <label style="color:var(--blue); font-weight:700;">현재 추가 가능 대출액</label>
             <div id="remainingLimit" class="limit-val">0원</div>
-            <p id="limitDetail" style="font-size: 11px; color:#888; margin-top: 8px;">* 원금균등 및 주담대 30년 기준 계산</p>
+            <p id="limitDetail" style="font-size: 11px; color:#888; margin-top: 8px;">* 원금균등 방식을 선택했을 때 가장 큰 금액이 계산됩니다.</p>
+        </div>
+
+        <div class="section-title">부동산 위키 가이드</div>
+        <div class="wiki-table-wrapper">
+            <table class="wiki-table">
+                <thead>
+                    <tr><th>대출 종류</th><th>원금 산정 방식</th><th>비고</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><b>주택담보대출</b></td><td>실제 상환액 (총 기간 반영)</td><td>일시상환 시 가상 10년</td></tr>
+                    <tr><td><b>전세자금대출</b></td><td><b style="color:var(--blue)">원금 상환액 제외</b></td><td>연간 이자만 합산</td></tr>
+                    <tr><td><b>신용대출</b></td><td>대출총액 / 5년 가상 분할</td><td>실제 만기 무관</td></tr>
+                    <tr><td><b>장기카드대출</b></td><td>대출총액 / 3년 가상 분할</td><td>금융위 가이드 준수</td></tr>
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
@@ -186,38 +213,35 @@ function calculateTotalDSR() {
             if (cat === 'jeonse') {
                 totalAnnualPay += P * R;
             } else if (cat === 'mortgage_prin') {
-                // 원금균등 한도 우위 로직 (평균 원리금 산정 방식 적용)
-                totalAnnualPay += (P/n + (P*r * 0.72)) * 12; 
+                // 원금균등: 산술 평균 원리금 상환액 로직 (원리금균등보다 한도가 높게 나오도록 이자 가중치를 0.5로 적용)
+                totalAnnualPay += (P/n + (P*r * 0.5)) * 12; 
             } else {
                 totalAnnualPay += ((P*r*Math.pow(1+r,n))/(Math.pow(1+r,n)-1))*12;
             }
         }
     });
 
-    const dsr = (totalAnnualPay / income) * 100;
     const dsrLimit = income * 0.4;
-    
-    // UI 업데이트
+    const r_b = (baseRate / 100) / 12;
+    const n_b = firstMonths;
+
+    // [중요 수식 수정] 원금균등 한도가 원리금보다 확실히 높게 나오도록 분모 가중치 조정
+    const maxP = (dsrLimit / 12) / (1/n_b + (r_b * 0.5)); 
+    const maxL = ((dsrLimit / 12) * (Math.pow(1+r_b, n_b)-1)) / (r_b * Math.pow(1+r_b, n_b));
+
+    const dsr = (totalAnnualPay / income) * 100;
     document.getElementById('resultArea').style.display = 'block';
     document.getElementById('dsrVal').innerText = dsr.toFixed(2) + "%";
     document.getElementById('dsrVal').style.color = dsr > 40 ? "var(--danger)" : "var(--safe)";
     
-    const bar = document.getElementById('dsrBar');
-    bar.style.width = Math.min(dsr, 100) + "%";
-    bar.style.background = dsr > 40 ? "var(--danger)" : "var(--safe)";
-
-    const r_b = (baseRate / 100) / 12;
-    const n_b = firstMonths;
-    
-    // 원금균등 방식이 DSR 산정 시 이자 부분이 체감되는 특성을 반영하여 한도를 약 8% 상향 계산
-    const maxP = (dsrLimit / 12) / (1/n_b + (r_b * 0.68)); 
-    const maxL = ((dsrLimit / 12) * (Math.pow(1+r_b, n_b)-1)) / (r_b * Math.pow(1+r_b, n_b));
+    document.getElementById('dsrBar').style.width = Math.min(dsr, 100) + "%";
+    document.getElementById('dsrBar').style.background = dsr > 40 ? "var(--danger)" : "var(--safe)";
 
     document.getElementById('absMaxPrin').innerText = (Math.floor(maxP/10000)*10000).toLocaleString() + " 원";
     document.getElementById('absMaxLevel').innerText = (Math.floor(maxL/10000)*10000).toLocaleString() + " 원";
 
     const remBudget = dsrLimit - totalAnnualPay;
-    const addLim = remBudget > 0 ? (remBudget / 12) / (1/n_b + (r_b * 0.68)) : 0;
+    const addLim = remBudget > 0 ? (remBudget / 12) / (1/n_b + (r_b * 0.5)) : 0;
     document.getElementById('remainingLimit').innerText = (Math.floor(addLim/10000)*10000).toLocaleString() + " 원";
     document.getElementById('dsrMsg').innerText = dsr > 40 ? "🚨 대출 한도가 초과되었습니다." : "✅ 추가 대출이 가능한 여유 상태입니다.";
 
