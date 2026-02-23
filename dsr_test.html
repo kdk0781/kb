@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
     <link rel="apple-touch-icon" href="https://github.com/kdk0781/kb/blob/main/ico/dsrcalc.png?raw=true">
-    <link rel="shortcut icon" href="https://github.com/kdk0781/kb/blob/main/ico/dsrcalc.png?raw=true">
+    <link rel="shortcut icon" href="https://raw.githubusercontent.com/kdk0781/kb/main/ico/dsrcalc.png?raw=true">
     <link rel="icon" type="image/png" sizes="192x192" href="https://github.com/kdk0781/kb/blob/main/ico/dsrcalc.png?raw=true">
 
     <link rel="manifest" href='data:application/manifest+json,{"name":"DSR 계산기","short_name":"DSR","start_url":".","display":"standalone","orientation":"portrait","background_color":"#FFFFFF","theme_color":"#FFCC00","icons":[{"src":"https://github.com/kdk0781/kb/blob/main/ico/dsrcalc.png?raw=true","sizes":"192x192","type":"image/png"},{"src":"https://github.com/kdk0781/kb/blob/main/ico/dsrcalc.png?raw=true","sizes":"512x512","type":"image/png"}]}'>
@@ -14,7 +14,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#FFCC00">
 
-    <title>DSR 계산기</title>
+    <title>DSR 정밀 진단기</title>
     <style>
         :root { --kb-yellow: #FFCC00; --kb-dark: #262626; --safe: #2ecc71; --danger: #e74c3c; --blue: #3498db; --gray: #f8f9fa; }
         body { font-family: 'Pretendard', system-ui, sans-serif; background: #f0f2f5; margin: 0; padding: 20px 15px; color: #333; -webkit-tap-highlight-color: transparent; }
@@ -24,7 +24,10 @@
         .section-title { font-size: 1.1rem; font-weight: 700; margin: 30px 0 12px; display: flex; align-items: center; color: var(--kb-dark); }
         .section-title::before { content: ""; width: 5px; height: 18px; background: var(--kb-yellow); margin-right: 10px; border-radius: 3px; }
         .input-card { background: var(--gray); padding: 20px; border-radius: 18px; margin-bottom: 15px; border: 1px solid #eee; position: relative; }
-        .dynamic-guide { font-size: 12px; color: var(--danger); margin-top: 10px; padding: 12px; background: #fff1f0; border-radius: 10px; display: none; font-weight: 600; line-height: 1.5; border: 1px solid #ffa39e; border-left: 4px solid var(--danger); }
+        
+        /* 오피스텔 가이드 Danger 스타일 */
+        .dynamic-guide { font-size: 12px; color: var(--danger); margin-top: 10px; padding: 12px; background: #fff1f0; border-radius: 10px; display: none; font-weight: 600; line-height: 1.6; border: 1px solid #ffa39e; border-left: 4px solid var(--danger); }
+        
         .grid-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
         @media (max-width: 768px) { .grid-row { grid-template-columns: 1fr !important; } }
         label { display: block; font-size: 11px; font-weight: 700; color: #777; margin-bottom: 6px; }
@@ -49,13 +52,15 @@
         .method-guide { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; margin: 25px 0; }
         .guide-col { background: #fff; padding: 20px; border-radius: 16px; border: 1px solid #eee; }
         .guide-col strong { display: block; margin-bottom: 12px; font-size: 14px; border-bottom: 2px solid var(--gray); padding-bottom: 8px; }
-        .guide-col b { font-weight: 800; color: #333; }
+        .guide-col b { font-weight: 800; }
         .badge { padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; margin-right: 6px; }
         .badge.plus { background: #e8f8f0; color: #2ecc71; }
         .badge.minus { background: #fef1f0; color: #e74c3c; }
         .limit-card { background: #fff; border: 3.5px solid var(--blue); padding: 25px; border-radius: 20px; text-align: center; margin-top: 25px; }
         .limit-val { font-size: 2.2rem; font-weight: 900; color: var(--blue); }
         .btn-copy { width: 100%; padding: 15px; background: var(--blue); color: white; border: none; border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; margin-top: 20px; transition: 0.3s; }
+        
+        /* 위키 가이드 디자인 강화 */
         .wiki-table-wrapper { width: 100%; overflow-x: auto; margin-top: 20px; border-radius: 16px; border: 1px solid #eee; background: #fff; }
         .wiki-table { width: 100%; border-collapse: collapse; min-width: 450px; font-size: 13px; }
         .wiki-table th { background: #f8f9fa; padding: 15px 12px; text-align: left; color: #666; border-bottom: 2px solid #eee; }
@@ -66,7 +71,7 @@
 <body>
 
 <div class="container">
-    <div class="header"><h2>📊 DSR 계산기</h2></div>
+    <div class="header"><h2>📊 DSR 정밀 진단기</h2></div>
 
     <div class="section-title">1. 연소득 정보</div>
     <div class="input-card">
@@ -78,7 +83,7 @@
     <div id="loanList"></div>
     <button style="background: #fff; border: 2px dashed #ddd; padding: 15px; border-radius: 12px; width: 100%; cursor: pointer; font-weight: 700; margin-bottom: 25px; color: #777;" onclick="addLoan()">+ 부채 항목 추가</button>
 
-    <button class="btn-calc" onclick="calculateTotalDSR()">DSR계산 및 한도 확인</button>
+    <button class="btn-calc" onclick="calculateTotalDSR()">분석 및 고도화 한도 확인</button>
 
     <div id="resultArea" class="result-box">
         <div id="recommendationBox" class="recommendation-box">
@@ -191,7 +196,8 @@ function applyPolicy(id) {
     const r = card.querySelector('.l-r');
     let guide = card.querySelector('.dynamic-guide');
     if(cat === 'officetel') {
-        guide.style.display = 'block'; guide.innerHTML = "🏢 <b>오피스텔 체크포인트:</b><br>- 신규 구입인 경우 '주택담보대출' 항목을 선택하여 계산하는 것이 더 정확할 수 있습니다.<br>- 이미 소유 중인 오피스텔에 담보대출이 있다면 이 항목(8년 상환 가정)을 유지해주세요.";
+        guide.style.display = 'block';
+        guide.innerHTML = "<b>오피스텔 체크포인트:</b><br>- 신규 구입인 경우 '주택담보대출' 항목을 선택하여 계산하는 것이 더 정확할 수 있습니다.<br>- 이미 소유 중인 오피스텔에 담보대출이 있다면 이 항목(8년 상환 가정)을 유지해주세요.";
         m.value = "96"; r.placeholder = "5.5";
     } else {
         guide.style.display = 'none';
@@ -207,12 +213,14 @@ function calculateTotalDSR() {
     if (income <= 0) { alert("연소득을 입력해주세요."); incomeInput.focus(); return; }
     const items = document.querySelectorAll('[id^="loan_"]');
     if(items.length === 0) { alert("부채 항목을 추가해주세요."); return; }
+    
     for (let item of items) {
         const pInput = item.querySelector('.l-p'); const rInput = item.querySelector('.l-r');
         if (getNum(pInput.value) <= 0) { alert("원금을 입력해주세요."); pInput.focus(); return; }
         if (!rInput.value.trim()) { alert(`금리를 미입력하여 기본값(${rInput.placeholder}%)으로 계산을 진행합니다.`); rInput.value = rInput.placeholder; }
     }
-    let totalAnnualPay = 0; let baseRate = 0;
+
+    let totalAnnualPay = 0; let baseRate = 4.5;
     items.forEach((item, index) => {
         const cat = item.querySelector('.l-category').value;
         const P = getNum(item.querySelector('.l-p').value);
@@ -226,37 +234,68 @@ function calculateTotalDSR() {
             else totalAnnualPay += ((P*r*Math.pow(1+r,n))/(Math.pow(1+r,n)-1))*12;
         }
     });
-    const dsr = (totalAnnualPay / income) * 100; const dsrLimit = income * 0.4;
+
+    const dsr = (totalAnnualPay / income) * 100;
+    const dsrLimit = income * 0.4;
     const r_b = (baseRate / 100) / 12;
     const maxP = (dsrLimit / 12) / (1/360 + (r_b * 0.5)); 
     const maxL = ((dsrLimit / 12) * (Math.pow(1+r_b, 360)-1)) / (r_b * Math.pow(1+r_b, 360));
     const addLim = (dsrLimit - totalAnnualPay) > 0 ? (dsrLimit - totalAnnualPay) / 12 / (1/360 + (r_b * 0.5)) : 0;
+
     document.getElementById('resultArea').style.display = 'block';
     document.getElementById('dsrVal').innerText = dsr.toFixed(2) + "%";
     document.getElementById('dsrVal').style.color = dsr > 40 ? "var(--danger)" : "var(--safe)";
     document.getElementById('dsrBar').style.width = Math.min(dsr, 100) + "%";
     document.getElementById('dsrBar').style.background = dsr > 40 ? "var(--danger)" : "var(--safe)";
+    
     document.getElementById('absMaxPrin').innerText = Math.floor(maxP).toLocaleString() + " 원";
     document.getElementById('absMaxLevel').innerText = Math.floor(maxL).toLocaleString() + " 원";
     document.getElementById('remainingLimit').innerText = Math.floor(addLim).toLocaleString() + " 원";
     document.getElementById('dsrMsg').innerText = dsr > 40 ? "🚨 위험: DSR 한도를 초과했습니다!" : "✅ 정상: 대출 여력이 남아있습니다.";
-    provideRecommendation(dsr, income);
+
+    provideRecommendation(dsr, income, addLim);
     window.scrollTo({ top: document.getElementById('resultArea').offsetTop - 20, behavior: 'smooth' });
 }
 
-function provideRecommendation(dsr, income) {
-    const recTitle = document.getElementById('recTitle'); const recDesc = document.getElementById('recDesc');
-    const prinCard = document.getElementById('prinCard'); const levelCard = document.getElementById('levelCard');
+function provideRecommendation(dsr, income, addLim) {
+    const recTitle = document.getElementById('recTitle');
+    const recDesc = document.getElementById('recDesc');
+    const prinCard = document.getElementById('prinCard');
+    const levelCard = document.getElementById('levelCard');
+    let strategy = ""; let targetMethod = "";
+
     if (dsr > 40) {
-        recTitle.innerHTML = `🎯 원금균등 방식을 강력 권고합니다`; recTitle.style.color = "var(--danger)";
-        recDesc.innerHTML = `<b>경고: 현재 부채가 소득 임계치를 넘었습니다.</b> 반드시 <strong>원금균등</strong> 방식을 선택해 DSR 지수를 획기적으로 낮추는 방어적 전략이 필수입니다.`;
-    } else {
+        targetMethod = "원금균등 (한도 극대화 필수)";
+        recTitle.style.color = "var(--danger)";
+        strategy = `<b>🚨 DSR 한도 초과: 현재 상태로는 대출 승인이 불가능합니다.</b><br>반드시 <strong>'원금균등 상환'</strong>을 선택해야 합니다. 원금균등 방식은 원리금균등 대비 <b>DSR 산정 시 한도가 약 10% 더 높게 나오는 특징</b>이 있어, 승인 가능성을 높일 수 있는 유일한 전략입니다.`;
+    } else if (dsr > 30) {
+        targetMethod = "원금균등 (한도 우위 추천)";
         recTitle.style.color = "#2c3e50";
-        if (income > 70000000) { recTitle.innerHTML = `🎯 원금균등 방식을 추천합니다`; recDesc.innerHTML = `고소득자이므로 <strong>원금균등</strong> 상환을 통해 총 이자 비용을 절감하는 스마트한 자산 증식 전략이 유리합니다.`; }
-        else { recTitle.innerHTML = `🎯 원리금균등 방식을 추천합니다`; recDesc.innerHTML = `안정적인 가계 관리가 필요한 시점입니다. 매달 상환액이 고정된 <strong>원리금균등</strong> 방식을 권장합니다.`; }
+        strategy = `<b>⚠️ 한도 임계점 도달: 추가 한도 확보가 핵심입니다.</b><br>현재 DSR이 높은 편이므로 <strong>'원금균등 상환'</strong>이 유리합니다. 실무적으로는 원리금 방식보다 더 높은 대출 한도를 승인받을 수 있으며 장기적으로는 수백만 원의 이자를 아낄 수 있는 선택입니다.`;
+    } else if (income > 70000000) {
+        targetMethod = "원금균등 (이자 절감형)";
+        recTitle.style.color = "#2c3e50";
+        strategy = `<b>✨ 자산 최적화: 고소득자에게 가장 유리한 방식입니다.</b><br>상환 능력이 충분하시므로 <strong>'원금균등 상환'</strong>을 통해 총 이자 지불액을 최소화하세요. 시간이 갈수록 원금이 줄어들어 자산 증식 속도를 높여주는 가장 스마트한 선택입니다.`;
+    } else {
+        targetMethod = "원리금균등 (지출 안정형)";
+        recTitle.style.color = "#2c3e50";
+        strategy = `<b>✅ 정상: 안정적인 현금 흐름 관리를 권장합니다.</b><br>DSR 여유가 충분하므로 매월 상환액이 일정하여 가계 관리가 용이한 <strong>'원리금균등 상환'</strong>이 적합할 수 있습니다. 초기 비용 부담을 줄이고 싶은 분들께 권장하는 표준 방식입니다.`;
     }
-    if (dsr <= 40 && income <= 70000000) { levelCard.classList.add('recommended'); prinCard.classList.remove('recommended'); }
-    else { prinCard.classList.add('recommended'); levelCard.classList.remove('recommended'); }
+
+    recTitle.innerHTML = `🎯 ${targetMethod} 방식을 추천합니다`;
+    recDesc.innerHTML = strategy;
+
+    if (targetMethod.includes("원리금균등")) {
+        levelCard.classList.add('recommended');
+        if(!levelCard.querySelector('.rec-badge')) levelCard.insertAdjacentHTML('afterbegin', '<div class="rec-badge">지출 안정성</div>');
+        prinCard.classList.remove('recommended');
+        if(prinCard.querySelector('.rec-badge')) prinCard.querySelector('.rec-badge').remove();
+    } else {
+        prinCard.classList.add('recommended');
+        if(!prinCard.querySelector('.rec-badge')) prinCard.insertAdjacentHTML('afterbegin', '<div class="rec-badge">한도/이자 우위</div>');
+        levelCard.classList.remove('recommended');
+        if(levelCard.querySelector('.rec-badge')) levelCard.querySelector('.rec-badge').remove();
+    }
 }
 
 function copyResultText() {
