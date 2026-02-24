@@ -1,6 +1,7 @@
 {
+  "id": "/dti-app", 
   "name": "DTI 금융 계산기",
-  "short_name": "DTI계산기",
+  "short_name": "DTI 계산기",
   "start_url": "dti.html",
   "display": "standalone",
   "background_color": "#f8f9fa",
