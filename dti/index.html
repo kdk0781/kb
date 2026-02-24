@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
     <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/kdk0781/kb/main/ico/dticalc.png">
     <link rel="shortcut icon" href="https://raw.githubusercontent.com/kdk0781/kb/main/ico/dticalc.png">
@@ -16,36 +16,49 @@
     
     <title>금융 대출 계산기 (DTI)</title>
 
-    <script type="text/javascript">
-        // [앱 모드 최적화] 주소창 숨김 및 터치 바운스 제어
-        window.addEventListener("load", function() {
-            setTimeout(function() { window.scrollTo(0, 1); }, 100);
-        });
-
-        // iOS PWA 새로고침 로직 (당겨서 새로고침 모방)
-        let touchStartY = 0;
-        window.addEventListener('touchstart', e => { touchStartY = e.touches[0].pageY; }, {passive: true});
-        window.addEventListener('touchmove', e => {
-            const touchY = e.touches[0].pageY;
-            const touchDiff = touchY - touchStartY;
-            // 최상단에서 아래로 150px 이상 당겼을 때 새로고침
-            if (document.documentElement.scrollTop === 0 && touchDiff > 150) {
-                if(confirm("페이지를 새로고침하시겠습니까?")) {
-                    location.reload();
-                }
-            }
-        }, {passive: true});
-    </script>
-
     <style>
         :root { --primary: #2c3e50; --accent: #3498db; --bg: #f8f9fa; }
-        /* iOS 터치 바운스 허용하여 당기는 느낌 주기 */
-        html, body { overflow-y: auto; -webkit-overflow-scrolling: touch; }
-        body { font-family: 'Pretendard', -apple-system, sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; margin: 0; }
-        .container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 500px; position: relative; }
+
+        /* 바운스 효과를 위한 핵심 설정 */
+        html {
+            height: 100%;
+            overflow: hidden; /* 시스템 기본 스크롤을 막고 body에서 제어 */
+        }
         
-        /* 새로고침 수동 버튼 (우측 상단) */
-        .refresh-btn { position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #565658; padding: 5px; width: auto; margin: 0; }
+        body { 
+            font-family: 'Pretendard', -apple-system, sans-serif; 
+            background: var(--bg); 
+            margin: 0;
+            height: 100%;
+            overflow-y: scroll; /* 스크롤 강제 활성화 */
+            -webkit-overflow-scrolling: touch; /* iOS 바운스/가속 스크롤 활성화 */
+            display: flex;
+            justify-content: center;
+        }
+
+        /* 당겨서 새로고침 가이드 문구 */
+        .pull-to-refresh-guide {
+            position: fixed;
+            top: -50px; /* 평소엔 숨김 */
+            left: 0; width: 100%; height: 50px;
+            display: flex; justify-content: center; align-items: center;
+            color: #888; font-size: 0.8rem;
+            z-index: -1;
+        }
+
+        .container { 
+            background: white; 
+            padding: 30px; 
+            border-radius: 15px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
+            width: 100%; 
+            max-width: 500px; 
+            margin: 40px 20px; /* 상하 여백을 주어 바운스 공간 확보 */
+            position: relative;
+            align-self: flex-start;
+        }
+        
+        .refresh-btn { position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #ddd; padding: 10px; z-index: 10; }
 
         h2 { text-align: center; color: var(--primary); margin-bottom: 25px; font-size: 1.5rem; }
         .tabs { display: flex; margin-bottom: 20px; border-bottom: 2px solid #eee; }
@@ -70,108 +83,137 @@
 </head>
 <body>
 
-<div class="container">
-    <button class="refresh-btn" onclick="location.reload();" title="새로고침">↺</button>
-    
-    <h2>DTI 금융 계산기</h2>
-    
-    <div class="tabs">
-        <div class="tab active" id="tab-jeonse" onclick="switchTab('jeonse')">전세자금대출</div>
-        <div class="tab" id="tab-mortgage" onclick="switchTab('mortgage')">주택담보대출</div>
-    </div>
+    <div class="pull-to-refresh-guide" id="refreshGuide">↓ 아래로 당겨서 새로고침</div>
 
-    <div id="method_group" class="input-group" style="display: none;">
-        <label for="repay_method">상환 방법</label>
-        <div class="input-box">
-            <select id="repay_method" onchange="toggleGrace()">
-                <option value="both">원리금균등상환</option>
-                <option value="principal">원금균등상환</option>
-                <option value="expiry">만기일시상환</option>
-            </select>
+    <div class="container">
+        <button class="refresh-btn" onclick="location.reload();">↺</button>
+        
+        <h2>DTI 금융 계산기</h2>
+        
+        <div class="tabs">
+            <div class="tab active" id="tab-jeonse" onclick="switchTab('jeonse')">전세자금대출</div>
+            <div class="tab" id="tab-mortgage" onclick="switchTab('mortgage')">주택담보대출</div>
+        </div>
+
+        <div id="method_group" class="input-group" style="display: none;">
+            <label for="repay_method">상환 방법</label>
+            <div class="input-box">
+                <select id="repay_method" onchange="toggleGrace()">
+                    <option value="both">원리금균등상환</option>
+                    <option value="principal">원금균등상환</option>
+                    <option value="expiry">만기일시상환</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label for="loan_money">대출 신청 금액</label>
+            <div class="input-box">
+                <input type="text" id="loan_money" inputmode="numeric" pattern="\d*" oninput="formatNumber(this)" placeholder="0">
+                <span class="unit">원</span>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label for="loan_rate">대출 금리</label>
+            <div class="input-box">
+                <input type="number" step="0.01" id="loan_rate" inputmode="decimal" placeholder="0.00">
+                <span class="unit">%</span>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label for="loan_period">대출 기간</label>
+            <div class="input-box">
+                <input type="text" id="loan_period" inputmode="numeric" pattern="\d*" oninput="formatNumber(this)" placeholder="0">
+                <span class="unit">개월</span>
+            </div>
+        </div>
+
+        <div id="grace_group" class="input-group" style="display: none;">
+            <label for="grace_period">거치 기간</label>
+            <div class="input-box">
+                <input type="text" id="grace_period" inputmode="numeric" pattern="\d*" oninput="formatNumber(this)" value="0">
+                <span class="unit">개월</span>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label for="income_money">연간 총소득</label>
+            <div class="input-box">
+                <input type="text" id="income_money" inputmode="numeric" pattern="\d*" oninput="formatNumber(this)" placeholder="0">
+                <span class="unit">원</span>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label for="debt_money">기존 부채 총액</label>
+            <div class="input-box">
+                <input type="text" id="debt_money" inputmode="numeric" pattern="\d*" oninput="formatNumber(this)" value="0">
+                <span class="unit">원</span>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label for="pre_rate">부채 추정 금리</label>
+            <div class="input-box">
+                <input type="number" step="0.1" id="pre_rate" inputmode="decimal" placeholder="6.2">
+                <span class="unit">%</span>
+            </div>
+        </div>
+
+        <button onclick="calculate()">계산하기</button>
+
+        <div id="result-area">
+            <div class="result-row">
+                <span id="payment_label">첫 달 이자 상환액:</span>
+                <span id="monthly_payment" class="result-val">0원</span>
+            </div>
+            <div class="result-row" style="border-top: 1px solid #ddd; margin-top:10px; padding-top:10px;">
+                <span>최종 DTI 지수:</span>
+                <span id="result" class="result-val" style="font-size: 1.3rem;">0%</span>
+            </div>
+            <div id="method_desc" class="method-info"></div>
         </div>
     </div>
 
-    <div class="input-group">
-        <label for="loan_money">대출 신청 금액</label>
-        <div class="input-box">
-            <input type="text" id="loan_money" inputmode="numeric" pattern="\d*" oninput="formatNumber(this)" placeholder="0">
-            <span class="unit">원</span>
+    <div class="modal-overlay" id="customModal">
+        <div class="modal-content">
+            <div id="modalMessage">메시지</div>
+            <button class="modal-button" onclick="closeModal()">확인</button>
         </div>
     </div>
-
-    <div class="input-group">
-        <label for="loan_rate">대출 금리</label>
-        <div class="input-box">
-            <input type="number" step="0.01" id="loan_rate" inputmode="decimal" placeholder="0.00">
-            <span class="unit">%</span>
-        </div>
-    </div>
-
-    <div class="input-group">
-        <label for="loan_period">대출 기간</label>
-        <div class="input-box">
-            <input type="text" id="loan_period" inputmode="numeric" pattern="\d*" oninput="formatNumber(this)" placeholder="0">
-            <span class="unit">개월</span>
-        </div>
-    </div>
-
-    <div id="grace_group" class="input-group" style="display: none;">
-        <label for="grace_period">거치 기간</label>
-        <div class="input-box">
-            <input type="text" id="grace_period" inputmode="numeric" pattern="\d*" oninput="formatNumber(this)" value="0">
-            <span class="unit">개월</span>
-        </div>
-    </div>
-
-    <div class="input-group">
-        <label for="income_money">연간 총소득</label>
-        <div class="input-box">
-            <input type="text" id="income_money" inputmode="numeric" pattern="\d*" oninput="formatNumber(this)" placeholder="0">
-            <span class="unit">원</span>
-        </div>
-    </div>
-
-    <div class="input-group">
-        <label for="debt_money">기존 부채 총액</label>
-        <div class="input-box">
-            <input type="text" id="debt_money" inputmode="numeric" pattern="\d*" oninput="formatNumber(this)" value="0">
-            <span class="unit">원</span>
-        </div>
-    </div>
-
-    <div class="input-group">
-        <label for="pre_rate">부채 추정 금리</label>
-        <div class="input-box">
-            <input type="number" step="0.1" id="pre_rate" inputmode="decimal" placeholder="6.2">
-            <span class="unit">%</span>
-        </div>
-    </div>
-
-    <button onclick="calculate()">계산하기</button>
-
-    <div id="result-area">
-        <div class="result-row">
-            <span id="payment_label">첫 달 이자 상환액:</span>
-            <span id="monthly_payment" class="result-val">0원</span>
-        </div>
-        <div class="result-row" style="border-top: 1px solid #ddd; margin-top:10px; padding-top:10px;">
-            <span>최종 DTI 지수:</span>
-            <span id="result" class="result-val" style="font-size: 1.3rem;">0%</span>
-        </div>
-        <div id="method_desc" class="method-info"></div>
-    </div>
-</div>
-
-<div class="modal-overlay" id="customModal">
-    <div class="modal-content">
-        <div id="modalMessage">메시지</div>
-        <button class="modal-button" onclick="closeModal()">확인</button>
-    </div>
-</div>
 
 <script>
-    let currentMode = 'jeonse';
+    let touchStartY = 0;
+    const guide = document.getElementById('refreshGuide');
 
+    // 터치 시작 시 스크롤 위치 저장
+    window.addEventListener('touchstart', e => { 
+        touchStartY = e.touches[0].pageY; 
+    }, {passive: true});
+
+    // 터치 이동 시 상단 가이드 노출 제어
+    window.addEventListener('touchmove', e => {
+        const touchY = e.touches[0].pageY;
+        const diff = touchY - touchStartY;
+        
+        if (window.scrollY <= 0 && diff > 50) {
+            guide.style.top = (Math.min(diff / 2, 50) - 50) + "px";
+        }
+    }, {passive: true});
+
+    // 터치 종료 시 새로고침 실행
+    window.addEventListener('touchend', e => {
+        const diff = e.changedTouches[0].pageY - touchStartY;
+        guide.style.top = "-50px"; // 다시 숨김
+        
+        if (window.scrollY <= 0 && diff > 180) { // 180px 이상 당기면 새로고침
+            location.reload();
+        }
+    });
+
+    let currentMode = 'jeonse';
     function openModal(msg) { document.getElementById('modalMessage').innerText = msg; document.getElementById('customModal').style.display = 'flex'; }
     function closeModal() { document.getElementById('customModal').style.display = 'none'; }
 
