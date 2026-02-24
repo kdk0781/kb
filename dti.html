@@ -8,70 +8,38 @@
     <link rel="shortcut icon" href="https://raw.githubusercontent.com/kdk0781/kb/main/ico/dticalc.png">
     <link rel="icon" href="https://raw.githubusercontent.com/kdk0781/kb/main/ico/dticalc.png">
 
-	<link rel="manifest" href="dti.json">
+    <link rel="manifest" href="dti.json">
 
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="DTI계산기">
     <meta name="mobile-web-app-capable" content="yes">
     <title>금융 대출 계산기 (DTI)</title>
-	<script type="text/javascript">
+    <script type="text/javascript">
 			// [앱 모드 최적화] 안드로이드 및 iOS 주소창 제어
 		window.addEventListener("load", function() {
 			// 실행 시 화면을 살짝 내려 주소창을 숨김 처리
 			setTimeout(function() { window.scrollTo(0, 1); }, 100);
 		});
-	</script>
+    </script>
     <style>
         :root { --primary: #2c3e50; --accent: #3498db; --bg: #f8f9fa; }
         body { font-family: 'Pretendard', -apple-system, sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; margin: 0; }
         .container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
         h2 { text-align: center; color: var(--primary); margin-bottom: 25px; font-size: 1.5rem; }
-        
-        /* 탭 스타일 - 활성화 시 accent 색상 적용 */
         .tabs { display: flex; margin-bottom: 20px; border-bottom: 2px solid #eee; }
         .tab { flex: 1; text-align: center; padding: 12px; cursor: pointer; font-weight: bold; color: #999; border-bottom: 3px solid transparent; transition: 0.3s; }
         .tab.active { color: var(--accent); border-bottom: 3px solid var(--accent); }
-
         .input-group { margin-bottom: 15px; }
         label { display: block; font-size: 0.85rem; font-weight: 600; color: #555; margin-bottom: 5px; }
-        
-        .input-box {
-            display: flex;
-            align-items: center;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 0 12px;
-            background: white;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-        .input-box:focus-within {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(52,152,219,0.1);
-        }
-        
-        .input-box input, .input-box select { 
-            flex: 1;
-            border: none;
-            padding: 12px 0;
-            font-size: 1rem;
-            outline: none;
-            background: transparent;
-            min-width: 0;
-        }
+        .input-box { display: flex; align-items: center; border: 1px solid #ddd; border-radius: 8px; padding: 0 12px; background: white; transition: border-color 0.2s, box-shadow 0.2s; }
+        .input-box:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(52,152,219,0.1); }
+        .input-box input, .input-box select { flex: 1; border: none; padding: 12px 0; font-size: 1rem; outline: none; background: transparent; min-width: 0; }
         .input-box input { text-align: right; padding-right: 8px; }
         .input-box select { text-align-last: right; cursor: pointer; }
-        
-        .unit { 
-            font-size: 0.9rem; 
-            color: #888; 
-            white-space: nowrap;
-            pointer-events: none;
-        }
-
+        .unit { font-size: 0.9rem; color: #888; white-space: nowrap; pointer-events: none; }
         button { width: 100%; padding: 15px; background: var(--accent); color: white; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; margin-top: 15px; transition: background 0.2s; }
         button:hover { background: #2980b9; }
-        
         #result-area { margin-top: 25px; padding: 20px; background: #f1f9ff; border-radius: 10px; display: none; border: 1px solid #d6e9f8; }
         .result-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
         .result-val { font-weight: bold; color: #e74c3c; }
@@ -102,7 +70,7 @@
     <div class="input-group">
         <label for="loan_money">대출 신청 금액</label>
         <div class="input-box">
-            <input type="text" id="loan_money" oninput="formatNumber(this)" placeholder="0">
+            <input type="text" id="loan_money" inputmode="numeric" pattern="\d*" oninput="formatNumber(this)" placeholder="0">
             <span class="unit">원</span>
         </div>
     </div>
@@ -110,7 +78,7 @@
     <div class="input-group">
         <label for="loan_rate">대출 금리</label>
         <div class="input-box">
-            <input type="number" step="0.01" id="loan_rate" placeholder="0.00">
+            <input type="number" step="0.01" id="loan_rate" inputmode="decimal" placeholder="0.00">
             <span class="unit">%</span>
         </div>
     </div>
@@ -118,7 +86,7 @@
     <div class="input-group">
         <label for="loan_period">대출 기간</label>
         <div class="input-box">
-            <input type="text" id="loan_period" oninput="formatNumber(this)" placeholder="0">
+            <input type="text" id="loan_period" inputmode="numeric" pattern="\d*" oninput="formatNumber(this)" placeholder="0">
             <span class="unit">개월</span>
         </div>
     </div>
@@ -126,7 +94,7 @@
     <div id="grace_group" class="input-group" style="display: none;">
         <label for="grace_period">거치 기간</label>
         <div class="input-box">
-            <input type="text" id="grace_period" oninput="formatNumber(this)" value="0">
+            <input type="text" id="grace_period" inputmode="numeric" pattern="\d*" oninput="formatNumber(this)" value="0">
             <span class="unit">개월</span>
         </div>
     </div>
@@ -134,7 +102,7 @@
     <div class="input-group">
         <label for="income_money">연간 총소득</label>
         <div class="input-box">
-            <input type="text" id="income_money" oninput="formatNumber(this)" placeholder="0">
+            <input type="text" id="income_money" inputmode="numeric" pattern="\d*" oninput="formatNumber(this)" placeholder="0">
             <span class="unit">원</span>
         </div>
     </div>
@@ -142,7 +110,7 @@
     <div class="input-group">
         <label for="debt_money">기존 부채 총액</label>
         <div class="input-box">
-            <input type="text" id="debt_money" oninput="formatNumber(this)" value="0">
+            <input type="text" id="debt_money" inputmode="numeric" pattern="\d*" oninput="formatNumber(this)" value="0">
             <span class="unit">원</span>
         </div>
     </div>
@@ -150,7 +118,7 @@
     <div class="input-group">
         <label for="pre_rate">부채 추정 금리</label>
         <div class="input-box">
-            <input type="number" step="0.1" id="pre_rate" placeholder="6.2">
+            <input type="number" step="0.1" id="pre_rate" inputmode="decimal" placeholder="6.2">
             <span class="unit">%</span>
         </div>
     </div>
@@ -173,14 +141,10 @@
 <script>
     let currentMode = 'jeonse';
 
-    // 탭 활성화 및 화면 구성 전환
     function switchTab(mode) {
         currentMode = mode;
-        
-        // 1. 탭 버튼 활성화 스타일 변경
         const tabJeonse = document.getElementById('tab-jeonse');
         const tabMortgage = document.getElementById('tab-mortgage');
-        
         if (mode === 'jeonse') {
             tabJeonse.classList.add('active');
             tabMortgage.classList.remove('active');
@@ -188,36 +152,26 @@
             tabMortgage.classList.add('active');
             tabJeonse.classList.remove('active');
         }
-        
-        // 2. 모드에 따른 입력창 노출 제어
         document.getElementById('method_group').style.display = (mode === 'mortgage') ? 'block' : 'none';
         document.getElementById('grace_group').style.display = (mode === 'mortgage') ? 'block' : 'none';
-        
-        // 3. 레이블 텍스트 변경
         document.getElementById('payment_label').innerText = (mode === 'mortgage') ? "첫 달 상환액:" : "첫 달 이자 상환액:";
-        
-        // 4. 결과창 초기화
         document.getElementById('result-area').style.display = 'none';
     }
 
-    // 상환 방법에 따른 거치 기간 노출 제어
     function toggleGrace() {
         const method = document.getElementById('repay_method').value;
         document.getElementById('grace_group').style.display = (method === 'expiry') ? 'none' : 'block';
     }
 
-    // 숫자 콤마 포맷팅
     function formatNumber(input) {
         let value = input.value.replace(/[^0-9]/g, "");
         input.value = value ? parseInt(value).toLocaleString() : "";
     }
 
-    // 숫자에서 콤마 제거
     function unformat(str) {
         return parseFloat(str.replace(/,/g, "")) || 0;
     }
 
-    // DTI 계산 로직 
     function calculate() {
         const P = unformat(document.getElementById('loan_money').value);
         const annualRate = parseFloat(document.getElementById('loan_rate').value) / 100;
@@ -225,11 +179,8 @@
         const g = currentMode === 'mortgage' ? unformat(document.getElementById('grace_period').value) : 0;
         const income = unformat(document.getElementById('income_money').value);
         const totalDebt = unformat(document.getElementById('debt_money').value);
-        
-        // 부채추정금리 미입력 시 6.2% 적용
         const preRateInput = document.getElementById('pre_rate').value;
         const preRate = (preRateInput === "" ? 6.2 : parseFloat(preRateInput)) / 100;
-        
         const method = document.getElementById('repay_method').value;
 
         if (!P || isNaN(annualRate) || !n || !income) {
@@ -261,13 +212,11 @@
                 desc = "만기일시상환: 매달 이자만 내다가 만기에 원금을 한꺼번에 갚습니다.";
             }
         } else {
-            // 전세자금대출 (이자만 반영)
             firstMonthPay = P * r;
             annualNewRepay = P * annualRate;
             desc = "전세자금대출: 기간 동안 매달 이자만 납부하는 방식을 기준으로 계산합니다.";
         }
 
-        // DTI 산식: (신규대출 연간상환액 + 기존부채 연간추정이자) / 연간총소득 
         const annualDebtRepay = totalDebt * preRate;
         const dti = ((annualNewRepay + annualDebtRepay) / income) * 100;
 
@@ -278,13 +227,15 @@
     }
 </script>
 <script type="text/javascript">
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('data:text/javascript;base64,c2VsZi.addEventListener("fetch", function(e) { e.respondWith(fetch(e.request)); });')
-        .catch(function(err) { console.log("SW 등록 실패", err); });
-    }
-</script>
 
+    if ('serviceWorker' in navigator) {
+
+        navigator.serviceWorker.register('data:text/javascript;base64,c2VsZi.addEventListener("fetch", function(e) { e.respondWith(fetch(e.request)); });')
+
+        .catch(function(err) { console.log("SW 등록 실패", err); });
+
+    }
+
+</script>
 </body>
 </html>
-
-
