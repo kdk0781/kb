@@ -7,48 +7,72 @@
     <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/kdk0781/kb/main/ico/dticalc.png">
     <link rel="shortcut icon" href="https://raw.githubusercontent.com/kdk0781/kb/main/ico/dticalc.png">
     <link rel="icon" href="https://raw.githubusercontent.com/kdk0781/kb/main/ico/dticalc.png">
-
     <link rel="manifest" href="dti.json">
 
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="DTI 계산기">
+    <meta name="apple-mobile-web-app-title" content="DTI계산기">
     <meta name="mobile-web-app-capable" content="yes">
+    
     <title>금융 대출 계산기 (DTI)</title>
+
     <script type="text/javascript">
-			// [앱 모드 최적화] 안드로이드 및 iOS 주소창 제어
-		window.addEventListener("load", function() {
-			// 실행 시 화면을 살짝 내려 주소창을 숨김 처리
-			setTimeout(function() { window.scrollTo(0, 1); }, 100);
-		});
+        // [앱 모드 최적화] 주소창 숨김 및 터치 바운스 제어
+        window.addEventListener("load", function() {
+            setTimeout(function() { window.scrollTo(0, 1); }, 100);
+        });
+
+        // iOS PWA 새로고침 로직 (당겨서 새로고침 모방)
+        let touchStartY = 0;
+        window.addEventListener('touchstart', e => { touchStartY = e.touches[0].pageY; }, {passive: true});
+        window.addEventListener('touchmove', e => {
+            const touchY = e.touches[0].pageY;
+            const touchDiff = touchY - touchStartY;
+            // 최상단에서 아래로 150px 이상 당겼을 때 새로고침
+            if (document.documentElement.scrollTop === 0 && touchDiff > 150) {
+                if(confirm("페이지를 새로고침하시겠습니까?")) {
+                    location.reload();
+                }
+            }
+        }, {passive: true});
     </script>
+
     <style>
         :root { --primary: #2c3e50; --accent: #3498db; --bg: #f8f9fa; }
+        /* iOS 터치 바운스 허용하여 당기는 느낌 주기 */
+        html, body { overflow-y: auto; -webkit-overflow-scrolling: touch; }
         body { font-family: 'Pretendard', -apple-system, sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; margin: 0; }
-        .container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
+        .container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 500px; position: relative; }
+        
+        /* 새로고침 수동 버튼 (우측 상단) */
+        .refresh-btn { position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #ccc; padding: 5px; width: auto; margin: 0; }
+
         h2 { text-align: center; color: var(--primary); margin-bottom: 25px; font-size: 1.5rem; }
         .tabs { display: flex; margin-bottom: 20px; border-bottom: 2px solid #eee; }
         .tab { flex: 1; text-align: center; padding: 12px; cursor: pointer; font-weight: bold; color: #999; border-bottom: 3px solid transparent; transition: 0.3s; }
         .tab.active { color: var(--accent); border-bottom: 3px solid var(--accent); }
         .input-group { margin-bottom: 15px; }
         label { display: block; font-size: 0.85rem; font-weight: 600; color: #555; margin-bottom: 5px; }
-        .input-box { display: flex; align-items: center; border: 1px solid #ddd; border-radius: 8px; padding: 0 12px; background: white; transition: border-color 0.2s, box-shadow 0.2s; }
-        .input-box:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(52,152,219,0.1); }
-        .input-box input, .input-box select { flex: 1; border: none; padding: 12px 0; font-size: 1rem; outline: none; background: transparent; min-width: 0; }
-        .input-box input { text-align: right; padding-right: 8px; }
-        .input-box select { text-align-last: right; cursor: pointer; }
-        .unit { font-size: 0.9rem; color: #888; white-space: nowrap; pointer-events: none; }
-        button { width: 100%; padding: 15px; background: var(--accent); color: white; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; margin-top: 15px; transition: background 0.2s; }
-        button:hover { background: #2980b9; }
+        .input-box { display: flex; align-items: center; border: 1px solid #ddd; border-radius: 8px; padding: 0 12px; background: white; }
+        .input-box input, .input-box select { flex: 1; border: none; padding: 12px 0; font-size: 1rem; outline: none; background: transparent; text-align: right; }
+        .unit { font-size: 0.9rem; color: #888; white-space: nowrap; margin-left: 5px; }
+        button { width: 100%; padding: 15px; background: var(--accent); color: white; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; margin-top: 15px; }
+        
         #result-area { margin-top: 25px; padding: 20px; background: #f1f9ff; border-radius: 10px; display: none; border: 1px solid #d6e9f8; }
         .result-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
         .result-val { font-weight: bold; color: #e74c3c; }
-        .method-info { font-size: 0.75rem; color: #7f8c8d; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #bdc3c7; line-height: 1.4; }
+
+        /* 커스텀 모달 */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: white; padding: 25px; border-radius: 15px; width: 80%; max-width: 300px; text-align: center; }
+        .modal-button { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 8px; width: 100%; margin-top: 15px; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="container">
+    <button class="refresh-btn" onclick="location.reload();" title="새로고침">↺</button>
+    
     <h2>DTI 금융 계산기</h2>
     
     <div class="tabs">
@@ -138,29 +162,32 @@
     </div>
 </div>
 
+<div class="modal-overlay" id="customModal">
+    <div class="modal-content">
+        <div id="modalMessage">메시지</div>
+        <button class="modal-button" onclick="closeModal()">확인</button>
+    </div>
+</div>
+
 <script>
     let currentMode = 'jeonse';
 
+    function openModal(msg) { document.getElementById('modalMessage').innerText = msg; document.getElementById('customModal').style.display = 'flex'; }
+    function closeModal() { document.getElementById('customModal').style.display = 'none'; }
+
     function switchTab(mode) {
         currentMode = mode;
-        const tabJeonse = document.getElementById('tab-jeonse');
-        const tabMortgage = document.getElementById('tab-mortgage');
-        if (mode === 'jeonse') {
-            tabJeonse.classList.add('active');
-            tabMortgage.classList.remove('active');
-        } else {
-            tabMortgage.classList.add('active');
-            tabJeonse.classList.remove('active');
-        }
-        document.getElementById('method_group').style.display = (mode === 'mortgage') ? 'block' : 'none';
-        document.getElementById('grace_group').style.display = (mode === 'mortgage') ? 'block' : 'none';
-        document.getElementById('payment_label').innerText = (mode === 'mortgage') ? "첫 달 상환액:" : "첫 달 이자 상환액:";
+        document.getElementById('tab-jeonse').className = (mode === 'jeonse' ? 'tab active' : 'tab');
+        document.getElementById('tab-mortgage').className = (mode === 'mortgage' ? 'tab active' : 'tab');
+        document.getElementById('method_group').style.display = (mode === 'mortgage' ? 'block' : 'none');
+        document.getElementById('grace_group').style.display = (mode === 'mortgage' ? 'block' : 'none');
+        document.getElementById('payment_label').innerText = (mode === 'mortgage' ? "첫 달 상환액:" : "첫 달 이자 상환액:");
         document.getElementById('result-area').style.display = 'none';
     }
 
     function toggleGrace() {
         const method = document.getElementById('repay_method').value;
-        document.getElementById('grace_group').style.display = (method === 'expiry') ? 'none' : 'block';
+        document.getElementById('grace_group').style.display = (method === 'expiry' ? 'none' : 'block');
     }
 
     function formatNumber(input) {
@@ -168,9 +195,7 @@
         input.value = value ? parseInt(value).toLocaleString() : "";
     }
 
-    function unformat(str) {
-        return parseFloat(str.replace(/,/g, "")) || 0;
-    }
+    function unformat(str) { return parseFloat(str.replace(/,/g, "")) || 0; }
 
     function calculate() {
         const P = unformat(document.getElementById('loan_money').value);
@@ -179,63 +204,44 @@
         const g = currentMode === 'mortgage' ? unformat(document.getElementById('grace_period').value) : 0;
         const income = unformat(document.getElementById('income_money').value);
         const totalDebt = unformat(document.getElementById('debt_money').value);
-        const preRateInput = document.getElementById('pre_rate').value;
-        const preRate = (preRateInput === "" ? 6.2 : parseFloat(preRateInput)) / 100;
+        const preRate = (document.getElementById('pre_rate').value === "" ? 6.2 : parseFloat(document.getElementById('pre_rate').value)) / 100;
         const method = document.getElementById('repay_method').value;
 
-        if (!P || isNaN(annualRate) || !n || !income) {
-            alert("대출 금액, 금리, 기간, 소득 정보를 입력해 주세요."); return;
-        }
+        if (!P || isNaN(annualRate) || !n || !income) { openModal("모든 정보를 입력해 주세요."); return; }
 
         const r = annualRate / 12;
-        let firstMonthPay = 0;
-        let annualNewRepay = 0;
-        let desc = "";
+        let firstMonthPay = 0, annualNewRepay = 0, desc = "";
 
         if (currentMode === 'mortgage') {
             if (method === 'both') {
                 const repayMonths = n - g;
                 const monthly = (P * r * Math.pow(1 + r, repayMonths)) / (Math.pow(1 + r, repayMonths) - 1);
                 firstMonthPay = g > 0 ? (P * r) : monthly;
-                annualNewRepay = monthly * 12; 
-                desc = "원리금균등상환: 원금과 이자를 합쳐 매달 똑같은 금액을 상환합니다.";
+                annualNewRepay = monthly * 12;
+                desc = "원리금균등상환 방식입니다.";
             } else if (method === 'principal') {
                 const repayMonths = n - g;
                 const monthlyPrincipal = P / repayMonths;
-                const firstInterest = P * r;
-                firstMonthPay = g > 0 ? (P * r) : (monthlyPrincipal + firstInterest);
+                firstMonthPay = g > 0 ? (P * r) : (monthlyPrincipal + (P * r));
                 annualNewRepay = (monthlyPrincipal * 12) + (P * annualRate);
-                desc = "원금균등상환: 매달 똑같은 원금을 갚으므로 이자가 갈수록 줄어듭니다.";
+                desc = "원금균등상환 방식입니다.";
             } else {
                 firstMonthPay = P * r;
-                annualNewRepay = P * annualRate; 
-                desc = "만기일시상환: 매달 이자만 내다가 만기에 원금을 한꺼번에 갚습니다.";
+                annualNewRepay = P * annualRate;
+                desc = "만기일시상환 방식입니다.";
             }
         } else {
-            firstMonthPay = P * r;
-            annualNewRepay = P * annualRate;
-            desc = "전세자금대출: 기간 동안 매달 이자만 납부하는 방식을 기준으로 계산합니다.";
+            firstMonthPay = P * r; annualNewRepay = P * annualRate;
+            desc = "전세자금대출(이자 납부 기준)입니다.";
         }
 
-        const annualDebtRepay = totalDebt * preRate;
-        const dti = ((annualNewRepay + annualDebtRepay) / income) * 100;
-
+        const dti = ((annualNewRepay + (totalDebt * preRate)) / income) * 100;
         document.getElementById('result-area').style.display = 'block';
         document.getElementById('monthly_payment').innerText = Math.round(firstMonthPay).toLocaleString() + " 원";
         document.getElementById('result').innerText = dti.toFixed(2) + " %";
         document.getElementById('method_desc').innerText = "* " + desc;
     }
 </script>
-<script type="text/javascript">
 
-    if ('serviceWorker' in navigator) {
-
-        navigator.serviceWorker.register('data:text/javascript;base64,c2VsZi.addEventListener("fetch", function(e) { e.respondWith(fetch(e.request)); });')
-
-        .catch(function(err) { console.log("SW 등록 실패", err); });
-
-    }
-
-</script>
 </body>
 </html>
