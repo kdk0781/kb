@@ -19,48 +19,52 @@
     <style>
         :root { --primary: #2c3e50; --accent: #3498db; --bg: #f8f9fa; }
 
-        /* 바운스 효과를 위한 핵심 설정 */
-        html {
-            height: 100%;
-            overflow: hidden; /* 시스템 기본 스크롤을 막고 body에서 제어 */
-        }
-        
+        /* 바운스 효과 및 스크롤 설정 */
+        html { height: 100%; overflow: hidden; }
         body { 
             font-family: 'Pretendard', -apple-system, sans-serif; 
-            background: var(--bg); 
-            margin: 0;
-            height: 100%;
-            overflow-y: scroll; /* 스크롤 강제 활성화 */
-            -webkit-overflow-scrolling: touch; /* iOS 바운스/가속 스크롤 활성화 */
-            display: flex;
-            justify-content: center;
+            background: var(--bg); margin: 0; height: 100%;
+            overflow-y: scroll; -webkit-overflow-scrolling: touch;
+            display: flex; justify-content: center;
         }
 
-        /* 당겨서 새로고침 가이드 문구 */
+        /* [NEW] 상단 당겨서 새로고침 가이드 레이어 */
         .pull-to-refresh-guide {
             position: fixed;
-            top: -50px; /* 평소엔 숨김 */
-            left: 0; width: 100%; height: 50px;
+            top: -60px; left: 0; width: 100%; height: 60px;
             display: flex; justify-content: center; align-items: center;
-            color: #888; font-size: 0.8rem;
-            z-index: -1;
+            background: #fff; border-bottom: 1px solid #eee;
+            color: var(--accent); font-size: 0.9rem; font-weight: bold;
+            z-index: 50; transition: transform 0.2s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
 
         .container { 
-            background: white; 
-            padding: 30px; 
-            border-radius: 15px; 
+            background: white; padding: 30px; border-radius: 15px; 
             box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
-            width: 100%; 
-            max-width: 500px; 
-            margin: 40px 20px; /* 상하 여백을 주어 바운스 공간 확보 */
-            position: relative;
-            align-self: flex-start;
+            width: 100%; max-width: 500px; 
+            margin: 50px 20px; position: relative; align-self: flex-start;
         }
         
-        .refresh-btn { position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #ddd; padding: 10px; z-index: 10; }
+        /* [NEW] 왼쪽 상단 강조된 새로고침 버튼 */
+        .refresh-area {
+            position: absolute; top: 15px; left: 15px;
+            display: flex; align-items: center; gap: 5px;
+            cursor: pointer; padding: 6px 12px;
+            background: #f1f3f5; border-radius: 20px;
+            color: #495057; font-size: 0.75rem; font-weight: bold;
+            transition: background 0.2s;
+        }
+        .refresh-area:active { background: #e9ecef; }
+        .refresh-icon { 
+            font-size: 1rem; display: inline-block; 
+            transition: transform 0.5s ease-in-out; 
+        }
+        .rotating { transform: rotate(360deg); }
 
-        h2 { text-align: center; color: var(--primary); margin-bottom: 25px; font-size: 1.5rem; }
+        h2 { text-align: center; color: var(--primary); margin: 15px 0 25px; font-size: 1.5rem; }
+        
+        /* 탭 및 입력창 스타일 */
         .tabs { display: flex; margin-bottom: 20px; border-bottom: 2px solid #eee; }
         .tab { flex: 1; text-align: center; padding: 12px; cursor: pointer; font-weight: bold; color: #999; border-bottom: 3px solid transparent; transition: 0.3s; }
         .tab.active { color: var(--accent); border-bottom: 3px solid var(--accent); }
@@ -69,13 +73,14 @@
         .input-box { display: flex; align-items: center; border: 1px solid #ddd; border-radius: 8px; padding: 0 12px; background: white; }
         .input-box input, .input-box select { flex: 1; border: none; padding: 12px 0; font-size: 1rem; outline: none; background: transparent; text-align: right; }
         .unit { font-size: 0.9rem; color: #888; white-space: nowrap; margin-left: 5px; }
-        button { width: 100%; padding: 15px; background: var(--accent); color: white; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; margin-top: 15px; }
+        
+        button.calc-btn { width: 100%; padding: 15px; background: var(--accent); color: white; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; margin-top: 15px; }
         
         #result-area { margin-top: 25px; padding: 20px; background: #f1f9ff; border-radius: 10px; display: none; border: 1px solid #d6e9f8; }
         .result-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
         .result-val { font-weight: bold; color: #e74c3c; }
 
-        /* 커스텀 모달 */
+        /* 모달 스타일 */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
         .modal-content { background: white; padding: 25px; border-radius: 15px; width: 80%; max-width: 300px; text-align: center; }
         .modal-button { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 8px; width: 100%; margin-top: 15px; font-weight: bold; }
@@ -83,10 +88,15 @@
 </head>
 <body>
 
-    <div class="pull-to-refresh-guide" id="refreshGuide">↓ 아래로 당겨서 새로고침</div>
+    <div class="pull-to-refresh-guide" id="refreshGuide">
+        <span style="margin-right:8px;">↻</span> 당겨서 초기화
+    </div>
 
     <div class="container">
-        <button class="refresh-btn" onclick="location.reload();">↺</button>
+        <div class="refresh-area" onclick="handleRefresh(this)">
+            <span class="refresh-icon" id="refIcon">↻</span>
+            <span>초기화</span>
+        </div>
         
         <h2>DTI 금융 계산기</h2>
         
@@ -162,7 +172,7 @@
             </div>
         </div>
 
-        <button onclick="calculate()">계산하기</button>
+        <button class="calc-btn" onclick="calculate()">계산하기</button>
 
         <div id="result-area">
             <div class="result-row">
@@ -185,34 +195,34 @@
     </div>
 
 <script>
+    // [NEW] 새로고침 버튼 핸들러 (회전 애니메이션 추가)
+    function handleRefresh(el) {
+        const icon = document.getElementById('refIcon');
+        icon.classList.add('rotating');
+        setTimeout(() => {
+            location.reload();
+        }, 500);
+    }
+
+    // iOS 당겨서 새로고침 피드백 로직
     let touchStartY = 0;
     const guide = document.getElementById('refreshGuide');
 
-    // 터치 시작 시 스크롤 위치 저장
-    window.addEventListener('touchstart', e => { 
-        touchStartY = e.touches[0].pageY; 
-    }, {passive: true});
-
-    // 터치 이동 시 상단 가이드 노출 제어
+    window.addEventListener('touchstart', e => { touchStartY = e.touches[0].pageY; }, {passive: true});
     window.addEventListener('touchmove', e => {
         const touchY = e.touches[0].pageY;
         const diff = touchY - touchStartY;
-        
         if (window.scrollY <= 0 && diff > 50) {
-            guide.style.top = (Math.min(diff / 2, 50) - 50) + "px";
+            guide.style.transform = `translateY(${Math.min(diff / 2, 60)}px)`;
         }
     }, {passive: true});
-
-    // 터치 종료 시 새로고침 실행
     window.addEventListener('touchend', e => {
         const diff = e.changedTouches[0].pageY - touchStartY;
-        guide.style.top = "-50px"; // 다시 숨김
-        
-        if (window.scrollY <= 0 && diff > 180) { // 180px 이상 당기면 새로고침
-            location.reload();
-        }
+        guide.style.transform = "translateY(0px)";
+        if (window.scrollY <= 0 && diff > 180) { location.reload(); }
     });
 
+    // 기존 계산기 로직
     let currentMode = 'jeonse';
     function openModal(msg) { document.getElementById('modalMessage').innerText = msg; document.getElementById('customModal').style.display = 'flex'; }
     function closeModal() { document.getElementById('customModal').style.display = 'none'; }
@@ -236,7 +246,6 @@
         let value = input.value.replace(/[^0-9]/g, "");
         input.value = value ? parseInt(value).toLocaleString() : "";
     }
-
     function unformat(str) { return parseFloat(str.replace(/,/g, "")) || 0; }
 
     function calculate() {
