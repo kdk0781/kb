@@ -60,11 +60,8 @@
         .badge { padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; margin-right: 6px; }
         .badge.plus { background: #e8f8f0; color: #2ecc71; }
         .badge.minus { background: #fef1f0; color: #e74c3c; }
-
-        /* [수정] 모달 및 상세 내역 모바일 가독성 강화 */
         .detail-row { font-size: 12px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #eee; padding-bottom: 4px; }
-        .detail-row span { font-weight: 800; color: var(--kb-dark); white-space: nowrap; font-size: 11px; }
-
+        .detail-row span { font-weight: 800; color: var(--kb-dark); }
         .limit-card { background: #fff; border: 3.5px solid var(--blue); padding: 25px; border-radius: 20px; text-align: center; margin-top: 25px; }
         .limit-val { font-size: 2.2rem; font-weight: 900; color: var(--blue); }
         .btn-copy { width: 100%; padding: 15px; background: var(--blue); color: white; border: none; border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; margin-top: 20px; transition: 0.3s; }
@@ -125,23 +122,31 @@
 
         <div class="section-title">금융 방식 특징 가이드</div>
         <div class="method-guide">
-            <div class="guide-col"><strong>💡 원금균등 상환</strong><div style="font-size:12px; margin-bottom:8px;"><span class="badge plus">한도</span> <b>대출 가능액 우위 (DSR 유리)</b></div><div style="font-size:12px; margin-bottom:8px;"><span class="badge plus">이자</span> 총 이자 지불액 최소화</div><div style="font-size:12px;"><span class="badge plus">심리</span> 시간이 지날수록 상환액 감소</div></div>
-            <div class="guide-col"><strong>💡 원리금균등 상환</strong><div style="font-size:12px; margin-bottom:8px;"><span class="badge plus">안정</span> 매월 지출액 고정으로 안정적</div><div style="font-size:12px; margin-bottom:8px;"><span class="badge plus">계획</span> 가계 예산 관리가 매우 용이함</div><div style="font-size:12px;"><span class="badge minus">비용</span> 원리금균등 대비 이자가 많음</div></div>
+            <div class="guide-col"><strong>💡 원금균등 상환</strong><div style="font-size:12px; margin-bottom:8px;"><span class="badge plus">한도</span> <b>대출 가능액 우위 (DSR 산정 유리)</b></div><div style="font-size:12px; margin-bottom:8px;"><span class="badge plus">이자</span> 대출 전체 기간 총 이자 비용 최소화</div><div style="font-size:12px;"><span class="badge plus">심리</span> 상환할수록 매월 납입액이 점차 감소</div></div>
+            <div class="guide-col"><strong>💡 원리금균등 상환</strong><div style="font-size:12px; margin-bottom:8px;"><span class="badge plus">안정</span> 매월 지출액 고정으로 안정적 가계부 운영</div><div style="font-size:12px; margin-bottom:8px;"><span class="badge plus">계획</span> 매달 같은 금액을 상환하여 현금 계획 용이</div><div style="font-size:12px;"><span class="badge minus">이자</span> 원금균등 대비 전체 지불 이자가 많음</div></div>
         </div>
 
         <div class="section-title">실제 금리 기준 상환액 상세 (예상)</div>
         <div class="method-guide" id="detailVisualization">
             <div class="guide-col">
                 <strong>📝 원금균등 방식 (상세)</strong>
-                <div class="detail-row">월 평균(원금/이자) <span id="vis_m_p_p">0/0원</span></div>
-                <div class="detail-row">년 평균(원금/이자) <span id="vis_y_p_p">0/0원</span></div>
-                <div class="detail-row" style="color:var(--blue); border-top:1px dashed #ddd; padding-top:4px; font-weight:900;">총 기간(원금/이자) <span id="vis_total_full_p">0/0원</span></div>
+                <div class="detail-row">월 평균 원금 <span id="vis_m_p_p">0원</span></div>
+                <div class="detail-row">월 평균 이자 <span id="vis_m_i_p">0원</span></div>
+                <div class="detail-row">년 평균 원금 <span id="vis_y_p_p">0원</span></div>
+                <div class="detail-row">년 평균 이자 <span id="vis_y_i_p">0원</span></div>
+                <div class="detail-row" style="border-top:1px dashed #ddd; margin-top:8px; padding-top:4px;">총 기간 원금 <span id="vis_t_p_p">0원</span></div>
+                <div class="detail-row">총 기간 이자 <span id="vis_t_i_p">0원</span></div>
+                <div class="detail-row" style="color:var(--blue); font-weight:900;">전체 총 상환액 <span id="vis_total_full_p">0원</span></div>
             </div>
             <div class="guide-col">
                 <strong>📝 원리금균등 방식 (상세)</strong>
-                <div class="detail-row">월 평균(원금/이자) <span id="vis_m_p_l">0/0원</span></div>
-                <div class="detail-row">년 평균(원금/이자) <span id="vis_y_p_l">0/0원</span></div>
-                <div class="detail-row" style="color:var(--blue); border-top:1px dashed #ddd; padding-top:4px; font-weight:900;">총 기간(원금/이자) <span id="vis_total_full_l">0/0원</span></div>
+                <div class="detail-row">월 평균 원금 <span id="vis_m_p_l">0원</span></div>
+                <div class="detail-row">월 평균 이자 <span id="vis_m_i_l">0원</span></div>
+                <div class="detail-row">년 평균 원금 <span id="vis_y_p_l">0원</span></div>
+                <div class="detail-row">년 평균 이자 <span id="vis_y_i_l">0원</span></div>
+                <div class="detail-row" style="border-top:1px dashed #ddd; margin-top:8px; padding-top:4px;">총 기간 원금 <span id="vis_t_p_l">0원</span></div>
+                <div class="detail-row">총 기간 이자 <span id="vis_t_i_l">0원</span></div>
+                <div class="detail-row" style="color:var(--blue); font-weight:900;">전체 총 상환액 <span id="vis_total_full_l">0원</span></div>
             </div>
         </div>
 
@@ -190,7 +195,7 @@ function applyPolicy(id) {
     if(!card.querySelector('.dynamic-guide')) { guide.className = 'dynamic-guide'; card.appendChild(guide); }
     if(cat === 'officetel') {
         guide.style.display = 'block';
-        guide.innerHTML = "🏢 <b>오피스텔 전문 가이드:</b><br>1. DSR 산정 시 실제 만기와 관계없이 <b>가상 8년(96개월)</b> 상환이 적용되어 한도가 작게 보일 수 있습니다.<br>2. 신규 분양 시 주택담보대출(30~40년) 항목과 비교하여 한도 최적화를 권장합니다.";
+        guide.innerHTML = "🏢 <b>오피스텔 전문 분석:</b> DSR 산정 시 <b>가상 8년(96개월)</b> 상환이 강제 적용됩니다.<br/> 한도가 주담대 대비 낮게 산출되므로 분양/매매 시 주택담보대출 항목과 필수 비교가 필요합니다.";
         m.value = "96"; r.placeholder = "5.5"; srSelect.value = "0.0";
     } else {
         guide.style.display = 'none';
@@ -204,11 +209,10 @@ function applyPolicy(id) {
 function calculateTotalDSR() {
     const income = getNum(document.getElementById('income').value);
     if (income <= 0) { showAlert("연소득을 입력해주세요."); return; }
-    let totalStressPay = 0; let baseR = 0; let baseSR = 0; let baseM = 360;
+    let totalStressPay = 0; let bR = 4.5; let bSR = 1.15; let bM = 360;
+    let sumP = 0; let sumI_P = 0; let sumI_L = 0;
     const items = document.querySelectorAll('[id^="loan_"]');
     if(items.length === 0) { showAlert("부채 항목을 추가해주세요."); return; }
-    
-    let sumP = 0; let sumI_P = 0; let sumI_L = 0;
 
     items.forEach((item, index) => {
         const cat = item.querySelector('.l-category').value;
@@ -216,54 +220,50 @@ function calculateTotalDSR() {
         const R = Number(item.querySelector('.l-r').value || 4.5);
         const SR = Number(item.querySelector('.l-sr-select').value);
         const n = getNum(item.querySelector('.l-m').value);
-        if (index === 0) { baseR = R; baseSR = SR; baseM = n; }
-
-        const r_stress = (R + SR) / 1200; const r_real = R / 1200;
-
+        if (index === 0) { bR = R; bSR = SR; bM = n; }
+        const r_s = (R + SR) / 1200; const r_real = R / 1200;
         if (P > 0) {
             if (cat === 'jeonse') totalStressPay += P * (R / 100);
-            else totalStressPay += ((P * r_stress * Math.pow(1+r_stress,n)) / (Math.pow(1+r_stress,n)-1)) * 12;
+            else totalStressPay += ((P * r_s * Math.pow(1+r_s,n)) / (Math.pow(1+r_s,n)-1)) * 12;
             sumP += P;
-            if (cat === 'jeonse') {
-                const tI = (P * (R/100) * (n/12)); sumI_P += tI; sumI_L += tI;
-            } else {
-                sumI_P += (P * r_real * (n + 1) / 2);
-                const mPMT = (P * r_real * Math.pow(1+r_real, n)) / (Math.pow(1+r_real, n)-1);
-                sumI_L += (mPMT * n) - P;
-            }
+            const tI_P = (P * r_real * (n + 1) / 2); sumI_P += tI_P;
+            const mPMT = (P * r_real * Math.pow(1+r_real, n)) / (Math.pow(1+r_real, n)-1);
+            sumI_L += (mPMT * n) - P;
         }
     });
 
     const dsr = (totalStressPay / income) * 100;
-    const dsrLimit = income * 0.4;
-    const r_lim = (baseR + baseSR) / 1200;
-    const maxP = (dsrLimit / 12) / (1/baseM + (r_lim * 0.5));
-    const addLim = (dsrLimit - totalStressPay) > 0 ? (dsrLimit - totalStressPay) / 12 / (1/baseM + (r_lim * 0.5)) : 0;
+    const r_lim = (bR + bSR) / 1200;
+    const maxP = (income * 0.4 / 12) / (1/bM + (r_lim * 0.5));
+    const addLim = (income * 0.4 - totalStressPay) > 0 ? (income * 0.4 - totalStressPay) / 12 / (1/bM + (r_lim * 0.5)) : 0;
 
     document.getElementById('resultArea').style.display = 'block';
     document.getElementById('dsrVal').innerText = dsr.toFixed(2) + "%";
-    document.getElementById('dsrVal').style.color = dsr > 40 ? "var(--danger)" : "var(--safe)";
     document.getElementById('dsrBar').style.width = Math.min(dsr, 100) + "%";
     document.getElementById('dsrBar').style.background = dsr > 40 ? "var(--danger)" : "var(--safe)";
     document.getElementById('absMaxPrin').innerText = (Math.floor(maxP/10000)*10000).toLocaleString() + " 원";
-    document.getElementById('absMaxLevel').innerText = (Math.floor((((dsrLimit/12)*(Math.pow(1+r_lim,baseM)-1))/(r_lim*Math.pow(1+r_lim,baseM)))/10000)*10000).toLocaleString() + " 원";
+    document.getElementById('absMaxLevel').innerText = (Math.floor((((income * 0.4 / 12) * (Math.pow(1+r_lim, bM)-1)) / (r_lim * Math.pow(1+r_lim, bM)))/10000)*10000).toLocaleString() + " 원";
     document.getElementById('remainingLimit').innerText = (Math.floor(addLim/10000)*10000).toLocaleString() + " 원";
     
-    const f = (v) => Math.floor(v).toLocaleString();
+    const f = (v) => Math.floor(v).toLocaleString() + "원";
     const updateUI = (type, sI) => {
-        document.getElementById(`vis_m_p_${type}`).innerText = `${f(sumP/baseM)}/${f(sI/baseM)}원`;
-        document.getElementById(`vis_y_p_${type}`).innerText = `${f(sumP/baseM*12)}/${f(sI/baseM*12)}원`;
-        document.getElementById(`vis_total_full_${type}`).innerText = `${f(sumP)}/${f(sI)}원`;
+        document.getElementById(`vis_m_p_${type}`).innerText = f(sumP/bM);
+        document.getElementById(`vis_m_i_${type}`).innerText = f(sI/bM);
+        document.getElementById(`vis_y_p_${type}`).innerText = f(sumP/bM*12);
+        document.getElementById(`vis_y_i_${type}`).innerText = f(sI/bM*12);
+        document.getElementById(`vis_t_p_${type}`).innerText = f(sumP);
+        document.getElementById(`vis_t_i_${type}`).innerText = f(sI);
+        document.getElementById(`vis_total_full_${type}`).innerText = f(sumP + sI);
     };
     updateUI('p', sumI_P); updateUI('l', sumI_L);
 
     const recDesc = document.getElementById('recDesc');
-    recDesc.innerHTML = dsr > 32 ? "<b>🚨 한도 확보 긴급:</b> DSR이 규제선에 근접했습니다. 원리금보다 <b>한도가 약 10% 더 유리한 '원금균등'</b> 방식을 통해 한도를 확보하고 전체 이자 비용 절감을 동시에 도모해야 합니다." : "<b>✅ 안정적 자산관리:</b> 현재 소득 대비 부채 비율이 건전합니다. 매월 납입액이 고정되어 <b>안정적인 가계 지출 계획 수립이 가능한 '원리금균등'</b> 방식을 통해 안정적으로 자산을 운용하시길 권장합니다.";
+    recDesc.innerHTML = dsr > 32 ? "<b>🚨 한도 긴급 확보:</b> 현재 DSR이 임계치에 도달했습니다. 원리금보다 <b>한도가 약 10% 더 유리한 '원금균등'</b> 방식을 선택하여 자금 여력을 확보하고 전체 이자 비용을 공격적으로 절감하는 전략을 강력 추천합니다." : "<b>✅ 자금 건전성 양호:</b> 현재 소득 대비 부채 비율이 적정합니다. 매월 납입액이 동일하여 <b>예측 가능한 지출 계획 수립이 용이한 '원리금균등'</b> 방식을 통해 안정적인 현금 흐름을 유지하시길 권장합니다.";
     window.scrollTo({ top: document.getElementById('resultArea').offsetTop - 20, behavior: 'smooth' });
 }
 
 function copyResultText() {
-    const text = `[DSR 정밀 진단]\n연소득: ${document.getElementById('income').value}원\nDSR: ${document.getElementById('dsrVal').innerText}\n\n[총 상환액(기간반영)]\n원금균등: ${document.getElementById('vis_total_full_p').innerText}\n원리금균등: ${document.getElementById('vis_total_full_l').innerText}`;
+    const text = `[DSR 정밀 분석]\n연소득: ${document.getElementById('income').value}원\nDSR: ${document.getElementById('dsrVal').innerText}\n추가여력: ${document.getElementById('remainingLimit').innerText}\n\n[총 상환액(기간반영)]\n원금균등: ${document.getElementById('vis_total_full_p').innerText}\n원리금균등: ${document.getElementById('vis_total_full_l').innerText}`;
     const temp = document.createElement("textarea"); document.body.appendChild(temp);
     temp.value = text; temp.select(); document.execCommand("copy"); document.body.removeChild(temp);
     showAlert("결과가 복사되었습니다!", "✅");
