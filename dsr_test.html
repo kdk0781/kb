@@ -59,27 +59,23 @@
         .badge { padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; margin-right: 6px; }
         .badge.plus { background: #e8f8f0; color: #2ecc71; }
         .badge.minus { background: #fef1f0; color: #e74c3c; }
-
         .detail-group { background: #f9f9f9; border: 1px solid #efefef; border-radius: 14px; padding: 12px; margin-bottom: 10px; }
         .detail-row { font-size: 12px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #eee; padding-bottom: 4px; }
         .detail-row:last-of-type { border-bottom: none; }
         .detail-row span { font-weight: 800; color: var(--kb-dark); font-size: 13px; }
         .total-row { color: var(--blue) !important; font-weight: 900 !important; border-top: 1px solid #ddd; margin-top: 4px; padding-top: 4px; border-bottom: none !important; }
         .total-highlight { background: #f0f7ff !important; border-color: #d0e4ff !important; }
-
         .limit-card { background: #fff; border: 3.5px solid var(--blue); padding: 25px; border-radius: 20px; text-align: center; margin-top: 25px; }
         .limit-val { font-size: 2.2rem; font-weight: 900; color: var(--blue); }
         .btn-copy { width: 100%; padding: 15px; background: var(--blue); color: white; border: none; border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; margin-top: 20px; transition: 0.3s; }
         .wiki-table-wrapper { width: 100%; overflow-x: auto; margin-top: 20px; border-radius: 12px; border: 1px solid #eee; }
         .wiki-table { width: 100%; border-collapse: collapse; min-width: 500px; font-size: 12px; background: #fff; }
-        .wiki-table th { background: var(--gray); padding: 12px; text-align: left; }
+        .wiki-table th { background: var(--gray); padding: 12px; text-align: left; color: #666; }
         .wiki-table td { padding: 12px; border-bottom: 1px solid #f9f9f9; }
         .btn-remove { position: absolute; top: -10px; right: -10px; width: 32px; height: 32px; background: #fff; border: 1px solid #ddd; border-radius: 50%; color: #999; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; }
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 9999; }
         .modal-content { background: #fff; padding: 30px; border-radius: 24px; width: 90%; max-width: 350px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2); animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         @keyframes modalPop { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
-        .modal-icon { font-size: 40px; margin-bottom: 15px; display: block; }
-        .modal-text { font-size: 16px; font-weight: 600; color: #333; line-height: 1.5; margin-bottom: 25px; word-break: keep-all; }
         .modal-btn { width: 100%; padding: 16px; background: var(--kb-yellow); color: var(--kb-dark); border: none; border-radius: 14px; font-size: 16px; font-weight: 800; cursor: pointer; }
         .refresh-btn { position: fixed; bottom: 30px; right: 20px; width: 50px; height: 50px; background: var(--kb-dark); color: var(--kb-yellow); border-radius: 50%; border: 2px solid var(--kb-yellow); display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; z-index: 1000; box-shadow: 0 4px 15px rgba(0,0,0,0.3); transition: 0.2s; vertical-align:middle;}
         .refresh-btn:active { transform: rotate(180deg) scale(0.9); }
@@ -116,7 +112,6 @@
             <label style="color:#666; font-size:14px; font-weight:600;">종합 DSR 지수 (스트레스 반영)</label>
             <div id="dsrVal" class="dsr-main-val">0%</div>
             <div class="dsr-progress-container"><div id="dsrBar" class="dsr-progress-bar"></div><div class="limit-marker"></div><div class="limit-label">DSR 규제선 (40%)</div></div>
-            <p id="dsrMsg" style="font-weight: 800; font-size: 1.1rem; margin-bottom: 30px;"></p>
         </div>
         
         <div class="section-title">방식별 최대 한도 분석</div>
@@ -127,12 +122,12 @@
 
         <div class="section-title">금융 방식 특징 가이드</div>
         <div class="method-guide">
-            <div class="guide-col"><strong>💡 원금균등 상환</strong><div style="font-size:12px; margin-bottom:8px;"><span class="badge plus">한도</span> <b>대출 가능액 우위 (DSR 산정 유리)</b></div><div style="font-size:12px; margin-bottom:8px;"><span class="badge plus">이자</span> 대출 전체 기간 총 이자 비용 최소화</div><div style="font-size:12px;"><span class="badge plus">심리</span> 상환할수록 매월 납입액이 점차 감소</div></div>
-            <div class="guide-col"><strong>💡 원리금균등 상환</strong><div style="font-size:12px; margin-bottom:8px;"><span class="badge plus">안정</span> 매월 지출액 고정으로 안정적 가계 운영</div><div style="font-size:12px; margin-bottom:8px;"><span class="badge plus">계획</span> 매달 같은 금액 상환으로 현금 계획 용이</div><div style="font-size:12px;"><span class="badge minus">이자</span> 원금균등 대비 전체 지불 이자가 많음</div></div>
+            <div class="guide-col"><strong>💡 원금균등 상환</strong><div style="font-size:12px; margin-bottom:8px;"><span class="badge plus">한도</span> <b>대출 가능액 우위 (DSR 산정 유리)</b></div><div style="font-size:12px; margin-bottom:8px;"><span class="badge plus">이자</span> 대출 전체 기간 총 이자 비용 최소화</div></div>
+            <div class="guide-col"><strong>💡 원리금균등 상환</strong><div style="font-size:12px; margin-bottom:8px;"><span class="badge plus">안정</span> 매월 지출액 고정으로 안정적 가계 운영</div><div style="font-size:12px; margin-bottom:8px;"><span class="badge minus">이자</span> 원금균등 대비 전체 지불 이자가 많음</div></div>
         </div>
 
         <div class="section-title">실제 금리 기준 상환액 상세 (예상)</div>
-        <div style="font-size:11px; color:#e74c3c; margin-bottom:10px; font-weight:600;">* 15년(180개월)~50년(600개월) 담보대출 항목만 합산 반영됩니다.</div>
+        <div style="font-size:11px; color:#e74c3c; margin-bottom:10px; font-weight:600;">* 15~50년 담보대출 항목만 합산 반영됩니다.</div>
         <div class="method-guide" id="detailVisualization">
             <div class="guide-col">
                 <strong>📝 원금균등 방식</strong>
@@ -230,91 +225,13 @@ function applyPolicy(id) {
 
 function calculateTotalDSR() {
     const income = getNum(document.getElementById('income').value);
-    if (income <= 0) { showAlert("연소득을 입력해주세요."); return; }
-    let totalS = 0; let bR = 4.5; let bSR = 1.15; let bM = 360;
+    if (income <= 0) { showAlert("연간 세전 소득을 입력해주세요."); return; }
     
-    // 상세 내역용 가중 합계
-    let sumP = 0; let sumI_P = 0; let sumI_L = 0; let totalWeightedMonths = 0;
+    let totalS = 0; let bR = 4.5; let bSR = 1.15; let bM = 360;
+    let sumP = 0; let sumI_P = 0; let sumI_L = 0; let maxN = 0;
 
     const items = document.querySelectorAll('[id^="loan_"]');
-    if(items.length === 0) { showAlert("부채 항목을 추가해주세요."); return; }
+    if(items.length === 0) { showAlert("부채 항목을 최소 하나 이상 추가해주세요."); return; }
 
-    items.forEach((item, index) => {
-        const cat = item.querySelector('.l-category').value;
-        const P = getNum(item.querySelector('.l-p').value);
-        const R = Number(item.querySelector('.l-r').value || 4.5);
-        const SR = Number(item.querySelector('.l-sr-select').value);
-        const n = getNum(item.querySelector('.l-m').value);
-        
-        if (index === 0) { bR = R; bSR = SR; bM = n; }
-        const r_s = (R + SR) / 1200; const r_real = R / 1200;
-        
-        if (P > 0) {
-            if (cat === 'jeonse') totalS += P * (R / 100);
-            else totalS += ((P * r_s * Math.pow(1+r_s,n)) / (Math.pow(1+r_s,n)-1)) * 12;
-
-            /* [로직 확장] 담보대출/오피스텔이면서 기간이 15년(180)~50년(600) 사이면 합산 */
-            if ((cat.includes('mortgage') || cat === 'officetel') && n >= 180 && n <= 600) {
-                sumP += P;
-                const tI_P = (P * r_real * (n + 1) / 2); sumI_P += tI_P;
-                const mPMT = (P * r_real * Math.pow(1+r_real, n)) / (Math.pow(1+r_real, n)-1);
-                sumI_L += (mPMT * n) - P;
-                totalWeightedMonths = Math.max(totalWeightedMonths, n); // 대표 기간으로 산정
-            }
-        }
-    });
-
-    const dsr = (totalS / income) * 100;
-    const r_lim = (bR + bSR) / 1200;
-    const maxP = (income * 0.4 / 12) / (1/bM + (r_lim * 0.5));
-    const addLim = (income * 0.4 - totalS) > 0 ? (income * 0.4 - totalS) / 12 / (1/bM + (r_lim * 0.5)) : 0;
-
-    document.getElementById('resultArea').style.display = 'block';
-    document.getElementById('dsrVal').innerText = dsr.toFixed(2) + "%";
-    document.getElementById('dsrVal').style.color = dsr > 40 ? "var(--danger)" : "var(--safe)";
-    document.getElementById('dsrBar').style.width = Math.min(dsr, 100) + "%";
-    document.getElementById('dsrBar').style.background = dsr > 40 ? "var(--danger)" : "var(--safe)";
-    
-    document.getElementById('absMaxPrin').innerText = (Math.floor(maxP/10000)*10000).toLocaleString() + " 원";
-    document.getElementById('absMaxLevel').innerText = (Math.floor((((income*0.4/12)*(Math.pow(1+r_lim,bM)-1))/(r_lim*Math.pow(1+r_lim,bM)))/10000)*10000).toLocaleString() + " 원";
-    document.getElementById('remainingLimit').innerText = (Math.floor(addLim/10000)*10000).toLocaleString() + " 원";
-    
-    const f = (v) => Math.floor(v).toLocaleString() + "원";
-    const divM = totalWeightedMonths || 360; // 입력된 기간이 없으면 기본 360
-
-    const updateUI = (type, sI) => {
-        const mP = sumP / divM; const mI = sI / divM;
-        document.getElementById(`vis_m_p_${type}`).innerText = f(mP);
-        document.getElementById(`vis_m_i_${type}`).innerText = f(mI);
-        document.getElementById(`vis_m_t_${type}`).innerText = f(mP + mI);
-        document.getElementById(`vis_y_p_${type}`).innerText = f(mP * 12);
-        document.getElementById(`vis_y_i_${type}`).innerText = f(mI * 12);
-        document.getElementById(`vis_y_t_${type}`).innerText = f((mP + mI) * 12);
-        document.getElementById(`vis_t_p_${type}`).innerText = f(sumP);
-        document.getElementById(`vis_t_i_${type}`).innerText = f(sI);
-        document.getElementById(`vis_total_full_${type}`).innerText = f(sumP + sI);
-    };
-    updateUI('p', sumI_P); updateUI('l', sumI_L);
-
-    const recDesc = document.getElementById('recDesc');
-    recDesc.innerHTML = dsr > 32 ? "<b>🚨 한도 확보 긴급:</b> 현재 DSR이 임계치에 도달했습니다. <b>한도가 약 10% 더 유리한 '원금균등'</b> 방식을 선택하여 한도 여력을 확보하시길 권장합니다." : "<b>✅ 자금 건전성 양호:</b> 현재 소득 대비 부채 비율이 건전합니다. 매월 상환액이 고정되어 <b>안정적인 가계 지출 계획 수립이 가능한 '원리금균등'</b> 방식을 권장합니다.";
-    window.scrollTo({ top: document.getElementById('resultArea').offsetTop - 20, behavior: 'smooth' });
-}
-
-function copyResultText() {
-    const inc = document.getElementById('income').value;
-    const dsr = document.getElementById('dsrVal').innerText;
-    const text = `[DSR 정밀 진단 리포트]\n연소득: ${inc}원\nDSR: ${dsr}\n추가여력: ${document.getElementById('remainingLimit').innerText}\n\n[총 상환액]\n원금균등: ${document.getElementById('vis_total_full_p').innerText}\n원리금균등: ${document.getElementById('vis_total_full_l').innerText}`;
-    const temp = document.createElement("textarea"); document.body.appendChild(temp);
-    temp.value = text; temp.select(); document.execCommand("copy"); document.body.removeChild(temp);
-    showAlert("결과가 복사되었습니다!", "✅");
-}
-addLoan();
-</script>
-<script type="text/javascript">
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('data:text/javascript;base64,c2VsZi.addEventListener("fetch", function(e) { e.respondWith(fetch(e.request)); });').catch(function(err) { console.log("SW 등록 실패", err); });
-    }
-</script>
-</body>
-</html>
+    /* [추가] 부채 항목별 원금/금리 누락 검사 */
+    for (let i = 0; i < items.length
