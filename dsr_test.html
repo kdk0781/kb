@@ -105,7 +105,7 @@
             <span style="font-size: 13px; color: #888; font-weight: 400; margin-top: 10px; display: block;">최신 금융 규제 정책이 반영되었습니다.</span>
         </div>
         <div class="notice-footer">
-            <button onclick="closeNoticeForever()">다시 보지 않기</button>
+            <button onclick="closeNoticeForever()">영원히 닫기</button>
             <button onclick="closeNotice()">닫기</button>
         </div>
     </div>
@@ -144,17 +144,17 @@
         <div class="section-title">실제 금리 기준 상환액 상세 (예상)</div>
         <div class="method-guide" id="detailVisualization">
             <div class="guide-col">
-                <strong>📝 원금균등 방식 (월/연)</strong>
-                <div class="detail-row">월 평균 원금 <span id="vis_m_p_p">0원</span></div>
-                <div class="detail-row">월 평균 이자 <span id="vis_m_i_p">0원</span></div>
+                <strong>📝 원금균등 방식 (상세)</strong>
+                <div class="detail-row">월 상환 (평균) <span id="vis_m_p_p">0원</span></div>
+                <div class="detail-row">월 이자 (평균) <span id="vis_m_i_p">0원</span></div>
                 <div class="detail-row" style="border-top: 1px solid #ddd; margin-top:10px; padding-top:8px;">연간 총 원금 <span id="vis_y_p_p">0원</span></div>
                 <div class="detail-row">연간 총 이자 <span id="vis_y_i_p">0원</span></div>
                 <div class="detail-row" style="color:var(--blue)">연간 총 합계 <span id="vis_y_t_p" style="color:var(--blue)">0원</span></div>
             </div>
             <div class="guide-col">
-                <strong>📝 원리금균등 방식 (월/연)</strong>
-                <div class="detail-row">월 평균 원금 <span id="vis_m_p_l">0원</span></div>
-                <div class="detail-row">월 평균 이자 <span id="vis_m_i_l">0원</span></div>
+                <strong>📝 원리금균등 방식 (상세)</strong>
+                <div class="detail-row">월 상환 (고정) <span id="vis_m_p_l">0원</span></div>
+                <div class="detail-row">월 이자 (평균) <span id="vis_m_i_l">0원</span></div>
                 <div class="detail-row" style="border-top: 1px solid #ddd; margin-top:10px; padding-top:8px;">연간 총 원금 <span id="vis_y_p_l">0원</span></div>
                 <div class="detail-row">연간 총 이자 <span id="vis_y_i_l">0원</span></div>
                 <div class="detail-row" style="color:var(--blue)">연간 총 합계 <span id="vis_y_t_l" style="color:var(--blue)">0원</span></div>
@@ -179,7 +179,7 @@
     </div>
 </div>
 
-<div class="refresh-btn" onclick="location.reload();" title="새로고침">↻</div>
+<div class="refresh-btn" onclick="location.reload();">↻</div>
 
 <div id="customModal" class="modal-overlay">
     <div class="modal-content">
@@ -240,11 +240,10 @@ function applyPolicy(id) {
     
     if(cat === 'officetel') {
         guide.style.display = 'block';
-        guide.innerHTML = "🏢 <b>오피스텔 안내:</b> 가상 8년(96개월) 상환 기준으로 산정됩니다.";
+        guide.innerHTML = "🏢 <b>오피스텔 체크포인트:</b><br>- 신규 구입인 경우 '주택담보대출' 항목을 선택하여 계산하는 것이 더 정확할 수 있습니다.<br>- 이미 소유 중인 오피스텔에 담보대출이 있다면 이 항목(8년 상환 가정)을 유지해주세요.";
         m.value = "96"; r.placeholder = "5.5"; srSelect.value = "0.0";
     } else {
         guide.style.display = 'none';
-        /* [추가] 주담대 선택 시 스트레스 금리 1.15% 기본값 로직 */
         srSelect.value = (cat.includes('mortgage')) ? "1.15" : "0.0";
         if(cat === 'credit') { m.value = "60"; r.placeholder = "6.0"; }
         else if(cat === 'card_loan') { m.value = "36"; r.placeholder = "14.0"; }
@@ -269,7 +268,6 @@ function calculateTotalDSR() {
         const cat = item.querySelector('.l-category').value;
         const P = getNum(item.querySelector('.l-p').value);
         const R = Number(item.querySelector('.l-r').value || item.querySelector('.l-r').placeholder);
-        /* [추가] 스트레스 금리 선택값 연동 */
         const SR = Number(item.querySelector('.l-sr-select').value);
         const n = getNum(item.querySelector('.l-m').value);
         
@@ -283,7 +281,6 @@ function calculateTotalDSR() {
             else if (cat === 'mortgage_prin') totalStressPay += (P/n + (P * r_stress * 0.5)) * 12;
             else totalStressPay += ((P * r_stress * Math.pow(1+r_stress,n)) / (Math.pow(1+r_stress,n)-1)) * 12;
 
-            /* [추가] 시각화 가이드 데이터 계산 (실제 금리 기준) */
             if (cat === 'jeonse') {
                 prinY_I += (P * (R/100)); levelY_I += (P * (R/100));
             } else {
@@ -310,7 +307,6 @@ function calculateTotalDSR() {
     document.getElementById('absMaxLevel').innerText = (Math.floor(maxL/10000)*10000).toLocaleString() + " 원";
     document.getElementById('remainingLimit').innerText = (Math.floor(addLim/10000)*10000).toLocaleString() + " 원";
     
-    /* [추가] 시각화 가이드 업데이트 */
     document.getElementById('vis_m_p_p').innerText = Math.floor(prinY_P/12).toLocaleString() + "원";
     document.getElementById('vis_m_i_p').innerText = Math.floor(prinY_I/12).toLocaleString() + "원";
     document.getElementById('vis_y_p_p').innerText = Math.floor(prinY_P).toLocaleString() + "원";
@@ -341,7 +337,6 @@ function provideRecommendation(dsr, income, addLim) {
     targetCard.insertAdjacentHTML('afterbegin', `<div class="rec-badge">${dsr > 35 ? '한도 극대화' : '지출 안정성'} 추천</div>`);
 }
 
-/* [추가] 고도화된 복사 로직 (월/연 상세 내역 포함) */
 function copyResultText() {
     const text = `[DSR 진단 리포트]\n` +
                  `연소득: ${document.getElementById('income').value}원\n` +
