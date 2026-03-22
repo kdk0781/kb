@@ -18,9 +18,8 @@
     <script type="text/javascript">
         window.addEventListener("load", function() {
             setTimeout(function() { window.scrollTo(0, 1); }, 100);
-            /* [수정] 공지사항 체크: 캐시(Storage) 삭제 시 다시 나타남 */
-            const hideNotice = localStorage.getItem('hideStressNotice');
-            if (!hideNotice) {
+            /* [로직 확정] 다시 보지 않기 체크 */
+            if (localStorage.getItem('hideStressNotice') !== 'true') {
                 document.getElementById('noticePopup').style.display = 'flex';
             }
         });
@@ -49,15 +48,11 @@
         .limit-marker { position: absolute; left: 40%; top: -5px; height: 24px; width: 2px; background: var(--danger); z-index: 2; }
         .limit-label { position: absolute; left: 40%; top: 28px; transform: translateX(-50%); font-size: 10px; color: var(--danger); font-weight: 800; }
         .recommendation-box { background: #e8f4fd; padding: 20px; border-radius: 16px; border-left: 6px solid var(--blue); margin-bottom: 25px; }
-        .recommendation-box h4 { margin: 0 0 8px 0; color: #2c3e50; font-size: 15px; }
-        .recommendation-box p { margin: 0; font-size: 13px; color: #5d6d7e; line-height: 1.5; }
-        
         .max-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; margin-top: 20px; }
         .max-item { background: var(--kb-dark); color: #fff; padding: 35px 20px 20px; border-radius: 20px; text-align: center; position: relative; border: 2.5px solid transparent; transition: 0.3s; }
         .max-item.recommended { border-color: var(--safe); background: #1a1a1a; }
         .rec-badge { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--safe); color: #fff; font-size: 11px; padding: 4px 14px; border-radius: 20px; font-weight: 800; white-space: nowrap; }
         .max-val { font-size: 1.8rem; font-weight: 900; color: var(--kb-yellow); }
-
         .method-guide { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; margin: 25px 0; }
         .guide-col { background: #fff; padding: 20px; border-radius: 16px; border: 1px solid #eee; }
         .guide-col strong { display: block; margin-bottom: 12px; font-size: 14px; border-bottom: 2px solid var(--gray); padding-bottom: 8px; }
@@ -77,10 +72,9 @@
         .btn-copy { width: 100%; padding: 15px; background: var(--blue); color: white; border: none; border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; margin-top: 20px; transition: 0.3s; }
         .wiki-table-wrapper { width: 100%; overflow-x: auto; margin-top: 20px; border-radius: 12px; border: 1px solid #eee; }
         .wiki-table { width: 100%; border-collapse: collapse; min-width: 500px; font-size: 12px; background: #fff; }
-        .wiki-table th { background: var(--gray); padding: 12px; text-align: left; color: #666; }
+        .wiki-table th { background: var(--gray); padding: 12px; text-align: left; }
         .wiki-table td { padding: 12px; border-bottom: 1px solid #f9f9f9; }
         .btn-remove { position: absolute; top: -10px; right: -10px; width: 32px; height: 32px; background: #fff; border: 1px solid #ddd; border-radius: 50%; color: #999; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; }
-
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 9999; }
         .modal-content { background: #fff; padding: 30px; border-radius: 24px; width: 90%; max-width: 350px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2); animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         @keyframes modalPop { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
@@ -117,7 +111,7 @@
     <button class="btn-calc" onclick="calculateTotalDSR()">DSR 분석 및 한도 확인</button>
 
     <div id="resultArea" class="result-box">
-        <div id="recommendationBox" class="recommendation-box"><h4 id="recTitle">🎯 상황별 최적화 추천</h4><p id="recDesc">데이터 분석 중...</p></div>
+        <div id="recommendationBox" class="recommendation-box"><h4 id="recTitle" style="margin:0 0 8px 0; font-size:15px;">🎯 상황별 최적화 추천</h4><p id="recDesc" style="margin:0; font-size:13px; line-height:1.5;">데이터 분석 중...</p></div>
         <div style="text-align: center;">
             <label style="color:#666; font-size:14px; font-weight:600;">종합 DSR 지수 (스트레스 반영)</label>
             <div id="dsrVal" class="dsr-main-val">0%</div>
@@ -138,7 +132,7 @@
         </div>
 
         <div class="section-title">실제 금리 기준 상환액 상세 (예상)</div>
-        <div style="font-size:11px; color:#e74c3c; margin-bottom:10px; font-weight:600;">* 주택담보 및 오피스텔 360개월 입력 항목만 합산 반영됩니다.</div>
+        <div style="font-size:11px; color:#e74c3c; margin-bottom:10px; font-weight:600;">* 15년(180개월)~50년(600개월) 담보대출 항목만 합산 반영됩니다.</div>
         <div class="method-guide" id="detailVisualization">
             <div class="guide-col">
                 <strong>📝 원금균등 방식</strong>
@@ -186,7 +180,7 @@
 </div>
 
 <div class="refresh-btn" onclick="location.reload();">↻</div>
-<div id="customModal" class="modal-overlay"><div class="modal-content"><span id="modalIcon" class="modal-icon">⚠️</span><div id="modalMsg" class="modal-text">알림 문구</div><button class="modal-btn" onclick="closeModal()">확인</button></div></div>
+<div id="customModal" class="modal-overlay"><div class="modal-content"><span id="modalIcon" style="font-size:40px; display:block; margin-bottom:15px;">⚠️</span><div id="modalMsg" class="modal-text" style="margin-bottom:25px; font-weight:600;">알림 문구</div><button class="modal-btn" onclick="closeModal()">확인</button></div></div>
 
 <script>
 function closeNotice() { document.getElementById('noticePopup').style.display = 'none'; }
@@ -238,7 +232,10 @@ function calculateTotalDSR() {
     const income = getNum(document.getElementById('income').value);
     if (income <= 0) { showAlert("연소득을 입력해주세요."); return; }
     let totalS = 0; let bR = 4.5; let bSR = 1.15; let bM = 360;
-    let sumP = 0; let sumI_P = 0; let sumI_L = 0;
+    
+    // 상세 내역용 가중 합계
+    let sumP = 0; let sumI_P = 0; let sumI_L = 0; let totalWeightedMonths = 0;
+
     const items = document.querySelectorAll('[id^="loan_"]');
     if(items.length === 0) { showAlert("부채 항목을 추가해주세요."); return; }
 
@@ -248,16 +245,21 @@ function calculateTotalDSR() {
         const R = Number(item.querySelector('.l-r').value || 4.5);
         const SR = Number(item.querySelector('.l-sr-select').value);
         const n = getNum(item.querySelector('.l-m').value);
+        
         if (index === 0) { bR = R; bSR = SR; bM = n; }
         const r_s = (R + SR) / 1200; const r_real = R / 1200;
+        
         if (P > 0) {
             if (cat === 'jeonse') totalS += P * (R / 100);
             else totalS += ((P * r_s * Math.pow(1+r_s,n)) / (Math.pow(1+r_s,n)-1)) * 12;
-            if ((cat.includes('mortgage') || cat === 'officetel') && n === 360) {
+
+            /* [로직 확장] 담보대출/오피스텔이면서 기간이 15년(180)~50년(600) 사이면 합산 */
+            if ((cat.includes('mortgage') || cat === 'officetel') && n >= 180 && n <= 600) {
                 sumP += P;
                 const tI_P = (P * r_real * (n + 1) / 2); sumI_P += tI_P;
                 const mPMT = (P * r_real * Math.pow(1+r_real, n)) / (Math.pow(1+r_real, n)-1);
                 sumI_L += (mPMT * n) - P;
+                totalWeightedMonths = Math.max(totalWeightedMonths, n); // 대표 기간으로 산정
             }
         }
     });
@@ -278,8 +280,10 @@ function calculateTotalDSR() {
     document.getElementById('remainingLimit').innerText = (Math.floor(addLim/10000)*10000).toLocaleString() + " 원";
     
     const f = (v) => Math.floor(v).toLocaleString() + "원";
+    const divM = totalWeightedMonths || 360; // 입력된 기간이 없으면 기본 360
+
     const updateUI = (type, sI) => {
-        const mP = sumP / 360; const mI = sI / 360;
+        const mP = sumP / divM; const mI = sI / divM;
         document.getElementById(`vis_m_p_${type}`).innerText = f(mP);
         document.getElementById(`vis_m_i_${type}`).innerText = f(mI);
         document.getElementById(`vis_m_t_${type}`).innerText = f(mP + mI);
@@ -293,44 +297,17 @@ function calculateTotalDSR() {
     updateUI('p', sumI_P); updateUI('l', sumI_L);
 
     const recDesc = document.getElementById('recDesc');
-    recDesc.innerHTML = dsr > 32 ? "<b>🚨 한도 확보 긴급:</b> 현재 DSR이 임계치에 도달했습니다. <b>한도가 약 10% 더 유리한 '원금균등'</b> 방식을 권장합니다." : "<b>✅ 자금 건전성 양호:</b> 현재 적정 수준입니다. <b>안정적인 '원리금균등'</b> 방식을 추천합니다.";
+    recDesc.innerHTML = dsr > 32 ? "<b>🚨 한도 확보 긴급:</b> 현재 DSR이 임계치에 도달했습니다. <b>한도가 약 10% 더 유리한 '원금균등'</b> 방식을 선택하여 한도 여력을 확보하시길 권장합니다." : "<b>✅ 자금 건전성 양호:</b> 현재 소득 대비 부채 비율이 건전합니다. 매월 상환액이 고정되어 <b>안정적인 가계 지출 계획 수립이 가능한 '원리금균등'</b> 방식을 권장합니다.";
     window.scrollTo({ top: document.getElementById('resultArea').offsetTop - 20, behavior: 'smooth' });
 }
 
 function copyResultText() {
-    const income = document.getElementById('income').value;
+    const inc = document.getElementById('income').value;
     const dsr = document.getElementById('dsrVal').innerText;
-    const addLim = document.getElementById('remainingLimit').innerText;
-    const recMsg = document.getElementById('recDesc').innerText;
-    
-    const text = `[DSR 정밀 진단 리포트]
-■ 연간 세전 소득: ${income}원
-■ 종합 DSR 지수: ${dsr} (스트레스 금리 반영)
-■ 추가 대출 여력: ${addLim} (주담대 30년 기준)
-
-[상황별 추천 전략]
-${recMsg}
-
-[상환 방식별 상세 비교 (360개월 기준)]
-1. 원금균등 방식
- - 월 평균 상환액: ${document.getElementById('vis_m_t_p').innerText}
- - 총 지불 이자: ${document.getElementById('vis_t_i_p').innerText}
- - 전체 총 상환액: ${document.getElementById('vis_total_full_p').innerText}
-
-2. 원리금균등 방식
- - 월 고정 상환액: ${document.getElementById('vis_m_t_l').innerText}
- - 총 지불 이자: ${document.getElementById('vis_t_i_l').innerText}
- - 전체 총 상환액: ${document.getElementById('vis_total_full_l').innerText}
-
-* 본 리포트는 참고용이며, 실제 금융기관의 심사 결과와 다를 수 있습니다.`;
-
-    const temp = document.createElement("textarea");
-    document.body.appendChild(temp);
-    temp.value = text;
-    temp.select();
-    document.execCommand("copy");
-    document.body.removeChild(temp);
-    showAlert("정밀 리포트가 복사되었습니다!", "✅");
+    const text = `[DSR 정밀 진단 리포트]\n연소득: ${inc}원\nDSR: ${dsr}\n추가여력: ${document.getElementById('remainingLimit').innerText}\n\n[총 상환액]\n원금균등: ${document.getElementById('vis_total_full_p').innerText}\n원리금균등: ${document.getElementById('vis_total_full_l').innerText}`;
+    const temp = document.createElement("textarea"); document.body.appendChild(temp);
+    temp.value = text; temp.select(); document.execCommand("copy"); document.body.removeChild(temp);
+    showAlert("결과가 복사되었습니다!", "✅");
 }
 addLoan();
 </script>
