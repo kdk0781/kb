@@ -34,11 +34,12 @@
         .section-title { font-size: 1.1rem; font-weight: 700; margin: 30px 0 12px; display: flex; align-items: center; color: var(--kb-dark); }
         .section-title::before { content: ""; width: 5px; height: 18px; background: var(--kb-yellow); margin-right: 10px; border-radius: 3px; }
         .input-card { background: var(--gray); padding: 20px; border-radius: 18px; margin-bottom: 15px; border: 1px solid #eee; position: relative; }
+        .dynamic-guide { font-size: 12px; color: var(--danger); margin-top: 10px; padding: 10px; background: #ebf5ff; border-radius: 10px; display: none; font-weight: 600; line-height: 1.4; }
         .grid-row { display: grid; grid-template-columns: 1.5fr 1.5fr 1fr 1.2fr 1fr; gap: 10px; }
         @media (max-width: 1024px) { .grid-row { grid-template-columns: repeat(3, 1fr); } }
-        @media (max-width: 768px) { .grid-row { grid-template-columns: 1fr 1fr !important; } .grid-row div:first-child { grid-column: span 2; } }
+        @media (max-width: 768px) { .grid-row { grid-template-columns: 1fr 1fr !important; } .grid-row div:first-child { grid-column: span 2; } .grid-row div { margin-bottom: 4px; } }
         label { display: block; font-size: 11px; font-weight: 700; color: #777; margin-bottom: 6px; }
-        input, select { width: 100%; padding: 14px; border: 1px solid #ddd; border-radius: 12px; box-sizing: border-box; font-size: 14px; background: #fff; outline: none; transition: border 0.2s; }
+        input, select { width: 100%; padding: 14px; border: 1px solid #ddd; border-radius: 12px; box-sizing: border-box; font-size: 14px; background: #fff; outline: none; }
         input:focus { border: 2px solid var(--kb-yellow); }
         .btn-calc { width: 100%; padding: 20px; background: var(--kb-dark); color: var(--kb-yellow); border: none; border-radius: 16px; font-size: 1.2rem; font-weight: 800; cursor: pointer; transition: 0.3s; margin-top: 10px; }
         .result-box { margin-top: 35px; display: none; padding: 25px; border-radius: 24px; background: #fffdf2; border: 1px solid #ffe58f; animation: slideUp 0.5s ease-out; }
@@ -48,27 +49,42 @@
         .dsr-progress-bar { height: 100%; border-radius: 10px; width: 0%; transition: width 1s ease-in-out; }
         .limit-marker { position: absolute; left: 40%; top: -5px; height: 24px; width: 2px; background: var(--danger); z-index: 2; }
         .limit-label { position: absolute; left: 40%; top: 28px; transform: translateX(-50%); font-size: 10px; color: var(--danger); font-weight: 800; }
+        .recommendation-box { background: #e8f4fd; padding: 20px; border-radius: 16px; border-left: 6px solid var(--blue); margin-bottom: 25px; }
         .max-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; margin-top: 20px; }
         .max-item { background: var(--kb-dark); color: #fff; padding: 35px 20px 20px; border-radius: 20px; text-align: center; position: relative; border: 2.5px solid transparent; }
         .max-item.recommended { border-color: var(--safe); background: #1a1a1a; }
         .rec-badge { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--safe); color: #fff; font-size: 11px; padding: 4px 14px; border-radius: 20px; font-weight: 800; white-space: nowrap; }
         .max-val { font-size: 1.8rem; font-weight: 900; color: var(--kb-yellow); }
+        .method-guide { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; margin: 25px 0; }
+        .guide-col { background: #fff; padding: 20px; border-radius: 16px; border: 1px solid #eee; }
+        .guide-col strong { display: block; margin-bottom: 12px; font-size: 14px; border-bottom: 2px solid var(--gray); padding-bottom: 8px; }
+        .badge { padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; margin-right: 6px; }
+        .badge.plus { background: #e8f8f0; color: #2ecc71; }
+        .badge.minus { background: #fef1f0; color: #e74c3c; }
+
         .detail-group { background: #f9f9f9; border: 1px solid #efefef; border-radius: 14px; padding: 12px; margin-bottom: 10px; }
         .detail-row { font-size: 12px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #eee; padding-bottom: 4px; }
         .detail-row:last-of-type { border-bottom: none; }
         .detail-row span { font-weight: 800; color: var(--kb-dark); font-size: 13px; }
         .total-row { color: var(--blue) !important; font-weight: 900 !important; border-top: 1px solid #ddd; margin-top: 4px; padding-top: 4px; }
         .total-highlight { background: #f0f7ff !important; border-color: #d0e4ff !important; }
+
         .limit-card { background: #fff; border: 3.5px solid var(--blue); padding: 25px; border-radius: 20px; text-align: center; margin-top: 25px; }
         .limit-val { font-size: 2.2rem; font-weight: 900; color: var(--blue); }
         .btn-copy { width: 100%; padding: 15px; background: var(--blue); color: white; border: none; border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; margin-top: 20px; }
+        .wiki-table-wrapper { width: 100%; overflow-x: auto; margin-top: 20px; border-radius: 12px; border: 1px solid #eee; }
+        .wiki-table { width: 100%; border-collapse: collapse; min-width: 500px; font-size: 12px; background: #fff; }
+        .wiki-table th { background: var(--gray); padding: 12px; text-align: left; color: #666; }
+        .wiki-table td { padding: 12px; border-bottom: 1px solid #f9f9f9; }
+        .btn-remove { position: absolute; top: -10px; right: -10px; width: 32px; height: 32px; background: #fff; border: 1px solid #ddd; border-radius: 50%; color: #999; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; }
+
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 9999; }
         .modal-content { background: #fff; padding: 30px; border-radius: 24px; width: 90%; max-width: 350px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
         .modal-btn { width: 100%; padding: 16px; background: var(--kb-yellow); border: none; border-radius: 14px; font-size: 16px; font-weight: 800; cursor: pointer; }
-        .refresh-btn { position: fixed; bottom: 30px; right: 20px; width: 50px; height: 50px; background: var(--kb-dark); color: var(--kb-yellow); border-radius: 50%; border: 2px solid var(--kb-yellow); display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; z-index: 1000; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .refresh-btn { position: fixed; bottom: 30px; right: 20px; width: 50px; height: 50px; background: var(--kb-dark); color: var(--kb-yellow); border-radius: 50%; border: 2px solid var(--kb-yellow); display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; z-index: 1000; box-shadow: 0 4px 15px rgba(0,0,0,0.3); vertical-align: middle; }
         .notice-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 10000; }
         .notice-box { background: #fff; width: 85%; max-width: 380px; border-radius: 24px; overflow: hidden; }
-        .notice-header { background: var(--kb-yellow); padding: 15px; font-weight: 800; text-align: center; }
+        .notice-header { background: var(--kb-yellow); padding: 15px; font-weight: 800; text-align: center; font-size: 1.1rem; }
         .notice-footer { display: flex; border-top: 1px solid #eee; }
         .notice-footer button { flex: 1; padding: 15px; border: none; background: #fff; cursor: pointer; font-size: 13px; font-weight: 700; color: #666; }
         .notice-footer button:last-child { background: var(--kb-dark); color: var(--kb-yellow); border-left: 1px solid #eee; }
@@ -110,8 +126,8 @@
 
         <div class="section-title">금융 방식 특징 가이드</div>
         <div class="method-guide">
-            <div class="guide-col"><strong>💡 원금균등 상환</strong><div style="font-size:12px; margin-bottom:8px;"><span class="badge plus">한도</span> <b>대출 가능액 우위 (DSR 유리)</b></div><div style="font-size:12px;"><span class="badge plus">이자</span> 대출 기간 총 이자 비용 최소화</div></div>
-            <div class="guide-col"><strong>💡 원리금균등 상환</strong><div style="font-size:12px; margin-bottom:8px;"><span class="badge plus">안정</span> 매월 지출액 고정으로 안정적</div><div style="font-size:12px;"><span class="badge minus">이자</span> 원금균등 대비 전체 지불 이자가 많음</div></div>
+            <div class="guide-col"><strong>💡 원금균등 상환</strong><div style="font-size:12px; margin-bottom:8px;"><span class="badge plus">한도</span> <b>대출 가능액 우위 (DSR 유리)</b></div><div style="font-size:12px; margin-bottom:8px;"><span class="badge plus">이자</span> 대출 전체 기간 총 이자 비용 최소화</div></div>
+            <div class="guide-col"><strong>💡 원리금균등 상환</strong><div style="font-size:12px; margin-bottom:8px;"><span class="badge plus">안정</span> 매월 지출액 고정으로 안정적 가계 운영</div><div style="font-size:12px; margin-bottom:8px;"><span class="badge minus">이자</span> 원금균등 대비 전체 지불 이자가 많음</div></div>
         </div>
 
         <div class="section-title">실제 금리 기준 상환액 상세 (예상)</div>
@@ -175,6 +191,7 @@ function showAlert(msg, focusId = null, icon = "⚠️") {
     document.getElementById('customModal').style.display = 'flex'; 
 }
 
+/* [고도화] 팝업 닫기 후 정확한 위치 포커싱 */
 document.getElementById('modalConfirm').onclick = function() {
     document.getElementById('customModal').style.display = 'none';
     if (lastFocusId) {
@@ -237,13 +254,13 @@ function calculateTotalDSR() {
     const items = document.querySelectorAll('[id^="loan_"]');
     if(items.length === 0) { showAlert("부채 항목을 최소 하나 이상 추가해주세요."); return; }
 
-    /* [고도화] 원금 및 금리 누락 검사 + 자동 포커스 */
+    /* [고도화] 금리 누락 포함 유효성 검사 */
     for (let i = 0; i < items.length; i++) {
-        const idSuffix = items[i].id.split('_')[1];
+        const idx = items[i].id.split('_')[1];
         const pVal = getNum(items[i].querySelector('.l-p').value);
         const rVal = Number(items[i].querySelector('.l-r').value || items[i].querySelector('.l-r').placeholder);
-        if (pVal <= 0) { showAlert(`부채 항목의 원금(잔액)을 입력해주세요.`, `lp_${idSuffix}`); return; }
-        if (rVal <= 0) { showAlert(`부채 항목의 금리를 입력해주세요.`, `lr_${idSuffix}`); return; }
+        if (pVal <= 0) { showAlert(`부채 항목의 원금(잔액)을 입력해주세요.`, `lp_${idx}`); return; }
+        if (rVal <= 0) { showAlert(`부채 항목의 금리를 입력해주세요.`, `lr_${idx}`); return; }
     }
 
     items.forEach((item, index) => {
@@ -306,7 +323,8 @@ function calculateTotalDSR() {
 function copyResultText() {
     const inc = document.getElementById('income').value;
     const dsr = document.getElementById('dsrVal').innerText;
-    const text = `[DSR 정밀 진단 리포트]\n연소득: ${inc}원\nDSR: ${dsr}\n추가여력: ${document.getElementById('remainingLimit').innerText}\n\n[총 상환액]\n원금균등: ${document.getElementById('vis_total_full_p').innerText}\n원리금균등: ${document.getElementById('vis_total_full_l').innerText}`;
+    const lim = document.getElementById('remainingLimit').innerText;
+    const text = `[DSR 정밀 진단 리포트]\n연소득: ${inc}원\nDSR: ${dsr}\n추가여력: ${lim}\n\n[총 상환액]\n원금균등: ${document.getElementById('vis_total_full_p').innerText}\n원리금균등: ${document.getElementById('vis_total_full_l').innerText}`;
     const temp = document.createElement("textarea"); document.body.appendChild(temp);
     temp.value = text; temp.select(); document.execCommand("copy"); document.body.removeChild(temp);
     showAlert("결과가 복사되었습니다!", null, "✅");
