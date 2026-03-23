@@ -298,7 +298,25 @@ input, select {
             outline: none; 
             transition: border 0.2s, box-shadow 0.2s; 
         }
-        input:focus { border: 2px solid var(--kb-yellow); box-shadow: 0 0 0 4px rgba(255,204,0,0.1); }
+		/* ---------------------------------------------------------
+		   [INPUT FOCUS] 포커스 시 시각적 효과 강화
+		   --------------------------------------------------------- */
+
+		/* 포커스된 입력창 강조 (화이트/다크 공통) */
+		input:focus, select:focus {
+			border: 2px solid var(--kb-yellow) !important;
+			box-shadow: 0 0 0 4px rgba(255, 204, 0, 0.25) !important;
+			outline: none;
+			transition: all 0.2s ease-in-out;
+		}
+
+		/* 다크모드일 때 포커스 대비 상향 */
+		@media (prefers-color-scheme: dark) {
+			input:focus {
+				background-color: #333333 !important;
+				box-shadow: 0 0 0 4px rgba(255, 204, 0, 0.4) !important;
+			}
+		}
 
         /* [BUTTONS] */
         .btn-add-loan { 
