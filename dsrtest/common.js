@@ -2,49 +2,38 @@
    [DSR 정밀 진단 계산기 - 통합 관리 마스터 스크립트]
    파일명: common.js
    최종 업데이트: 2026. 03. 23.
-   수정사항: 캐시 삭제 없이 NOTICE_VERSION 변경만으로 공지 팝업 강제 노출 로직 적용
+   수정사항: 캐시 및 버전 체크 로직 강화 (모바일 즉시 반영용)
    ============================================================================= */
 
-/* ---------------------------------------------------------
-   [1. 전역 설정 및 초기화]
-   --------------------------------------------------------- */
-// 공지 내용 변경 시 아래 숫자만 2, 3 등으로 올리면 모바일에서도 즉시 팝업이 뜹니다.
-const NOTICE_VERSION = "2"; 
+// [1] 공지사항 버전 설정 (HTML의 ?v= 값과 맞추면 더 확실합니다)
+const NOTICE_VERSION = "0781_1"; 
 
 let lastFocusId = null;
 let proceedOnConfirm = false;
 let loanCount = 0;
 
 window.onload = function() {
-    initNotice(); // [FIX] 공지사항 버전 체크 로직 우선 실행
-    addLoan();    // 첫 번째 부채 항목 생성
-    
+    initNotice(); 
+    addLoan();    
     const confirmBtn = document.getElementById('modalConfirm');
     if (confirmBtn) confirmBtn.onclick = handleModalConfirm;
 };
 
-/* ---------------------------------------------------------
-   [2. 공지사항 제어 - 강제 업데이트 로직]
-   --------------------------------------------------------- */
+// [2] 공지사항 제어 (강제 초기화 로직 강화)
 function initNotice() {
     const noticePopup = document.getElementById('noticePopup');
     if (!noticePopup) return;
 
     const savedVersion = localStorage.getItem('hideNoticeVersion');
-    const isHidden = localStorage.getItem('hideStressNotice') === 'true';
-
-    /**
-     * [CORE FIX] 캐시 무시 강제 노출 로직
-     * 브라우저에 저장된 버전과 현재 NOTICE_VERSION이 다르면
-     * 무조건 '다시 보지 않기' 설정을 초기화하고 팝업을 노출합니다.
-     */
+    
+    // 현재 코드의 버전과 브라우저 저장 버전이 다르면 강제 초기화
     if (savedVersion !== NOTICE_VERSION) {
         localStorage.removeItem('hideStressNotice');
-        // 새로운 버전을 즉시 기록하여 중복 초기화 방지
         localStorage.setItem('hideNoticeVersion', NOTICE_VERSION);
         noticePopup.style.display = 'flex';
     } else {
-        // 버전이 같은 경우에만 사용자의 숨김 선택을 존중함
+        // 버전이 같을 때만 '다시 보지 않기' 상태 확인
+        const isHidden = localStorage.getItem('hideStressNotice') === 'true';
         if (!isHidden) {
             noticePopup.style.display = 'flex';
         }
@@ -57,14 +46,13 @@ function closeNotice() {
 }
 
 function closeNoticeForever() {
-    // 사용자가 '다시 보지 않기'를 누르면 현재 버전과 상태를 저장
     localStorage.setItem('hideStressNotice', 'true');
     localStorage.setItem('hideNoticeVersion', NOTICE_VERSION);
     closeNotice();
 }
 
 /* ---------------------------------------------------------
-   [3. 유틸리티 함수]
+   [이하 기존 마스터 로직 동일 (getNum, addLoan, calculateLogic 등)]
    --------------------------------------------------------- */
 function formatComma(obj) {
     let val = obj.value.replace(/[^0-9]/g, "");
@@ -72,18 +60,13 @@ function formatComma(obj) {
 }
 
 function getNum(val) {
-    if (!val) return 0;
     return Number(val.toString().replace(/,/g, "")) || 0;
 }
 
-/* ---------------------------------------------------------
-   [4. 부채 항목 관리]
-   --------------------------------------------------------- */
 function addLoan() {
     loanCount++;
     const loanList = document.getElementById('loanList');
     if (!loanList) return;
-
     const html = `
     <div class="input-card" id="loan_${loanCount}">
         <button class="btn-remove" onclick="removeLoan(${loanCount})">×</button>
@@ -128,7 +111,6 @@ function applyPolicy(id) {
     const r = card.querySelector('.l-r');
     const srSelect = card.querySelector('.l-sr-select');
     const guide = card.querySelector('.dynamic-guide');
-
     if (cat === 'officetel' || cat === 'cardloan') {
         guide.style.display = 'block';
         if (cat === 'officetel') {
@@ -147,16 +129,11 @@ function applyPolicy(id) {
     }
 }
 
-/* ---------------------------------------------------------
-   [5. 연산 및 시각화]
-   --------------------------------------------------------- */
 function calculateTotalDSR() {
     const income = getNum(document.getElementById('income').value);
     if (income <= 0) { showAlert("연간 세전 소득을 입력해주세요.", "income"); return; }
-    
     const items = document.querySelectorAll('[id^="loan_"]');
     if (items.length === 0) { showAlert("부채 항목을 최소 하나 이상 추가해주세요."); return; }
-    
     let missingRate = false;
     for (let i = 0; i < items.length; i++) {
         const item = items[i];
@@ -167,7 +144,6 @@ function calculateTotalDSR() {
         }
         if (Number(item.querySelector('.l-r').value || 0) <= 0) missingRate = true;
     }
-
     if (missingRate) showAlert("금리 미입력 항목은 시스템 <b>표준 금리</b>가 자동 적용됩니다.", null, "ℹ️", true);
     else calculateLogic();
 }
@@ -177,7 +153,6 @@ function calculateLogic() {
     const items = document.querySelectorAll('[id^="loan_"]');
     let totalS = 0; let sumP = 0; let sumI_P = 0; let sumI_L = 0; let maxN = 0;
     let bR = 4.5; let bSR = 1.15; let bM = 360;
-
     items.forEach((item, index) => {
         const cat = item.querySelector('.l-category').value;
         const P = getNum(item.querySelector('.l-p').value);
@@ -196,12 +171,10 @@ function calculateLogic() {
             }
         }
     });
-
     const dsr = (totalS / income) * 100;
     const r_lim = (bR + bSR) / 1200;
     const maxP = (income * 0.4 / 12) / (1 / bM + (r_lim * 0.5));
     const addLim = (income * 0.4 - totalS) > 0 ? (income * 0.4 - totalS) / 12 / (1 / bM + (r_lim * 0.5)) : 0;
-
     document.getElementById('resultArea').style.display = 'block';
     const dsrView = document.getElementById('dsrVal');
     const barView = document.getElementById('dsrBar');
@@ -209,11 +182,9 @@ function calculateLogic() {
     dsrView.className = dsr > 40 ? "dsr-main-val dsr-danger" : "dsr-main-val dsr-safe";
     barView.style.backgroundColor = dsr > 40 ? "var(--danger)" : "var(--safe)";
     barView.style.width = Math.min(dsr, 100) + "%";
-
     document.getElementById('absMaxPrin').innerText = (Math.floor(maxP/10000)*10000).toLocaleString() + " 원";
     document.getElementById('absMaxLevel').innerText = (Math.floor((((income*0.4/12)*(Math.pow(1+r_lim,bM)-1))/(r_lim*Math.pow(1+r_lim,bM)))/10000)*10000).toLocaleString() + " 원";
     document.getElementById('remainingLimit').innerText = (Math.floor(addLim/10000)*10000).toLocaleString() + " 원";
-
     const f = (v) => Math.floor(v).toLocaleString() + "원";
     const divM = maxN || 360;
     const updateUI = (type, sI) => {
@@ -229,22 +200,12 @@ function calculateLogic() {
         document.getElementById(`vis_total_full_${type}`).innerText = f(sumP + sI);
     };
     updateUI('p', sumI_P); updateUI('l', sumI_L);
-    
-    if (dsr > 32) { 
-        document.getElementById('prinCard').classList.add('recommended'); 
-        document.getElementById('levelCard').classList.remove('recommended'); 
-    } else { 
-        document.getElementById('levelCard').classList.add('recommended'); 
-        document.getElementById('prinCard').classList.remove('recommended'); 
-    }
-
+    if (dsr > 32) { document.getElementById('prinCard').classList.add('recommended'); document.getElementById('levelCard').classList.remove('recommended'); }
+    else { document.getElementById('levelCard').classList.add('recommended'); document.getElementById('prinCard').classList.remove('recommended'); }
     document.getElementById('recDesc').innerHTML = dsr > 32 ? "<b>🚨 한도 확보 긴급:</b> 현재 DSR이 임계치입니다. <b>원금균등</b> 방식을 권장합니다." : "<b>✅ 자금 건전성 양호:</b> 현재 부채 비율이 적정합니다. <b>원리금균등</b> 방식을 권장합니다.";
     window.scrollTo({ top: document.getElementById('resultArea').offsetTop - 20, behavior: 'smooth' });
 }
 
-/* ---------------------------------------------------------
-   [6. 알림 및 리포트 복사]
-   --------------------------------------------------------- */
 function showAlert(msg, focusId = null, icon = "⚠️", allowProceed = false) {
     const modal = document.getElementById('customModal');
     document.getElementById('modalMsg').innerHTML = msg;
@@ -272,14 +233,9 @@ function copyResultText() {
     const tiL = document.getElementById('vis_t_i_l').innerText;
     const recMsgRaw = document.getElementById('recDesc').innerText;
     const recMsg = recMsgRaw.includes(':') ? recMsgRaw.split(':')[1].trim() : recMsgRaw;
-
-    const reportText = `[📊 DSR 정밀 진단 리포트]\n\n● 소득: ${inc}원\n● DSR: ${dsr}\n● 추가 한도: ${addLim}\n----------------------------\n🎯 방식별 최대 한도\n- 원금균등: ${maxP}\n- 원리금균등: ${maxL}\n----------------------------\n💸 총 이자 지출 비교\n- 원금균등 시 총 이자: ${tiP}\n- 원리금균등 시 총 이자: ${tiL}\n----------------------------\n💡 전문가 분석 의견\n"${recMsg}"\n\n* 실제 심사 결과와는 차이가 있을 수 있습니다.`;
-
+    const reportText = `[📊 DSR 정밀 진단 리포트]\n\n● 소득: ${inc}원\n● DSR: ${dsr}\n● 한도: ${addLim}\n----------------------------\n🎯 방식별 최대 한도\n- 원금균등: ${maxP}\n- 원리금균등: ${maxL}\n----------------------------\n💸 총 이자 지출 비교\n- 원금균등: ${tiP}\n- 원리금균등: ${tiL}\n----------------------------\n💡 분석 의견: "${recMsg}"`;
     const temp = document.createElement("textarea");
     document.body.appendChild(temp);
-    temp.value = reportText;
-    temp.select();
-    document.execCommand("copy");
-    document.body.removeChild(temp);
+    temp.value = reportText; temp.select(); document.execCommand("copy"); document.body.removeChild(temp);
     showAlert("분석 리포트가 복사되었습니다!", null, "✅");
 }
