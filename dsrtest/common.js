@@ -9,7 +9,7 @@
    [1. 전역 설정 및 초기화]
    --------------------------------------------------------- */
 // 공지 내용 변경 시 아래 숫자만 2, 3 등으로 올리면 모바일에서도 즉시 팝업이 뜹니다.
-const NOTICE_VERSION = "1"; 
+const NOTICE_VERSION = "2"; 
 
 let lastFocusId = null;
 let proceedOnConfirm = false;
