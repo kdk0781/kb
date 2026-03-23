@@ -9,7 +9,7 @@
    [1. 전역 설정 및 초기화]
    --------------------------------------------------------- */
 // 공지 내용 변경 시 이 숫자를 2, 3 등으로 올리면 무조건 다시 뜹니다.
-const NOTICE_VERSION = "2"; 
+const NOTICE_VERSION = "1"; 
 
 let lastFocusId = null;
 let proceedOnConfirm = false;
