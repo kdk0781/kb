@@ -6,7 +6,7 @@
    ============================================================================= */
 
 // [1] 공지사항 버전 설정 (HTML의 ?v= 값과 맞추면 더 확실합니다)
-const NOTICE_VERSION = "0781_0"; 
+const NOTICE_VERSION = "0781_1"; 
 
 let lastFocusId = null;
 let proceedOnConfirm = false;
