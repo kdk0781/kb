@@ -233,7 +233,21 @@ function copyResultText() {
     const tiL = document.getElementById('vis_t_i_l').innerText;
     const recMsgRaw = document.getElementById('recDesc').innerText;
     const recMsg = recMsgRaw.includes(':') ? recMsgRaw.split(':')[1].trim() : recMsgRaw;
-    const reportText = `[📊 DSR 정밀 진단 리포트]\n\n● 소득: ${inc}원\n● DSR: ${dsr}\n● 한도: ${addLim}\n----------------------------\n🎯 방식별 최대 한도\n- 원금균등: ${maxP}\n- 원리금균등: ${maxL}\n----------------------------\n💸 총 이자 지출 비교\n- 원금균등: ${tiP}\n- 원리금균등: ${tiL}\n----------------------------\n💡 분석 의견: "${recMsg}"`;
+    const reportText = `[📊 DSR 정밀 진단 리포트]\n
+		\n● 나의 소득 상황: ${inc}원
+		\n● 현재 종합 DSR: ${dsr}
+		\n● 추가 대출 여력: ${addLim}
+		\n----------------------------
+		\n🎯 방식별 최대 대출 한도
+		\n- 원금균등 방식: ${maxP}
+		\n- 원리금균등 방식: ${maxL}
+		\n----------------------------
+		\n💸 총 이자 지출 비교 (예상)
+		\n- 원금균등 시 총 이자: ${tiP}
+		\n- 원리금균등 시 총 이자: ${tiL}
+		\n----------------------------
+		\n💡 전문가 분석 의견\n"${recMsg}"\n
+		\n* 위 결과는 산출 예상치이며, 실제 심사 결과와 다를 수 있습니다.`;;
     const temp = document.createElement("textarea");
     document.body.appendChild(temp);
     temp.value = reportText; temp.select(); document.execCommand("copy"); document.body.removeChild(temp);
