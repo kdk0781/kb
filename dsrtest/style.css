@@ -1,4 +1,107 @@
-        /* [VARIABLES] */
+		/* ---------------------------------------------------------
+		   [DEVICE & THEME OPTIMIZATION] 디바이스 및 테마 최적화
+		   --------------------------------------------------------- */
+
+		/* [1] 다크모드 대응 변수 설정 */
+		@media (prefers-color-scheme: dark) {
+			:root {
+				--bg-color: #1a1a1a;
+				--container-bg: #2d2d2d;
+				--input-bg: #3d3d3d;
+				--text-color: #e0e0e0;
+				--border-color: #444;
+				--gray: #333;
+				--card-shadow: rgba(0,0,0,0.3);
+			}
+			body { background: var(--bg-color); color: var(--text-color); }
+			.container { background: var(--container-bg); box-shadow: 0 15px 50px var(--card-shadow); }
+			.input-card, .guide-col, .detail-group, .max-item { background: var(--input-bg); border-color: var(--border-color); }
+			input, select { background: #444; color: #fff; border-color: #555; }
+			.wiki-table { background: #2d2d2d; color: #ccc; }
+			.wiki-table th { background: #3d3d3d; }
+			.wiki-table td { border-bottom-color: #444; }
+			.schedule-wrapper { background: #2d2d2d; border-color: #444; }
+			.tab-btn.active { background: #2d2d2d; color: var(--kb-yellow); }
+			.schedule-header { background: #444; color: #fff; }
+		}
+
+		/* [2] 반응형 레이아웃 세부 조정 (Breakpoint) */
+
+		/* 태블릿 사이즈 (769px ~ 1024px) */
+		@media (max-width: 1024px) {
+			.container {
+				padding: 30px;
+				margin: 10px;
+			}
+			.grid-row {
+				grid-template-columns: repeat(3, 1fr); /* 3열 배치 */
+			}
+			.dsr-main-val {
+				font-size: 3.5rem; /* 폰트 약간 축소 */
+			}
+		}
+
+		/* 모바일 사이즈 (768px 이하) */
+		@media (max-width: 768px) {
+			body {
+				padding: 10px 10px 80px 10px; /* 하단 플로팅 버튼 여백 */
+			}
+			.container {
+				border-radius: 20px;
+				padding: 20px 15px;
+			}
+			.grid-row {
+				grid-template-columns: 1fr 1fr !important; /* 2열 고정 */
+				gap: 8px;
+			}
+			.grid-row div:first-child {
+				grid-column: span 2; /* 대출 종류는 한 줄 차지 */
+			}
+			.dsr-main-val {
+				font-size: 2.8rem;
+			}
+			.max-grid, .method-guide {
+				grid-template-columns: 1fr; /* 한 줄에 하나씩 */
+			}
+			.limit-val {
+				font-size: 1.8rem;
+			}
+			/* 모달 사이즈 조정 */
+			.modal-content {
+				width: 90%;
+				padding: 25px;
+			}
+		}
+
+		/* 초소형 디바이스 (360px 이하) */
+		@media (max-width: 360px) {
+			.grid-row {
+				grid-template-columns: 1fr !important; /* 무조건 한 줄 */
+			}
+			.grid-row div:first-child {
+				grid-column: span 1;
+			}
+			.tab-btn {
+				font-size: 12px;
+				padding: 10px 5px;
+			}
+		}
+
+		/* [3] 접근성 및 터치 최적화 */
+		input, select, button {
+			min-height: 48px; /* 모바일 터치 영역 확보 */
+		}
+
+		/* 스케줄 리스트 모바일 가독성 보강 */
+		.schedule-list::-webkit-scrollbar {
+			width: 4px;
+		}
+		.schedule-list::-webkit-scrollbar-thumb {
+			background: var(--kb-yellow);
+			border-radius: 10px;
+		}
+
+/* [VARIABLES] */
         :root { 
             --kb-yellow: #FFCC00; 
             --kb-dark: #262626; 
