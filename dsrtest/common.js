@@ -2,13 +2,13 @@
    [DSR 정밀 진단 계산기 - 통합 관리 마스터 스크립트]
    파일명: common.js
    최종 업데이트: 2026. 03. 23.
-   수정사항: 모바일 공지사항 버전 변경 시 즉시 반영되지 않는 오류 해결
+   수정사항: 캐시 삭제 없이 NOTICE_VERSION 변경만으로 공지 팝업 강제 노출 로직 적용
    ============================================================================= */
 
 /* ---------------------------------------------------------
    [1. 전역 설정 및 초기화]
    --------------------------------------------------------- */
-// 공지 내용 변경 시 이 숫자를 2, 3 등으로 올리면 무조건 다시 뜹니다.
+// 공지 내용 변경 시 아래 숫자만 2, 3 등으로 올리면 모바일에서도 즉시 팝업이 뜹니다.
 const NOTICE_VERSION = "1"; 
 
 let lastFocusId = null;
@@ -16,37 +16,35 @@ let proceedOnConfirm = false;
 let loanCount = 0;
 
 window.onload = function() {
-    initNotice(); // 공지사항 체크 및 로드
-    addLoan();    // 첫 번째 부채 항목 자동 생성
+    initNotice(); // [FIX] 공지사항 버전 체크 로직 우선 실행
+    addLoan();    // 첫 번째 부채 항목 생성
     
-    // 모달 확인 버튼 이벤트 연결
     const confirmBtn = document.getElementById('modalConfirm');
     if (confirmBtn) confirmBtn.onclick = handleModalConfirm;
 };
 
 /* ---------------------------------------------------------
-   [2. 공지사항 제어 - 오류 수정 버전]
+   [2. 공지사항 제어 - 강제 업데이트 로직]
    --------------------------------------------------------- */
 function initNotice() {
     const noticePopup = document.getElementById('noticePopup');
     if (!noticePopup) return;
 
-    // 저장된 버전 정보와 숨김 처리 여부 확인
     const savedVersion = localStorage.getItem('hideNoticeVersion');
     const isHidden = localStorage.getItem('hideStressNotice') === 'true';
 
     /**
-     * [FIX] 버전 변경 시 즉시 노출 로직
-     * 1. 저장된 버전이 현재 버전과 다르면 무조건 팝업 노출 (데이터 초기화 포함)
-     * 2. 버전은 같지만 숨김 처리를 하지 않은 상태여도 팝업 노출
+     * [CORE FIX] 캐시 무시 강제 노출 로직
+     * 브라우저에 저장된 버전과 현재 NOTICE_VERSION이 다르면
+     * 무조건 '다시 보지 않기' 설정을 초기화하고 팝업을 노출합니다.
      */
     if (savedVersion !== NOTICE_VERSION) {
-        // 버전이 다르면 '다시 보지 않기' 기록을 초기화하여 공지를 강제로 띄움
         localStorage.removeItem('hideStressNotice');
+        // 새로운 버전을 즉시 기록하여 중복 초기화 방지
         localStorage.setItem('hideNoticeVersion', NOTICE_VERSION);
         noticePopup.style.display = 'flex';
     } else {
-        // 버전이 같은 경우에만 기존의 숨김 설정을 따름
+        // 버전이 같은 경우에만 사용자의 숨김 선택을 존중함
         if (!isHidden) {
             noticePopup.style.display = 'flex';
         }
@@ -59,7 +57,7 @@ function closeNotice() {
 }
 
 function closeNoticeForever() {
-    // 현재 버전을 저장하고 영구 숨김 처리
+    // 사용자가 '다시 보지 않기'를 누르면 현재 버전과 상태를 저장
     localStorage.setItem('hideStressNotice', 'true');
     localStorage.setItem('hideNoticeVersion', NOTICE_VERSION);
     closeNotice();
@@ -79,7 +77,7 @@ function getNum(val) {
 }
 
 /* ---------------------------------------------------------
-   [4. 부채 항목 제어 로직]
+   [4. 부채 항목 관리]
    --------------------------------------------------------- */
 function addLoan() {
     loanCount++;
@@ -134,7 +132,7 @@ function applyPolicy(id) {
     if (cat === 'officetel' || cat === 'cardloan') {
         guide.style.display = 'block';
         if (cat === 'officetel') {
-            guide.innerHTML = "⚠️ <b>오피스텔 긴급 체크포인트:</b><br>- 신규 구입인 경우 반드시 '주택담보대출' 항목을 선택하여 정확한 한도를 산출하시기 바랍니다.<br>- 이미 소유 중인 오피스텔 담보대출을 보유한 경우에만 이 항목(8년 상환 가정)을 유지하십시오.";
+            guide.innerHTML = "⚠️ <b>오피스텔 긴급 체크포인트:</b><br>- 신규 구입인 경우 반드시 '주택담보대출' 항목을 선택하여 정확한 한도를 산출하시기 바랍니다.";
             m.value = "96"; r.placeholder = "5.5"; srSelect.value = "0.0";
         } else {
             guide.innerHTML = "⚠️ <b>카드론(장기카드대출) 안내:</b><br>- 카드론은 가상 만기가 3년(36개월)으로 고정 산정되어 DSR 수치가 급격히 상승할 수 있습니다.";
@@ -143,14 +141,14 @@ function applyPolicy(id) {
     } else {
         guide.style.display = 'none';
         srSelect.value = cat.includes('mortgage') ? "1.15" : "0.0";
-        if (cat === 'credit') { m.value = "60"; r.placeholder = "6.0"; }
-        else if (cat === 'jeonse') { m.value = "24"; r.placeholder = "4.2"; }
-        else { m.value = "360"; r.placeholder = "4.5"; }
+        if (cat === 'credit') m.value = "60";
+        else if (cat === 'jeonse') m.value = "24";
+        else m.value = "360";
     }
 }
 
 /* ---------------------------------------------------------
-   [5. 핵심 연산 및 UI 시각화]
+   [5. 연산 및 시각화]
    --------------------------------------------------------- */
 function calculateTotalDSR() {
     const income = getNum(document.getElementById('income').value);
@@ -240,7 +238,7 @@ function calculateLogic() {
         document.getElementById('prinCard').classList.remove('recommended'); 
     }
 
-    document.getElementById('recDesc').innerHTML = dsr > 32 ? "<b>🚨 한도 확보 긴급:</b> 현재 DSR이 임계치에 도달했습니다. <b>한도가 약 10% 더 유리한 '원금균등'</b> 방식을 통해 여력을 확보하시길 강력 추천합니다." : "<b>✅ 자금 건전성 양호:</b> 현재 소득 대비 부채 비율이 적정합니다. <b>안정적인 가계 지출이 가능한 '원리금균등'</b> 방식을 권장합니다.";
+    document.getElementById('recDesc').innerHTML = dsr > 32 ? "<b>🚨 한도 확보 긴급:</b> 현재 DSR이 임계치입니다. <b>원금균등</b> 방식을 권장합니다." : "<b>✅ 자금 건전성 양호:</b> 현재 부채 비율이 적정합니다. <b>원리금균등</b> 방식을 권장합니다.";
     window.scrollTo({ top: document.getElementById('resultArea').offsetTop - 20, behavior: 'smooth' });
 }
 
@@ -275,7 +273,7 @@ function copyResultText() {
     const recMsgRaw = document.getElementById('recDesc').innerText;
     const recMsg = recMsgRaw.includes(':') ? recMsgRaw.split(':')[1].trim() : recMsgRaw;
 
-    const reportText = `[📊 DSR 정밀 진단 리포트]\n\n● 나의 소득 상황: ${inc}원\n● 현재 종합 DSR: ${dsr}\n● 추가 대출 여력: ${addLim}\n----------------------------\n🎯 방식별 최대 대출 한도\n- 원금균등 방식: ${maxP}\n- 원리금균등 방식: ${maxL}\n----------------------------\n💸 총 이자 지출 비교 (예상)\n- 원금균등 시 총 이자: ${tiP}\n- 원리금균등 시 총 이자: ${tiL}\n----------------------------\n💡 전문가 분석 의견\n"${recMsg}"\n\n* 위 결과는 산출 예상치이며, 실제 심사 결과와 다를 수 있습니다.`;
+    const reportText = `[📊 DSR 정밀 진단 리포트]\n\n● 소득: ${inc}원\n● DSR: ${dsr}\n● 추가 한도: ${addLim}\n----------------------------\n🎯 방식별 최대 한도\n- 원금균등: ${maxP}\n- 원리금균등: ${maxL}\n----------------------------\n💸 총 이자 지출 비교\n- 원금균등 시 총 이자: ${tiP}\n- 원리금균등 시 총 이자: ${tiL}\n----------------------------\n💡 전문가 분석 의견\n"${recMsg}"\n\n* 실제 심사 결과와는 차이가 있을 수 있습니다.`;
 
     const temp = document.createElement("textarea");
     document.body.appendChild(temp);
@@ -283,5 +281,5 @@ function copyResultText() {
     temp.select();
     document.execCommand("copy");
     document.body.removeChild(temp);
-    showAlert("정밀 분석 리포트가 복사되었습니다!<br>원하는 곳에 붙여넣기 하세요.", null, "✅");
+    showAlert("분석 리포트가 복사되었습니다!", null, "✅");
 }
