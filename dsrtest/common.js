@@ -8,7 +8,7 @@
 /* ---------------------------------------------------------
    [1. 전역 설정 및 초기화]
    --------------------------------------------------------- */
-const NOTICE_VERSION = "1"; 
+const NOTICE_VERSION = "0"; 
 let lastFocusId = null;
 let proceedOnConfirm = false;
 let loanCount = 0;
