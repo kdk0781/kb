@@ -2,13 +2,13 @@
    [DSR 정밀 진단 계산기 - 통합 관리 마스터 스크립트]
    파일명: common.js
    최종 업데이트: 2026. 03. 23.
-   수정사항: 년 평균 원금/이자/합계 데이터 시각화 로직 완벽 복구
+   수정사항: 전문가용 리포트 복사 로직 양식 고도화 및 연동 강화
    ============================================================================= */
 
 /* ---------------------------------------------------------
    [1. 전역 설정 및 초기화]
    --------------------------------------------------------- */
-const NOTICE_VERSION = "0"; 
+const NOTICE_VERSION = "1"; 
 let lastFocusId = null;
 let proceedOnConfirm = false;
 let loanCount = 0;
@@ -197,27 +197,19 @@ function calculateLogic() {
 
     const f = (v) => Math.floor(v).toLocaleString() + "원";
     const divM = maxN || 360;
-
-    // [복구] 상세 시각화 UI 업데이트 (년 평균 포함)
     const updateUI = (type, sI) => {
-        const mP = sumP / divM; 
-        const mI = sI / divM;
-        // 월 평균
+        const mP = sumP / divM; const mI = sI / divM;
         document.getElementById(`vis_m_p_${type}`).innerText = f(mP);
         document.getElementById(`vis_m_i_${type}`).innerText = f(mI);
         document.getElementById(`vis_m_t_${type}`).innerText = f(mP + mI);
-        // 년 평균 (누락되었던 부분)
         document.getElementById(`vis_y_p_${type}`).innerText = f(mP * 12);
         document.getElementById(`vis_y_i_${type}`).innerText = f(mI * 12);
         document.getElementById(`vis_y_t_${type}`).innerText = f((mP + mI) * 12);
-        // 총 기간
         document.getElementById(`vis_t_p_${type}`).innerText = f(sumP);
         document.getElementById(`vis_t_i_${type}`).innerText = f(sI);
         document.getElementById(`vis_total_full_${type}`).innerText = f(sumP + sI);
     };
-
-    updateUI('p', sumI_P); 
-    updateUI('l', sumI_L);
+    updateUI('p', sumI_P); updateUI('l', sumI_L);
     
     if (dsr > 32) { 
         document.getElementById('prinCard').classList.add('recommended'); 
@@ -227,12 +219,12 @@ function calculateLogic() {
         document.getElementById('prinCard').classList.remove('recommended'); 
     }
 
-    document.getElementById('recDesc').innerHTML = dsr > 32 ? "<b>🚨 한도 확보 긴급:</b> DSR이 임계치입니다. <b>원금균등</b> 방식을 권장합니다." : "<b>✅ 자금 건전성 양호:</b> 현재 적정 수준입니다. <b>원리금균등</b> 방식을 권장합니다.";
+    document.getElementById('recDesc').innerHTML = dsr > 32 ? "<b>🚨 한도 확보 긴급:</b> 현재 DSR이 임계치에 도달했습니다. <b>한도가 약 10% 더 유리한 '원금균등'</b> 방식을 통해 여력을 확보하시길 강력 추천합니다." : "<b>✅ 자금 건전성 양호:</b> 현재 소득 대비 부채 비율이 적정합니다. <b>안정적인 가계 지출이 가능한 '원리금균등'</b> 방식을 권장합니다.";
     window.scrollTo({ top: document.getElementById('resultArea').offsetTop - 20, behavior: 'smooth' });
 }
 
 /* ---------------------------------------------------------
-   [5. 알림 및 리포트 복사]
+   [5. 알림 및 리포트 복사 - 고도화 완료]
    --------------------------------------------------------- */
 function showAlert(msg, focusId = null, icon = "⚠️", allowProceed = false) {
     const modal = document.getElementById('customModal');
@@ -251,16 +243,41 @@ function handleModalConfirm() {
     }
 }
 
+/**
+ * [고도화] 분석 리포트 복사 (요청하신 프리미엄 양식 적용)
+ */
 function copyResultText() {
     const inc = document.getElementById('income').value;
     const dsr = document.getElementById('dsrVal').innerText;
     const addLim = document.getElementById('remainingLimit').innerText;
+    const maxP = document.getElementById('absMaxPrin').innerText;
+    const maxL = document.getElementById('absMaxLevel').innerText;
     const tiP = document.getElementById('vis_t_i_p').innerText;
     const tiL = document.getElementById('vis_t_i_l').innerText;
+    
+    // 분석 의견 텍스트 정제
     const recMsgRaw = document.getElementById('recDesc').innerText;
     const recMsg = recMsgRaw.includes(':') ? recMsgRaw.split(':')[1].trim() : recMsgRaw;
 
-    const reportText = `[📊 DSR 정밀 분석 리포트]\n\n● 소득: ${inc}원\n● DSR: ${dsr}\n● 한도: ${addLim}\n-------------------------------\n💸 총 이자 비교\n- 원금균등: ${tiP}\n- 원리금균등: ${tiL}\n-------------------------------\n💡 분석 의견: "${recMsg}"`;
+    const reportText = 
+`[📊 DSR 정밀 진단 리포트]
+
+● 나의 소득 상황: ${inc}원
+● 현재 종합 DSR: ${dsr}
+● 추가 대출 여력: ${addLim}
+----------------------------
+🎯 방식별 최대 대출 한도
+- 원금균등 방식: ${maxP}
+- 원리금균등 방식: ${maxL}
+----------------------------
+💸 총 이자 지출 비교 (예상)
+- 원금균등 시 총 이자: ${tiP}
+- 원리금균등 시 총 이자: ${tiL}
+----------------------------
+💡 전문가 분석 의견
+"${recMsg}"
+
+* 위 결과는 산출 예상치이며, 실제 심사 결과와 다를 수 있습니다.`;
 
     const temp = document.createElement("textarea");
     document.body.appendChild(temp);
@@ -268,5 +285,6 @@ function copyResultText() {
     temp.select();
     document.execCommand("copy");
     document.body.removeChild(temp);
-    showAlert("리포트가 복사되었습니다!", null, "✅");
+    
+    showAlert("정밀 분석 리포트가 복사되었습니다!<br>원하는 곳에 붙여넣기 하세요.", null, "✅");
 }
