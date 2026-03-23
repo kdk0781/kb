@@ -2,37 +2,54 @@
    [DSR 정밀 진단 계산기 - 통합 관리 마스터 스크립트]
    파일명: common.js
    최종 업데이트: 2026. 03. 23.
-   수정사항: 전문가용 리포트 복사 로직 양식 고도화 및 연동 강화
+   수정사항: 모바일 공지사항 버전 변경 시 즉시 반영되지 않는 오류 해결
    ============================================================================= */
 
 /* ---------------------------------------------------------
    [1. 전역 설정 및 초기화]
    --------------------------------------------------------- */
-const NOTICE_VERSION = "0"; 
+// 공지 내용 변경 시 이 숫자를 2, 3 등으로 올리면 무조건 다시 뜹니다.
+const NOTICE_VERSION = "1"; 
+
 let lastFocusId = null;
 let proceedOnConfirm = false;
 let loanCount = 0;
 
 window.onload = function() {
-    initNotice(); 
-    addLoan();    
+    initNotice(); // 공지사항 체크 및 로드
+    addLoan();    // 첫 번째 부채 항목 자동 생성
+    
+    // 모달 확인 버튼 이벤트 연결
     const confirmBtn = document.getElementById('modalConfirm');
     if (confirmBtn) confirmBtn.onclick = handleModalConfirm;
 };
 
 /* ---------------------------------------------------------
-   [2. 공지사항 및 유틸리티]
+   [2. 공지사항 제어 - 오류 수정 버전]
    --------------------------------------------------------- */
 function initNotice() {
     const noticePopup = document.getElementById('noticePopup');
     if (!noticePopup) return;
+
+    // 저장된 버전 정보와 숨김 처리 여부 확인
     const savedVersion = localStorage.getItem('hideNoticeVersion');
     const isHidden = localStorage.getItem('hideStressNotice') === 'true';
+
+    /**
+     * [FIX] 버전 변경 시 즉시 노출 로직
+     * 1. 저장된 버전이 현재 버전과 다르면 무조건 팝업 노출 (데이터 초기화 포함)
+     * 2. 버전은 같지만 숨김 처리를 하지 않은 상태여도 팝업 노출
+     */
     if (savedVersion !== NOTICE_VERSION) {
+        // 버전이 다르면 '다시 보지 않기' 기록을 초기화하여 공지를 강제로 띄움
         localStorage.removeItem('hideStressNotice');
+        localStorage.setItem('hideNoticeVersion', NOTICE_VERSION);
         noticePopup.style.display = 'flex';
-    } else if (!isHidden) {
-        noticePopup.style.display = 'flex';
+    } else {
+        // 버전이 같은 경우에만 기존의 숨김 설정을 따름
+        if (!isHidden) {
+            noticePopup.style.display = 'flex';
+        }
     }
 }
 
@@ -42,11 +59,15 @@ function closeNotice() {
 }
 
 function closeNoticeForever() {
+    // 현재 버전을 저장하고 영구 숨김 처리
     localStorage.setItem('hideStressNotice', 'true');
     localStorage.setItem('hideNoticeVersion', NOTICE_VERSION);
     closeNotice();
 }
 
+/* ---------------------------------------------------------
+   [3. 유틸리티 함수]
+   --------------------------------------------------------- */
 function formatComma(obj) {
     let val = obj.value.replace(/[^0-9]/g, "");
     obj.value = val.length > 0 ? Number(val).toLocaleString() : "";
@@ -58,7 +79,7 @@ function getNum(val) {
 }
 
 /* ---------------------------------------------------------
-   [3. 부채 항목 제어]
+   [4. 부채 항목 제어 로직]
    --------------------------------------------------------- */
 function addLoan() {
     loanCount++;
@@ -122,14 +143,14 @@ function applyPolicy(id) {
     } else {
         guide.style.display = 'none';
         srSelect.value = cat.includes('mortgage') ? "1.15" : "0.0";
-        if (cat === 'credit') m.value = "60";
-        else if (cat === 'jeonse') m.value = "24";
-        else m.value = "360";
+        if (cat === 'credit') { m.value = "60"; r.placeholder = "6.0"; }
+        else if (cat === 'jeonse') { m.value = "24"; r.placeholder = "4.2"; }
+        else { m.value = "360"; r.placeholder = "4.5"; }
     }
 }
 
 /* ---------------------------------------------------------
-   [4. 핵심 연산 로직]
+   [5. 핵심 연산 및 UI 시각화]
    --------------------------------------------------------- */
 function calculateTotalDSR() {
     const income = getNum(document.getElementById('income').value);
@@ -224,7 +245,7 @@ function calculateLogic() {
 }
 
 /* ---------------------------------------------------------
-   [5. 알림 및 리포트 복사 - 고도화 완료]
+   [6. 알림 및 리포트 복사]
    --------------------------------------------------------- */
 function showAlert(msg, focusId = null, icon = "⚠️", allowProceed = false) {
     const modal = document.getElementById('customModal');
@@ -243,9 +264,6 @@ function handleModalConfirm() {
     }
 }
 
-/**
- * [고도화] 분석 리포트 복사 (요청하신 프리미엄 양식 적용)
- */
 function copyResultText() {
     const inc = document.getElementById('income').value;
     const dsr = document.getElementById('dsrVal').innerText;
@@ -254,30 +272,10 @@ function copyResultText() {
     const maxL = document.getElementById('absMaxLevel').innerText;
     const tiP = document.getElementById('vis_t_i_p').innerText;
     const tiL = document.getElementById('vis_t_i_l').innerText;
-    
-    // 분석 의견 텍스트 정제
     const recMsgRaw = document.getElementById('recDesc').innerText;
     const recMsg = recMsgRaw.includes(':') ? recMsgRaw.split(':')[1].trim() : recMsgRaw;
 
-    const reportText = 
-`[📊 DSR 정밀 진단 리포트]
-
-● 나의 소득 상황: ${inc}원
-● 현재 종합 DSR: ${dsr}
-● 추가 대출 여력: ${addLim}
-----------------------------
-🎯 방식별 최대 대출 한도
-- 원금균등 방식: ${maxP}
-- 원리금균등 방식: ${maxL}
-----------------------------
-💸 총 이자 지출 비교 (예상)
-- 원금균등 시 총 이자: ${tiP}
-- 원리금균등 시 총 이자: ${tiL}
-----------------------------
-💡 전문가 분석 의견
-"${recMsg}"
-
-* 위 결과는 산출 예상치이며, 실제 심사 결과와 다를 수 있습니다.`;
+    const reportText = `[📊 DSR 정밀 진단 리포트]\n\n● 나의 소득 상황: ${inc}원\n● 현재 종합 DSR: ${dsr}\n● 추가 대출 여력: ${addLim}\n----------------------------\n🎯 방식별 최대 대출 한도\n- 원금균등 방식: ${maxP}\n- 원리금균등 방식: ${maxL}\n----------------------------\n💸 총 이자 지출 비교 (예상)\n- 원금균등 시 총 이자: ${tiP}\n- 원리금균등 시 총 이자: ${tiL}\n----------------------------\n💡 전문가 분석 의견\n"${recMsg}"\n\n* 위 결과는 산출 예상치이며, 실제 심사 결과와 다를 수 있습니다.`;
 
     const temp = document.createElement("textarea");
     document.body.appendChild(temp);
@@ -285,6 +283,5 @@ function copyResultText() {
     temp.select();
     document.execCommand("copy");
     document.body.removeChild(temp);
-    
     showAlert("정밀 분석 리포트가 복사되었습니다!<br>원하는 곳에 붙여넣기 하세요.", null, "✅");
 }
