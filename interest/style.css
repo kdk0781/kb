@@ -1,13 +1,16 @@
 :root { 
     --kb-yellow: #ffbc00; --red: #eb4d4b; --blue: #2e86de;
     --bg-body: #f8f9fa; --bg-card: #ffffff; 
-    --bg-header: rgba(255, 255, 255, 0.95); /* 배경 불투명도 상향 */
+    --bg-header: rgba(255, 255, 255, 0.95);
     --bg-item: #f1f3f5; --text-main: #1a1a1a; --text-sub: #666666;
     --border-color: rgba(0, 0, 0, 0.08); 
     --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
-    --header-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* 스티키 헤더용 그림자 */
+    --header-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     --target-border: #ffbc00; --target-bg: rgba(255, 188, 0, 0.08);
-    --nav-height: 56px; --summary-height: 48px;
+    
+    /* 고정 높이값 */
+    --nav-height: 56px;
+    --summary-height: 48px;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -22,21 +25,57 @@
 
 body { font-family: 'Pretendard', sans-serif; background-color: var(--bg-body); margin: 0; padding-bottom: 60px; color: var(--text-main); transition: 0.3s; }
 
-.sticky-top-container { position: sticky; top: 0; z-index: 1000; background: var(--bg-header); backdrop-filter: blur(15px); border-bottom: 1px solid var(--border-color); }
+/* 상단 네비+지표바 고정 */
+.sticky-top-container { 
+    position: sticky; 
+    top: 0; 
+    z-index: 1000; 
+    background: var(--bg-header); 
+    backdrop-filter: blur(15px); 
+    border-bottom: 1px solid var(--border-color); 
+}
+
 .main-nav { height: var(--nav-height); padding: 0 20px; display: flex; justify-content: space-between; align-items: center; }
 .main-nav h1 { margin: 0; font-size: 1.1rem; font-weight: 800; color: var(--kb-yellow); }
 .clock-display { font-size: 0.85rem; font-weight: 800; color: var(--kb-yellow); white-space: nowrap; }
 
-.summary-bar { height: var(--summary-height); display: flex; overflow-x: auto; padding: 0 20px; gap: 10px; align-items: center; scrollbar-width: none; border-top: 1px solid var(--border-color); }
+/* 요약 바 컨테이너 */
+.summary-bar { 
+    height: var(--summary-height); 
+    display: flex; 
+    overflow-x: auto; 
+    padding: 0 15px; 
+    gap: 8px; 
+    align-items: center; 
+    scrollbar-width: none; 
+    border-top: 1px solid var(--border-color); 
+}
 .summary-bar::-webkit-scrollbar { display: none; }
-.summary-item { flex: 0 0 auto; background: var(--bg-item); padding: 6px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; color: var(--text-sub); }
-.summary-item span { color: var(--red); margin-left: 5px; }
 
-/* ======================================================
-   3. 섹션 헤더 가독성 강화 (Sticky Header Improvement)
-   ====================================================== */
+/* 기본 요약 아이템 */
+.summary-item { 
+    flex: 0 0 auto; 
+    background: var(--bg-item); 
+    padding: 6px 12px; 
+    border-radius: 12px; 
+    font-size: 0.72rem; 
+    font-weight: 700; 
+    color: var(--text-sub); 
+}
+.summary-item span { color: var(--red); margin-left: 4px; }
+
+/* 스트레스 금리 전용 스타일 */
+.summary-item.stress-item {
+    background: rgba(235, 77, 75, 0.1); 
+    color: var(--red);
+    border: 1px solid rgba(235, 77, 75, 0.2);
+}
+.summary-item.stress-item span {
+    font-weight: 900;
+}
+
+/* 섹션 그룹 헤더 고정 (aside 하단에 붙음) */
 .group-wrapper { margin-bottom: 30px; }
-
 .section-header { 
     position: sticky; 
     top: calc(var(--nav-height) + var(--summary-height)); 
@@ -44,12 +83,12 @@ body { font-family: 'Pretendard', sans-serif; background-color: var(--bg-body); 
     background: var(--bg-header);
     backdrop-filter: blur(15px);
     padding: 16px 20px;
-    border-left: 6px solid var(--kb-yellow); /* 왼쪽 라인 두께 상향 */
+    border-left: 6px solid var(--kb-yellow);
     border-bottom: 1px solid var(--border-color);
-    box-shadow: var(--header-shadow); /* 스크롤 시 아래 카드와 분리감 생성 */
+    box-shadow: var(--header-shadow);
 }
-.section-header h3 { margin: 0; font-size: 1.15rem; font-weight: 800; letter-spacing: -0.5px; }
-.section-header p { margin: 4px 0 0; font-size: 0.8rem; color: var(--text-sub); font-weight: 500; }
+.section-header h3 { margin: 0; font-size: 1.15rem; font-weight: 800; }
+.section-header p { margin: 4px 0 0; font-size: 0.8rem; color: var(--text-sub); }
 
 .card-list { padding: 10px 15px; }
 .rate-card { background: var(--bg-card); border-radius: 24px; padding: 22px; margin-bottom: 15px; border: 1.5px solid var(--border-color); position: relative; box-shadow: var(--card-shadow); }
@@ -70,5 +109,5 @@ body { font-family: 'Pretendard', sans-serif; background-color: var(--bg-body); 
 .value { font-size: 1.45rem; font-weight: 900; color: var(--red); letter-spacing: -0.5px; }
 .formula { font-size: 0.65rem; color: var(--text-sub); margin-top: 6px; display: block; opacity: 0.6; }
 
-.footer-info { padding: 60px 20px; text-align: center; font-size: 0.75rem; color: var(--text-sub); opacity: 0.6; line-height: 1.6; }
+.footer-info { padding: 60px 20px; text-align: center; font-size: 0.75rem; color: var(--text-sub); opacity: 0.6; }
 .footer-info p { margin: 5px 0; }
