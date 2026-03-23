@@ -1,29 +1,59 @@
-		/* ---------------------------------------------------------
-		   [DEVICE & THEME OPTIMIZATION] 디바이스 및 테마 최적화
-		   --------------------------------------------------------- */
+/* ---------------------------------------------------------
+   [THEME BASE] 기본 테마 배경 설정 (인라인 스타일 대체)
+   --------------------------------------------------------- */
 
-		/* [1] 다크모드 대응 변수 설정 */
-		@media (prefers-color-scheme: dark) {
-			:root {
-				--bg-color: #1a1a1a;
-				--container-bg: #2d2d2d;
-				--input-bg: #3d3d3d;
-				--text-color: #e0e0e0;
-				--border-color: #444;
-				--gray: #333;
-				--card-shadow: rgba(0,0,0,0.3);
-			}
-			body { background: var(--bg-color); color: var(--text-color); }
-			.container { background: var(--container-bg); box-shadow: 0 15px 50px var(--card-shadow); }
-			.input-card, .guide-col, .detail-group, .max-item { background: var(--input-bg); border-color: var(--border-color); }
-			input, select { background: #444; color: #fff; border-color: #555; }
-			.wiki-table { background: #2d2d2d; color: #ccc; }
-			.wiki-table th { background: #3d3d3d; }
-			.wiki-table td { border-bottom-color: #444; }
-			.schedule-wrapper { background: #2d2d2d; border-color: #444; }
-			.tab-btn.active { background: #2d2d2d; color: var(--kb-yellow); }
-			.schedule-header { background: #444; color: #fff; }
-		}
+:root { 
+    /* 화이트모드 기본값 */
+    --kb-yellow: #FFCC00; 
+    --kb-dark: #262626; 
+    --safe: #2ecc71; 
+    --danger: #e74c3c; 
+    --blue: #3498db; 
+    --gray: #f8f9fa; 
+    --border: #ececec; 
+    --warn-bg: #fff5f5; 
+
+    /* 배경 및 텍스트 변수 추가 */
+    --main-bg: #f0f2f5;    /* 바닥 배경 */
+    --cont-bg: #ffffff;    /* 컨테이너 배경 */
+    --text-color: #333333; /* 기본 글자색 */
+}
+
+/* [중요] body와 container에 변수를 적용해야 다크모드 시 바뀝니다 */
+body { 
+    background-color: var(--main-bg); 
+    color: var(--text-color);
+}
+
+.container { 
+    background-color: var(--cont-bg); 
+}
+
+/* ---------------------------------------------------------
+   [DARK MODE] 시스템 다크모드 대응
+   --------------------------------------------------------- */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --main-bg: #1a1a1a;    /* 다크모드 바닥 배경 */
+        --cont-bg: #2d2d2d;    /* 다크모드 컨테이너 배경 */
+        --text-color: #e0e0e0; /* 다크모드 글자색 */
+        --gray: #333333;
+        --border: #444444;
+        --warn-bg: #3d2a2a;    /* 경고창 배경도 어둡게 */
+    }
+
+    /* 입력창 및 기타 요소 세부 조정 */
+    input, select {
+        background-color: #3d3d3d;
+        color: #ffffff;
+        border-color: #555555;
+    }
+
+    .result-box {
+        background-color: #332f1e;
+        border-color: #554a24;
+    }
+}
 
 		/* [2] 반응형 레이아웃 세부 조정 (Breakpoint) */
 
