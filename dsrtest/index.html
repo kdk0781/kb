@@ -7,17 +7,24 @@
     <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/kdk0781/kb/main/ico/dsrcalc.png">
     <link rel="shortcut icon" href="https://raw.githubusercontent.com/kdk0781/kb/main/ico/dsrcalc.png">
     <link rel="icon" href="https://raw.githubusercontent.com/kdk0781/kb/main/ico/dsrcalc.png">
-    <link rel="stylesheet" type="text/css" href="common.css?v=0781_FIXED" media="all" />
+    <link rel="manifest" href="dsr.json"> 
+    <link rel="stylesheet" type="text/css" href="common.css" media="all" />
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="DSR계산기">
 
     <title>DSR 계산기</title>
+
 </head>
+
 <body>
     <div id="noticePopup" class="notice-overlay">
         <div class="notice-box">
             <div class="notice-header">📢 공지사항</div>
             <div class="notice-body">
                 <span class="main-text">스트레스 금리 사항 추가</span>
-                <span class="sub-text">2026년 최신 금융 규제 정책이 반영되었습니다.</span>
+                <span class="sub-text">2026년 최신 금융 규제 정책이 시스템에 반영되었습니다. 정밀한 진단을 시작해보세요.</span>
             </div>
             <div class="notice-footer">
                 <button onclick="closeNoticeForever()">다시 보지 않기</button>
@@ -41,13 +48,14 @@
         <button class="btn-calc" onclick="calculateTotalDSR()">DSR 분석 및 한도 확인</button>
 
         <div id="resultArea" class="result-box">
+            
             <div class="recommendation-box">
                 <h4 class="rec-box-title">🎯 상황별 최적화 추천</h4>
                 <p id="recDesc" class="rec-box-desc">데이터 분석 중...</p>
             </div>
 
             <div class="dsr-result-header">
-                <label class="dsr-label-text">종합 DSR 지수 (스트레스 반영)</label>
+                <label style="color:#666; font-size:14px; font-weight:600;">종합 DSR 지수 (스트레스 반영)</label>
                 <div id="dsrVal" class="dsr-main-val">0%</div>
                 <div class="dsr-progress-container">
                     <div id="dsrBar" class="dsr-progress-bar"></div>
@@ -59,73 +67,125 @@
             <div class="section-title">방식별 최대 한도 분석</div>
             <div class="max-grid">
                 <div class="max-item" id="prinCard">
-                    <div class="rec-badge">DSR 한도 극대화 추천</div>
+                    <div class="rec-badge" id="prinBadge">DSR 한도 극대화 추천</div>
                     <label>원금균등 방식 최대 한도</label>
                     <div id="absMaxPrin" class="max-val">0원</div>
                 </div>
                 <div class="max-item" id="levelCard">
-                    <div class="rec-badge">계획적 자금 운영 추천</div>
+                    <div class="rec-badge" id="levelBadge">계획적 자금 운영 추천</div>
                     <label>원리금균등 방식 최대 한도</label>
                     <div id="absMaxLevel" class="max-val">0원</div>
                 </div>
             </div>
 
+            <div class="section-title">금융 방식 특징 가이드</div>
+            <div class="method-guide">
+                <div class="guide-col">
+                    <strong>💡 원금균등 상환</strong>
+                    <div class="guide-item"><span class="badge plus">한도</span> <span><b>대출 가능액 우위</b> (DSR 산정 시 유리)</span></div>
+                    <div class="guide-item"><span class="badge plus">이자</span> <span>대출 기간 전체 지불 이자 비용 최소화</span></div>
+                    <div class="guide-item"><span class="badge kb">특징</span> <span>매월 납입 원금이 동일, 이자는 점차 감소</span></div>
+                </div>
+                <div class="guide-col">
+                    <strong>💡 원리금균등 상환</strong>
+                    <div class="guide-item"><span class="badge plus">안정</span> <span>매월 납입액 고정으로 지출 관리 최적화</span></div>
+                    <div class="guide-item"><span class="badge plus">계획</span> <span>가계 현금 흐름 및 예산 수립 매우 용이</span></div>
+                    <div class="guide-item"><span class="badge minus">비용</span> <span>원금균등 대비 전체 지불 이자가 많음</span></div>
+                </div>
+            </div>
+
             <div class="section-title">실제 금리 기준 상환액 상세 (예상)</div>
+            <div class="detail-sub-info">* 15~50년 담보대출 항목만 합산 반영됩니다.</div>
             <div class="method-guide" id="detailVisualization">
                 <div class="guide-col">
                     <strong>📝 원금균등 방식</strong>
                     <div class="detail-group">
-                        <div class="detail-row">월 상환액 <span id="vis_m_t_p">0원</span></div>
-                        <div class="detail-row">년 상환액 <span id="vis_y_t_p">0원</span></div>
+                        <div class="detail-row">월 평균 원금 <span id="vis_m_p_p">0원</span></div>
+                        <div class="detail-row">월 평균 이자 <span id="vis_m_i_p">0원</span></div>
+                        <div class="detail-row total-row">월 상환액 합계 <span id="vis_m_t_p">0원</span></div>
+                    </div>
+                    <div class="detail-group">
+                        <div class="detail-row">년 평균 원금 <span id="vis_y_p_p">0원</span></div>
+                        <div class="detail-row">년 평균 이자 <span id="vis_y_i_p">0원</span></div>
+                        <div class="detail-row total-row">년 상환액 합계 <span id="vis_y_t_p">0원</span></div>
                     </div>
                     <div class="detail-group total-highlight-card">
-                        <div class="detail-row">총 이자액 <span id="vis_t_i_p">0원</span></div>
-                        <div class="detail-row total-row">총 상환액 <span id="vis_total_full_p">0원</span></div>
+                        <div class="detail-row">총 기간 원금 <span id="vis_t_p_p">0원</span></div>
+                        <div class="detail-row">총 기간 이자 <span id="vis_t_i_p">0원</span></div>
+                        <div class="detail-row total-row"><b style="font-size:15px;">전체 총 상환액</b> <span id="vis_total_full_p">0원</span></div>
                     </div>
                 </div>
                 <div class="guide-col">
                     <strong>📝 원리금균등 방식</strong>
                     <div class="detail-group">
-                        <div class="detail-row">월 상환액 <span id="vis_m_t_l">0원</span></div>
-                        <div class="detail-row">년 상환액 <span id="vis_y_t_l">0원</span></div>
+                        <div class="detail-row">월 평균 원금 <span id="vis_m_p_l">0원</span></div>
+                        <div class="detail-row">월 평균 이자 <span id="vis_m_i_l">0원</span></div>
+                        <div class="detail-row total-row">월 상환액 합계 <span id="vis_m_t_l">0원</span></div>
+                    </div>
+                    <div class="detail-group">
+                        <div class="detail-row">년 평균 원금 <span id="vis_y_p_l">0원</span></div>
+                        <div class="detail-row">년 평균 이자 <span id="vis_y_i_l">0원</span></div>
+                        <div class="detail-row total-row">년 상환액 합계 <span id="vis_y_t_l">0원</span></div>
                     </div>
                     <div class="detail-group total-highlight-card">
-                        <div class="detail-row">총 이자액 <span id="vis_t_i_l">0원</span></div>
-                        <div class="detail-row total-row">총 상환액 <span id="vis_total_full_l">0원</span></div>
+                        <div class="detail-row">총 기간 원금 <span id="vis_t_p_l">0원</span></div>
+                        <div class="detail-row">총 기간 이자 <span id="vis_t_i_l">0원</span></div>
+                        <div class="detail-row total-row"><b style="font-size:15px;">전체 총 상환액</b> <span id="vis_total_full_l">0원</span></div>
                     </div>
                 </div>
             </div>
+			
+			<div id="scheduleSection" class="schedule-section-hidden">
+				<div class="section-title">📅 회차별 상세 상환 스케줄</div>
+				
+				<div class="schedule-wrapper">
+					<div class="schedule-tabs">
+						<button id="tabPrin" class="tab-btn active" onclick="switchSchedule('P')">원금균등 방식</button>
+						<button id="tabLevel" class="tab-btn" onclick="switchSchedule('L')">원리금균등 방식</button>
+					</div>
+
+					<div class="schedule-container">
+						<div class="schedule-header">
+							<div>회차</div>
+							<div>원금</div>
+							<div>이자</div>
+							<div>잔액</div>
+						</div>
+						<div id="scheduleList" class="schedule-list">
+							</div>
+					</div>
+				</div>
+			</div>
+
+			<button id="btnShowSchedule" class="btn-more-schedule" onclick="toggleSchedule()">
+				📊 전체 상환 스케줄 상세 보기
+			</button>
 
             <div class="limit-card">
                 <label class="limit-label-blue">현재 추가 가능 대출액</label>
                 <div id="remainingLimit" class="limit-val">0원</div>
+                <span class="limit-info-text">* 원금균등 및 주담대 30년 기준 자동 계산</span>
             </div>
-
-            <div id="scheduleSection" class="schedule-section-hidden">
-                <div class="section-title">📅 회차별 상세 상환 스케줄</div>
-                <div class="schedule-wrapper">
-                    <div class="schedule-tabs">
-                        <button id="tabPrin" class="tab-btn active" onclick="switchSchedule('P')">원금균등</button>
-                        <button id="tabLevel" class="tab-btn" onclick="switchSchedule('L')">원리금균등</button>
-                    </div>
-                    <div class="schedule-container">
-                        <div class="schedule-header">
-                            <div>회차</div><div>원금</div><div>이자</div><div>잔액</div>
-                        </div>
-                        <div id="scheduleList" class="schedule-list"></div>
-                    </div>
-                </div>
-            </div>
-
-            <button id="btnShowSchedule" class="btn-more-schedule" onclick="toggleSchedule()">
-                📊 전체 상환 스케줄 상세 보기
-            </button>
             
-            <button class="btn-copy" onclick="copyResultText()">📋 분석 리포트 복사하기</button>
+            <button class="btn-copy" onclick="copyResultText()">📋 결과 분석 리포트 복사하기</button>
+
+            <div class="section-title">부동산 위키 부채 산정 가이드</div>
+            <div class="wiki-table-wrapper">
+                <table class="wiki-table">
+                    <thead><tr><th>대출 종류</th><th>원금 산정 방식</th><th>비고</th></tr></thead>
+                    <tbody>
+                        <tr><td><b>주택담보대출</b></td><td>실제 상환액 (총 기간 반영)</td><td>일시상환 시 가상 10년</td></tr>
+                        <tr><td><b>오피스텔(비주거)</b></td><td>실제 상환액 또는 가상 8년</td><td>금융위 비주담대 가이드</td></tr>
+                        <tr><td><b>전세 (만기일시)</b></td><td><span class="wiki-blue-text">원금 상환액 제외</span></td><td>연간 이자만 합산</td></tr>
+                        <tr><td><b>신용대출</b></td><td>대출총액 / 5년 가상 분할</td><td>실제 만기 무관하게 고정</td></tr>
+                        <tr><td><b>카드론 (장기)</b></td><td>대출총액 / 3년 가상 분할</td><td>DSR 산정 시 강력 규제 대상</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
-    <div class="refresh-btn" onclick="location.reload();">↻</div>
+   <div class="refresh-btn" onclick="location.reload();">↻</div>
 
     <div id="customModal" class="modal-overlay">
         <div class="modal-content">
@@ -135,5 +195,5 @@
         </div>
     </div>
 </body>
-<script src="common.js?v=0781_FIXED"></script>
+<script src="common.js?v=0781_1"></script>
 </html>
