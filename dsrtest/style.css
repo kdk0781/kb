@@ -258,6 +258,11 @@
    --------------------------------------------------------- */
 
 /* [SCHEDULE VIEW] 버튼 초기 상태 */
+/* 스케줄 섹션 컨테이너 (초기 숨김) */
+.schedule-section-hidden {
+    display: none;
+    margin-top: 30px;
+}
 .btn-more-schedule {
     display: none; /* 초기에는 숨김 처리 (JS에서 계산 완료 시 block으로 변경) */
     width: 100%;
