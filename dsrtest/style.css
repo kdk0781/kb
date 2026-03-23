@@ -19,17 +19,50 @@
     --border-color: #ececec; /* 테두리 및 구분선 */
     --warn-bg: #fff5f5;      /* 경고창 배경 */
 }
+/* ---------------------------------------------------------
+   [DARK MODE] 다크모드 가독성 강화 (텍스트 대비 상향)
+   --------------------------------------------------------- */
 
-/* [다크 모드 전용 변수] 시스템 설정 감지 시 자동 교체 */
 @media (prefers-color-scheme: dark) {
     :root {
-        --main-bg: #121212;      /* 다크모드 바닥 배경 (매우 어두움) */
-        --cont-bg: #1e1e1e;      /* 다크모드 컨테이너 배경 */
-        --card-bg: #2d2d2d;      /* 다크모드 카드 배경 */
-        --text-main: #e0e0e0;    /* 다크모드 주 텍스트 */
-        --text-sub: #aaaaaa;     /* 다크모드 부가 설명 */
-        --border-color: #383838; /* 다크모드 테두리 */
-        --warn-bg: #2c1a1a;      /* 다크모드 경고창 배경 */
+        /* 배경을 더 깊게, 텍스트는 순백색에 가깝게 조정 */
+        --main-bg: #000000;      /* 바닥 배경을 완전 블랙으로 전환하여 대비 극대화 */
+        --cont-bg: #1c1c1e;      /* 컨테이너 배경 (iOS 스타일 다크그레이) */
+        --card-bg: #2c2c2e;      /* 입력 카드 배경 */
+        
+        /* [수정 포인트] 가독성 개선 텍스트 컬러 */
+        --text-main: #ffffff;    /* #e0e0e0에서 #ffffff로 변경 (최상급 가독성) */
+        --text-sub: #cfcfcf;     /* 부가 설명도 더 밝게 조정 */
+        
+        --border-color: #3a3a3c;
+        --warn-bg: #321919;
+    }
+
+    /* 다크모드 전용 추가 스타일 주석 */
+    
+    /* 입력창의 글자색도 완전 화이트로 강제 */
+    input, select {
+        color: #ffffff !important;
+        background-color: #2c2c2e;
+    }
+
+    /* 결과창 DSR 수치 강조 */
+    .dsr-main-val {
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.1); /* 글자 주변 미세 광채로 가독성 보조 */
+    }
+
+    /* 하단 위키 테이블 텍스트 가독성 */
+    .wiki-table td {
+        color: #ffffff;
+    }
+    
+    .wiki-table th {
+        color: var(--kb-yellow); /* 헤더는 옐로우로 포인트를 주어 구분감 강화 */
+    }
+
+    /* 상환 스케줄 리스트의 회차 번호 가독성 */
+    .sch-num {
+        color: #bbbbbb;
     }
 }
 
