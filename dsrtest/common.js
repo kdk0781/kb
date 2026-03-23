@@ -207,20 +207,56 @@ function calculateLogic() {
     window.scrollTo({ top: document.getElementById('resultArea').offsetTop - 20, behavior: 'smooth' });
 }
 
+/* ---------------------------------------------------------
+   [MOD] 알림창 및 모바일 포커스 제어 로직 (0781_1 기준)
+   --------------------------------------------------------- */
+
+/**
+ * 커스텀 모달 알림창 호출
+ * @param {string} msg - 표시할 메시지
+ * @param {string} focusId - 확인 후 포커스를 이동할 요소의 ID
+ */
 function showAlert(msg, focusId = null, icon = "⚠️", allowProceed = false) {
     const modal = document.getElementById('customModal');
+    if (!modal) return;
+
     document.getElementById('modalMsg').innerHTML = msg;
     document.getElementById('modalIcon').innerText = icon;
-    lastFocusId = focusId; proceedOnConfirm = allowProceed;
-    if (modal) modal.style.display = 'flex';
+    
+    // 전역 변수에 포커스 타겟 저장
+    lastFocusId = focusId; 
+    proceedOnConfirm = allowProceed;
+    
+    // 모달 표시
+    modal.style.display = 'flex';
 }
 
+/**
+ * 모달 [확인] 버튼 클릭 시 처리
+ * 모바일(iOS/Android) 키보드 강제 호출 로직 포함
+ */
 function handleModalConfirm() {
-    document.getElementById('customModal').style.display = 'none';
-    if (proceedOnConfirm) calculateLogic();
-    else if (lastFocusId) {
-        const el = document.getElementById(lastFocusId);
-        if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(() => el.focus(), 500); }
+    const modal = document.getElementById('customModal');
+    if (modal) modal.style.display = 'none';
+
+    if (proceedOnConfirm) {
+        calculateLogic();
+    } else if (lastFocusId) {
+        const targetEl = document.getElementById(lastFocusId);
+        if (targetEl) {
+            // 1. 해당 위치로 부드럽게 스크롤
+            targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            // 2. 모바일 브라우저 대응 지연 포커스
+            setTimeout(() => {
+                targetEl.focus();
+                
+                // [중요] 아이폰/안드로이드에서 키보드를 강제로 올리기 위한 트리거
+                if (targetEl.tagName === 'INPUT') {
+                    targetEl.click(); 
+                }
+            }, 300); // 스크롤 애니메이션 시간을 고려한 지연
+        }
     }
 }
 
