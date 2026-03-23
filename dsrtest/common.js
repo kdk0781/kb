@@ -203,6 +203,7 @@ function calculateLogic() {
     if (dsr > 32) { document.getElementById('prinCard').classList.add('recommended'); document.getElementById('levelCard').classList.remove('recommended'); }
     else { document.getElementById('levelCard').classList.add('recommended'); document.getElementById('prinCard').classList.remove('recommended'); }
     document.getElementById('recDesc').innerHTML = dsr > 32 ? "<b>🚨 한도 확보 긴급:</b> 현재 DSR이 임계치입니다. <b>원금균등</b> 방식을 권장합니다." : "<b>✅ 자금 건전성 양호:</b> 현재 부채 비율이 적정합니다. <b>원리금균등</b> 방식을 권장합니다.";
+	refreshScheduleUI();
     window.scrollTo({ top: document.getElementById('resultArea').offsetTop - 20, behavior: 'smooth' });
 }
 
@@ -239,3 +240,110 @@ function copyResultText() {
     temp.value = reportText; temp.select(); document.execCommand("copy"); document.body.removeChild(temp);
     showAlert("분석 리포트가 복사되었습니다!", null, "✅");
 }
+
+/* [추가 전역 변수] */
+let currentScheduleType = 'P'; // P: 원금균등, L: 원리금균등
+
+/**
+ * [MOD] 기존 calculateLogic 함수의 가장 마지막 줄에 추가
+ * 계산이 완료된 후 상세 스케줄 버튼을 노출하고 데이터를 갱신합니다.
+ */
+function refreshScheduleUI() {
+    const btn = document.getElementById('btnShowSchedule');
+    if (btn) btn.style.display = 'block';
+
+    const sec = document.getElementById('scheduleSection');
+    // 섹션이 이미 열려있는 상태라면 데이터 자동 갱신
+    if (sec && sec.style.display === 'block') {
+        generateSchedule();
+    }
+}
+
+/**
+ * [NEW] 전체 상환 스케줄 생성 (12개월 구분선 로직 포함)
+ */
+function generateSchedule() {
+    const items = document.querySelectorAll('[id^="loan_"]');
+    let target = null;
+    
+    // 주담대 또는 오피스텔 항목을 우선적으로 스케줄 대상으로 선정
+    items.forEach(item => {
+        const cat = item.querySelector('.l-category').value;
+        if(cat.includes('mortgage') || cat === 'officetel') target = item;
+    });
+    if(!target) target = items[0]; // 항목이 없으면 첫 번째 항목 기준
+
+    const P = getNum(target.querySelector('.l-p').value);
+    const R = Number(target.querySelector('.l-r').value || target.querySelector('.l-r').placeholder);
+    const n = getNum(target.querySelector('.l-m').value);
+    const r = R / 1200;
+
+    const listEl = document.getElementById('scheduleList');
+    listEl.innerHTML = ""; // 리스트 초기화
+
+    let balance = P;
+    const mP = P / n; // 원금균등 매달 원금
+    const mPMT = (P * r * Math.pow(1+r, n)) / (Math.pow(1+r, n)-1); // 원리금균등 매달 상환액
+
+    for (let i = 1; i <= n; i++) {
+        // 12개월(1년) 단위로 연차 구분선 삽입
+        if (i > 1 && (i - 1) % 12 === 0) {
+            const yearDiv = document.createElement('div');
+            yearDiv.className = 'year-divider';
+            yearDiv.innerText = `📅 대출 실행 ${(i - 1) / 12}년 경과 (현재 잔액: ${Math.floor(balance).toLocaleString()}원)`;
+            listEl.appendChild(yearDiv);
+        }
+
+        let curP, curI;
+        if (currentScheduleType === 'P') {
+            curI = balance * r;
+            curP = mP;
+            balance -= curP;
+        } else {
+            curI = balance * r;
+            curP = mPMT - curI;
+            balance -= curP;
+        }
+
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'schedule-item';
+        itemDiv.innerHTML = `
+            <div class="sch-num">${i}회</div>
+            <div class="sch-prin">${Math.floor(curP).toLocaleString()}</div>
+            <div class="sch-int">${Math.floor(curI).toLocaleString()}</div>
+            <div class="sch-bal">${Math.max(0, Math.floor(balance)).toLocaleString()}</div>
+        `;
+        listEl.appendChild(itemDiv);
+    }
+}
+
+
+
+
+/**
+ * 상세 스케줄 섹션 토글
+ */
+function toggleSchedule() {
+    const sec = document.getElementById('scheduleSection');
+    const btn = document.getElementById('btnShowSchedule');
+    
+    if (sec.style.display === 'none' || sec.style.display === '') {
+        generateSchedule();
+        sec.style.display = 'block';
+        btn.innerText = "🔼 스케줄 접기";
+    } else {
+        sec.style.display = 'none';
+        btn.innerText = "📊 전체 상환 스케줄 상세 보기";
+    }
+}
+
+/**
+ * 상환 방식 탭 전환
+ */
+function switchSchedule(type) {
+    currentScheduleType = type;
+    document.getElementById('tabPrin').classList.toggle('active', type === 'P');
+    document.getElementById('tabLevel').classList.toggle('active', type === 'L');
+    generateSchedule();
+}
+
