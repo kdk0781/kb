@@ -1,123 +1,74 @@
-/* ======================================================
-   1. 시스템 설정 및 테마 정의 (System Theme Configuration)
-   ====================================================== */
 :root { 
-    /* 공통 브랜드 컬러 */
-    --kb-yellow: #ffbc00; 
-    --red: #eb4d4b; 
-    --blue: #2e86de;
-
-    /* 라이트 모드 기본 설정 (Light Mode) */
-    --bg-body: #f8f9fa;
-    --bg-card: #ffffff;
-    --bg-header: rgba(255, 255, 255, 0.85);
-    --bg-item: #f1f3f5;
-    --text-main: #1a1a1a;
-    --text-sub: #666666;
-    --border-color: rgba(0, 0, 0, 0.05);
+    --kb-yellow: #ffbc00; --red: #eb4d4b; --blue: #2e86de;
+    --bg-body: #f8f9fa; --bg-card: #ffffff; 
+    --bg-header: rgba(255, 255, 255, 0.95); /* 배경 불투명도 상향 */
+    --bg-item: #f1f3f5; --text-main: #1a1a1a; --text-sub: #666666;
+    --border-color: rgba(0, 0, 0, 0.08); 
     --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
-    --target-border: #ffbc00;
+    --header-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* 스티키 헤더용 그림자 */
+    --target-border: #ffbc00; --target-bg: rgba(255, 188, 0, 0.08);
+    --nav-height: 56px; --summary-height: 48px;
 }
 
-/* 다크 모드 (System Dark Mode) */
 @media (prefers-color-scheme: dark) {
     :root {
-        --bg-body: #121212;
-        --bg-card: #1e1e1e;
-        --bg-header: rgba(30, 30, 30, 0.85);
-        --bg-item: #2c2c2c;
-        --text-main: #ececec;
-        --text-sub: #bbbbbb;
-        --border-color: rgba(255, 255, 255, 0.08);
-        --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-        --target-border: #ffbc00;
+        --bg-body: #121212; --bg-card: #1e1e1e; 
+        --bg-header: rgba(30, 30, 30, 0.95);
+        --bg-item: #2c2c2c; --text-main: #ececec; --text-sub: #bbbbbb;
+        --border-color: rgba(255, 255, 255, 0.12);
+        --header-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
     }
 }
 
-/* ======================================================
-   2. 기본 레이아웃 (Base Layout)
-   ====================================================== */
-body { 
-    font-family: 'Pretendard', sans-serif; 
-    background-color: var(--bg-body); 
-    margin: 0; padding-bottom: 60px; 
-    color: var(--text-main);
-    transition: background-color 0.3s, color 0.3s;
-}
+body { font-family: 'Pretendard', sans-serif; background-color: var(--bg-body); margin: 0; padding-bottom: 60px; color: var(--text-main); transition: 0.3s; }
 
-.sticky-header { 
-    position: sticky; top: 0; z-index: 1000; 
-    background: var(--bg-header); 
-    backdrop-filter: blur(15px);
-    border-bottom: 1px solid var(--border-color); 
-}
-
-.main-nav { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+.sticky-top-container { position: sticky; top: 0; z-index: 1000; background: var(--bg-header); backdrop-filter: blur(15px); border-bottom: 1px solid var(--border-color); }
+.main-nav { height: var(--nav-height); padding: 0 20px; display: flex; justify-content: space-between; align-items: center; }
 .main-nav h1 { margin: 0; font-size: 1.1rem; font-weight: 800; color: var(--kb-yellow); }
-.clock-display { font-size: 0.9rem; font-weight: 800; color: var(--kb-yellow); }
+.clock-display { font-size: 0.85rem; font-weight: 800; color: var(--kb-yellow); white-space: nowrap; }
 
-.summary-bar { 
-    display: flex; overflow-x: auto; padding: 12px 20px; gap: 10px; 
-    scrollbar-width: none; border-top: 1px solid var(--border-color); 
-}
+.summary-bar { height: var(--summary-height); display: flex; overflow-x: auto; padding: 0 20px; gap: 10px; align-items: center; scrollbar-width: none; border-top: 1px solid var(--border-color); }
 .summary-bar::-webkit-scrollbar { display: none; }
-.summary-item { 
-    flex: 0 0 auto; background: var(--bg-item); padding: 8px 16px; 
-    border-radius: 20px; font-size: 0.8rem; font-weight: 700; color: var(--text-sub); 
-}
+.summary-item { flex: 0 0 auto; background: var(--bg-item); padding: 6px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; color: var(--text-sub); }
 .summary-item span { color: var(--red); margin-left: 5px; }
 
 /* ======================================================
-   3. 컴포넌트 스타일 (Components)
+   3. 섹션 헤더 가독성 강화 (Sticky Header Improvement)
    ====================================================== */
-.group-wrapper { 
-    margin: 25px 15px; padding: 15px 12px; 
-    background: var(--bg-card); border-radius: 30px; 
-    box-shadow: var(--card-shadow); border: 1px solid var(--border-color); 
+.group-wrapper { margin-bottom: 30px; }
+
+.section-header { 
+    position: sticky; 
+    top: calc(var(--nav-height) + var(--summary-height)); 
+    z-index: 900;
+    background: var(--bg-header);
+    backdrop-filter: blur(15px);
+    padding: 16px 20px;
+    border-left: 6px solid var(--kb-yellow); /* 왼쪽 라인 두께 상향 */
+    border-bottom: 1px solid var(--border-color);
+    box-shadow: var(--header-shadow); /* 스크롤 시 아래 카드와 분리감 생성 */
 }
+.section-header h3 { margin: 0; font-size: 1.15rem; font-weight: 800; letter-spacing: -0.5px; }
+.section-header p { margin: 4px 0 0; font-size: 0.8rem; color: var(--text-sub); font-weight: 500; }
 
-.section-header { margin: 5px 0 20px 10px; border-left: 5px solid var(--kb-yellow); padding-left: 15px; }
-.section-header h3 { margin: 0; font-size: 1.2rem; font-weight: 800; }
-.section-header p { margin: 5px 0 0; font-size: 0.8rem; color: var(--text-sub); }
-
-.rate-card { 
-    background: var(--bg-card); border-radius: 22px; padding: 22px; 
-    margin-bottom: 12px; border: 1.5px solid var(--border-color); 
-    position: relative; transition: 0.3s; 
-}
-
-.rate-card.best-rate { border-color: var(--kb-yellow); }
-
-.best-label { 
-    display: none; position: absolute; top: 0; right: 25px; 
-    background: var(--kb-yellow); color: #000; font-size: 0.7rem; 
-    font-weight: 850; padding: 5px 14px; border-radius: 0 0 12px 12px; 
-}
+.card-list { padding: 10px 15px; }
+.rate-card { background: var(--bg-card); border-radius: 24px; padding: 22px; margin-bottom: 15px; border: 1.5px solid var(--border-color); position: relative; box-shadow: var(--card-shadow); }
+.rate-card.best-rate { border-color: var(--kb-yellow); background: var(--target-bg); }
+.best-label { display: none; position: absolute; top: 0; right: 25px; background: var(--kb-yellow); color: #000; font-size: 0.7rem; font-weight: 850; padding: 5px 14px; border-radius: 0 0 12px 12px; }
 .best-rate .best-label { display: block; }
 
 .card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
-.product-name { font-size: 1.05rem; font-weight: 750; color: var(--text-main); }
-.cycle-tag { 
-    font-size: 0.7rem; color: var(--blue); background: rgba(46, 134, 222, 0.1); 
-    padding: 4px 10px; border-radius: 8px; font-weight: 800; 
-}
+.product-name { font-size: 1.05rem; font-weight: 750; }
+.cycle-tag { font-size: 0.7rem; color: var(--blue); background: rgba(46, 134, 222, 0.1); padding: 4px 10px; border-radius: 8px; font-weight: 800; }
 
 .price-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.price-box { 
-    padding: 16px 8px; border-radius: 18px; text-align: center; 
-    background: var(--bg-item); border: 1.5px solid transparent; transition: 0.2s; 
-}
-
-/* 최저가 강조 타겟 박스 */
-.price-box.target { 
-    border-color: var(--target-border); 
-    background: var(--bg-card); 
-    box-shadow: 0 4px 10px rgba(255, 188, 0, 0.1); 
-}
+.price-box { padding: 16px 8px; border-radius: 18px; text-align: center; background: var(--bg-item); border: 1.5px solid transparent; }
+.price-box.target { border-color: var(--target-border); background: var(--bg-card); box-shadow: 0 4px 10px rgba(255, 188, 0, 0.1); }
 .price-box.target .value { color: var(--kb-yellow); }
 
 .label { font-size: 0.7rem; color: var(--text-sub); margin-bottom: 6px; display: block; font-weight: 600; }
 .value { font-size: 1.45rem; font-weight: 900; color: var(--red); letter-spacing: -0.5px; }
 .formula { font-size: 0.65rem; color: var(--text-sub); margin-top: 6px; display: block; opacity: 0.6; }
 
-.footer-info { padding: 40px 20px; text-align: center; font-size: 0.75rem; color: var(--text-sub); opacity: 0.5; }
+.footer-info { padding: 60px 20px; text-align: center; font-size: 0.75rem; color: var(--text-sub); opacity: 0.6; line-height: 1.6; }
+.footer-info p { margin: 5px 0; }
