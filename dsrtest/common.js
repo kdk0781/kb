@@ -114,7 +114,7 @@ function applyPolicy(id) {
     if (cat === 'officetel' || cat === 'cardloan') {
         guide.style.display = 'block';
         if (cat === 'officetel') {
-            guide.innerHTML = "⚠️ <b>오피스텔 긴급 체크포인트:</b><br>- 신규 구입인 경우 반드시 '주택담보대출' 항목을 선택하여 정확한 한도를 산출하시기 바랍니다.";
+            guide.innerHTML = "⚠️ <b>오피스텔 긴급 체크포인트:</b><br>- 신규 구입인 경우 반드시 '주택담보대출' 항목을 선택하여 정확한 한도를 산출하시기 바랍니다.<br>- 이미 소유 중인 오피스텔 담보대출을 보유한 경우에만 이 항목(8년 상환 가정)을 유지하십시오.";
             m.value = "96"; r.placeholder = "5.5"; srSelect.value = "0.0";
         } else {
             guide.innerHTML = "⚠️ <b>카드론(장기카드대출) 안내:</b><br>- 카드론은 가상 만기가 3년(36개월)으로 고정 산정되어 DSR 수치가 급격히 상승할 수 있습니다.";
@@ -233,7 +233,7 @@ function copyResultText() {
     const tiL = document.getElementById('vis_t_i_l').innerText;
     const recMsgRaw = document.getElementById('recDesc').innerText;
     const recMsg = recMsgRaw.includes(':') ? recMsgRaw.split(':')[1].trim() : recMsgRaw;
-    const reportText = `[📊 DSR 정밀 진단 리포트]\n
+    const reportText = `[📊 DSR 정밀 진단 리포트]
 		\n● 나의 소득 상황: ${inc}원
 		\n● 현재 종합 DSR: ${dsr}
 		\n● 추가 대출 여력: ${addLim}
