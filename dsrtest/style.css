@@ -252,3 +252,111 @@
         .notice-footer { display: flex; border-top: 1px solid #eee; }
         .notice-footer button { flex: 1; padding: 18px; border: none; background: #fff; cursor: pointer; font-size: 14px; font-weight: 700; color: #666; }
         .notice-footer .close-btn { background: var(--kb-dark); color: var(--kb-yellow); border-left: 1px solid #eee; }
+
+/* ---------------------------------------------------------
+   [SCHEDULE VIEW] 회차별 상세 스케줄 시각화 스타일
+   --------------------------------------------------------- */
+
+/* [SCHEDULE VIEW] 버튼 초기 상태 */
+.btn-more-schedule {
+    display: none; /* 초기에는 숨김 처리 (JS에서 계산 완료 시 block으로 변경) */
+    width: 100%;
+    padding: 18px;
+    background: #fff;
+    border: 2px solid var(--kb-dark);
+    border-radius: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 15px;
+    color: var(--kb-dark);
+    transition: 0.3s;
+}
+
+/* 호버 시 KB 스타일 적용 */
+.btn-more-schedule:hover {
+    background: var(--kb-dark);
+    color: var(--kb-yellow);
+}
+
+/* 스케줄 리스트 래퍼 */
+.schedule-wrapper {
+    background: #fff;
+    border-radius: 20px;
+    border: 1px solid #eee;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+/* 상환 방식 선택 탭 */
+.schedule-tabs {
+    display: flex;
+    background: #f8f9fa;
+    border-bottom: 1px solid #eee;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 15px;
+    border: none;
+    background: none;
+    font-weight: 700;
+    color: #999;
+    cursor: pointer;
+}
+
+.tab-btn.active {
+    color: var(--kb-dark);
+    background: #fff;
+    border-bottom: 3px solid var(--kb-yellow);
+}
+
+/* 회차별 리스트 헤더 (고정) */
+.schedule-header {
+    display: grid;
+    grid-template-columns: 60px 1fr 1fr 1.2fr;
+    gap: 5px;
+    padding: 12px 5px;
+    background: #f1f1f1;
+    font-size: 12px;
+    font-weight: 800;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+/* 스크롤 가능한 리스트 영역 */
+.schedule-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+/* 개별 회차 행 */
+.schedule-item {
+    display: grid;
+    grid-template-columns: 60px 1fr 1fr 1.2fr;
+    gap: 5px;
+    padding: 12px 8px;
+    border-bottom: 1px solid #f9f9f9;
+    font-size: 12px;
+    text-align: center;
+}
+
+/* 12개월(1년) 단위 연차 구분선 */
+.year-divider {
+    background: #fff9db;
+    padding: 10px 15px;
+    font-weight: 800;
+    font-size: 11.5px;
+    color: #e67e22;
+    border-left: 5px solid var(--kb-yellow);
+    margin: 15px 0 5px;
+    text-align: left;
+    border-radius: 0 8px 8px 0;
+}
+
+/* 회차별 텍스트 색상 정의 */
+.sch-num { color: #888; }
+.sch-prin { font-weight: 700; color: var(--kb-dark); }
+.sch-int { color: var(--danger); }
+.sch-bal { color: var(--blue); font-weight: 700; }
