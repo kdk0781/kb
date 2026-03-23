@@ -134,6 +134,32 @@
                     </div>
                 </div>
             </div>
+			
+			<div id="scheduleSection" class="schedule-section-hidden">
+				<div class="section-title">📅 회차별 상세 상환 스케줄</div>
+				
+				<div class="schedule-wrapper">
+					<div class="schedule-tabs">
+						<button id="tabPrin" class="tab-btn active" onclick="switchSchedule('P')">원금균등 방식</button>
+						<button id="tabLevel" class="tab-btn" onclick="switchSchedule('L')">원리금균등 방식</button>
+					</div>
+
+					<div class="schedule-container">
+						<div class="schedule-header">
+							<div>회차</div>
+							<div>원금</div>
+							<div>이자</div>
+							<div>잔액</div>
+						</div>
+						<div id="scheduleList" class="schedule-list">
+							</div>
+					</div>
+				</div>
+			</div>
+
+			<button id="btnShowSchedule" class="btn-more-schedule" onclick="toggleSchedule()">
+				📊 전체 상환 스케줄 상세 보기
+			</button>
 
             <div class="limit-card">
                 <label class="limit-label-blue">현재 추가 가능 대출액</label>
