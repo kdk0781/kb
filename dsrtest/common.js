@@ -207,14 +207,8 @@ function calculateLogic() {
     window.scrollTo({ top: document.getElementById('resultArea').offsetTop - 20, behavior: 'smooth' });
 }
 
-/* ---------------------------------------------------------
-   [MOD] 알림창 및 모바일 포커스 제어 로직 (0781_1 기준)
-   --------------------------------------------------------- */
-
 /**
- * 커스텀 모달 알림창 호출
- * @param {string} msg - 표시할 메시지
- * @param {string} focusId - 확인 후 포커스를 이동할 요소의 ID
+ * [MOD] 알림창 및 모바일 포커스 제어 로직 (iOS/안드로이드 완벽 대응)
  */
 function showAlert(msg, focusId = null, icon = "⚠️", allowProceed = false) {
     const modal = document.getElementById('customModal');
@@ -223,17 +217,15 @@ function showAlert(msg, focusId = null, icon = "⚠️", allowProceed = false) {
     document.getElementById('modalMsg').innerHTML = msg;
     document.getElementById('modalIcon').innerText = icon;
     
-    // 전역 변수에 포커스 타겟 저장
     lastFocusId = focusId; 
     proceedOnConfirm = allowProceed;
     
-    // 모달 표시
     modal.style.display = 'flex';
 }
 
 /**
- * 모달 [확인] 버튼 클릭 시 처리
- * 모바일(iOS/Android) 키보드 강제 호출 로직 포함
+ * [MOD] 모달 확인 버튼 클릭 시 처리
+ * iOS 사파리에서 키보드를 강제로 올리기 위한 핵심 로직
  */
 function handleModalConfirm() {
     const modal = document.getElementById('customModal');
@@ -244,18 +236,22 @@ function handleModalConfirm() {
     } else if (lastFocusId) {
         const targetEl = document.getElementById(lastFocusId);
         if (targetEl) {
-            // 1. 해당 위치로 부드럽게 스크롤
+            // 1. 즉시 포커스 (iOS 키보드 활성화를 위해 지연 시간 없이 1차 호출)
+            targetEl.focus();
+            
+            // 2. 부드러운 스크롤 이동
             targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-            // 2. 모바일 브라우저 대응 지연 포커스
+            // 3. 지연 후 확실한 포커스 및 클릭 이벤트 트리거 (안드로이드 및 중복 보정)
             setTimeout(() => {
                 targetEl.focus();
-                
-                // [중요] 아이폰/안드로이드에서 키보드를 강제로 올리기 위한 트리거
-                if (targetEl.tagName === 'INPUT') {
-                    targetEl.click(); 
+                // 텍스트 전체 선택 (입력 편의성)
+                if (targetEl.tagName === 'INPUT' && targetEl.value.length > 0) {
+                    targetEl.setSelectionRange(0, targetEl.value.length);
                 }
-            }, 300); // 스크롤 애니메이션 시간을 고려한 지연
+                // 가상 클릭 발생
+                targetEl.click();
+            }, 300);
         }
     }
 }
