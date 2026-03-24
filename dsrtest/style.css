@@ -1060,3 +1060,16 @@
 		box-shadow: 0 0 8px rgba(255, 204, 0, 0.3);
 		outline: none;
 	}
+
+	/* 추천 박스 설명 문구 스타일 */
+	.rec-box-desc {
+		line-height: 1.6; /* 줄 간격 확보 */
+		word-break: keep-all; /* 단어 단위 줄바꿈으로 깔끔하게 */
+		text-align: left; /* 왼쪽 정렬 */
+		padding: 0 5px;
+	}
+
+	/* 강조 금액 스타일 */
+	.rec-box-desc b {
+		font-weight: 700;
+	}
