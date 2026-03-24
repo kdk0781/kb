@@ -5,7 +5,7 @@
    수정사항: 시스템 테마(다크모드) 실시간 동기화 및 입력 편의성 고도화
    ============================================================================= */
 
-const NOTICE_VERSION = "0781_1"; // 버전 업그레이드
+const NOTICE_VERSION = "0781_1_DARK"; // 버전 업그레이드
 
 let lastFocusId = null;
 let proceedOnConfirm = false;
