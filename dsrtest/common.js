@@ -1,71 +1,85 @@
-/* [DSR 정밀 진단 계산기 - 통합 관리 마스터 스크립트] */
-const NOTICE_VERSION = "0781_1"; 
-let lastFocusId = null;
-let proceedOnConfirm = false;
-let loanCount = 0;
-let currentScheduleType = 'P';
+/**
+ * [DSR Calculator System] 
+ * Version: 260323_F (Full Integration)
+ * Description: 다크모드 텍스트 컬러 완벽 보정 및 동적 요소 스타일 자동화
+ */
 
-window.onload = function() {
-    initNotice(); 
-    addLoan();    
-    initThemeObserver(); // 테마 감시 추가
-    const confirmBtn = document.getElementById('modalConfirm');
-    if (confirmBtn) confirmBtn.onclick = handleModalConfirm;
+const DSR_App = {
+    // [1] 다크모드 전용 컬러 강제 주입 로직
+    applyDarkStyles: function() {
+        const isDark = document.body.classList.contains('dark');
+        if (!isDark) return;
+
+        // 보정이 필요한 모든 타겟 추출 (입력창, 팝업 텍스트, 표 데이터)
+        const targets = document.querySelectorAll(`
+            input, select, textarea, 
+            .main-text, .sub-text, 
+            .notice-header, td, .total-amount
+        `);
+
+        targets.forEach(el => {
+            // 브라우저의 Autofill 및 기본 스타일을 무시하고 흰색 강제
+            el.style.setProperty('color', '#ffffff', 'important');
+            el.style.setProperty('-webkit-text-fill-color', '#ffffff', 'important');
+            
+            // 인풋 요소일 경우 자동완성 배경색 전이 방지
+            if (el.tagName === 'INPUT') {
+                el.style.setProperty('transition', 'background-color 5000s ease-in-out 0s', 'important');
+            }
+        });
+        console.log("260323_F: 다크모드 시각적 보정 완료");
+    },
+
+    // [2] 동적 요소 감시자 (MutationObserver)
+    // '부채 항목 추가' 버튼 클릭으로 새로운 카드가 생길 때마다 자동으로 스타일 적용
+    initDynamicObserver: function() {
+        const targetNode = document.querySelector('.loan-list-container') || document.body;
+        
+        const config = { childList: true, subtree: true };
+        
+        const callback = (mutationsList) => {
+            for (const mutation of mutationsList) {
+                if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                    // 새로운 노드가 추가되면 50ms 후 스타일 재보정 (렌더링 시간 고려)
+                    setTimeout(() => this.applyDarkStyles(), 50);
+                }
+            }
+        };
+
+        const observer = new MutationObserver(callback);
+        observer.observe(targetNode, config);
+    },
+
+    // [3] 앱 초기화 및 이벤트 바인딩
+    startup: function() {
+        // DOM 로드 즉시 실행
+        this.applyDarkStyles();
+        this.initDynamicObserver();
+
+        // 테마 토글 버튼이 있을 경우 연동
+        const themeBtn = document.querySelector('.theme-toggle');
+        if (themeBtn) {
+            themeBtn.addEventListener('click', () => {
+                // 클래스 변경 시간을 고려하여 지연 실행
+                setTimeout(() => this.applyDarkStyles(), 100);
+            });
+        }
+
+        // 팝업(noticePopup) 노출 여부 상시 체크
+        const popup = document.getElementById('noticePopup');
+        if (popup) {
+            const popupObserver = new MutationObserver(() => this.applyDarkStyles());
+            popupObserver.observe(popup, { attributes: true, attributeFilter: ['style', 'class'] });
+        }
+    }
 };
 
-/* [기존 로직 동일] */
-function formatComma(obj) {
-    let val = obj.value.replace(/[^0-9]/g, "");
-    obj.value = val.length > 0 ? Number(val).toLocaleString() : "";
-}
+// [실행 영역]
+document.addEventListener('DOMContentLoaded', () => {
+    DSR_App.startup();
+});
 
-function getNum(val) { return Number(val.toString().replace(/,/g, "")) || 0; }
-
-function addLoan() {
-    loanCount++;
-    const loanList = document.getElementById('loanList');
-    if (!loanList) return;
-    const html = `
-    <div class="input-card" id="loan_${loanCount}">
-        <button class="btn-remove" onclick="removeLoan(${loanCount})">×</button>
-        <div class="grid-row">
-            <div>
-                <label>대출 종류</label>
-                <select class="l-category" onchange="applyPolicy(${loanCount})">
-                    <option value="mortgage_level">주택담보 (원리금)</option>
-                    <option value="mortgage_prin">주택담보 (원금)</option>
-                    <option value="jeonse">전세대출 (만기)</option>
-                    <option value="officetel">오피스텔 (원리금)</option>
-                    <option value="credit">신용대출 (원리금)</option>
-                    <option value="cardloan">카드론 (원리금)</option>
-                </select>
-            </div>
-            <div><label>원금/잔액 (원)</label><input type="text" id="lp_${loanCount}" class="l-p" inputmode="numeric" onkeyup="formatComma(this)" placeholder="0"></div>
-            <div><label>금리 (%)</label><input type="text" id="lr_${loanCount}" class="l-r" inputmode="decimal" placeholder="4.5"></div>
-            <div>
-                <label>스트레스 금리</label>
-                <select class="l-sr-select">
-                    <option value="1.15" selected>60개월 (1.15%)</option>
-                    <option value="2.87">6개월 (2.87%)</option>
-                    <option value="0.0">해당없음</option>
-                </select>
-            </div>
-            <div><label>기간 (개월)</label><input type="text" class="l-m" inputmode="numeric" value="360"></div>
-        </div>
-        <div class="dynamic-guide" id="guide_${loanCount}"></div>
-    </div>`;
-    loanList.insertAdjacentHTML('beforeend', html);
-}
-
-// ... (calculateTotalDSR, calculateLogic, generateSchedule 등 기존의 모든 함수 전체 포함)
-
-/* [추가] 시스템 테마 감시 */
-function initThemeObserver() {
-    const themeMedia = window.matchMedia('(prefers-color-scheme: dark)');
-    const updateTheme = (isDark) => {
-        const meta = document.querySelector('meta[name="theme-color"]');
-        if (meta) meta.setAttribute('content', isDark ? '#121212' : '#f4f7f9');
-    };
-    updateTheme(themeMedia.matches);
-    themeMedia.addEventListener('change', e => updateTheme(e.matches));
-}
+// 페이지의 모든 리소스(이미지 등)가 로드된 후 최종 1회 더 실행
+window.onload = () => {
+    DSR_App.applyDarkStyles();
+};
