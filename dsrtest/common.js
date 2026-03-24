@@ -1,4 +1,39 @@
 /* =============================================================================
+   [시스템 테마 감지 및 클래스 제어] 
+   사용자의 OS 설정에 따라 body에 .dark 또는 .white 클래스를 자동으로 주입합니다.
+   ============================================================================= */
+
+function applySystemTheme() {
+    // 1. 브라우저의 시스템 테마 설정 확인 (matches가 true면 다크모드)
+    const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const body = document.body;
+
+    if (isDarkMode) {
+        // 시스템이 다크모드일 경우
+        body.classList.add('dark');
+        body.classList.remove('white');
+        console.log("시스템 설정: 다크 모드 (.dark 클래스 적용)");
+    } else {
+        // 시스템이 라이트모드일 경우
+        body.classList.add('white');
+        body.classList.remove('dark');
+        console.log("시스템 설정: 라이트 모드 (.white 클래스 적용)");
+    }
+}
+
+// 2. 페이지 로드 시 즉시 실행
+applySystemTheme();
+
+// 3. [고도화] 사용자가 이용 중에 시스템 설정을 바꾸면 실시간으로 감지하여 반영
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+    applySystemTheme();
+});
+
+
+
+
+
+/* =============================================================================
    [DSR 정밀 진단 계산기 - 통합 관리 마스터 스크립트]
    파일명: common.js
    최종 업데이트: 2026. 03. 23.
@@ -6,7 +41,7 @@
    ============================================================================= */
 
 // [1] 공지사항 버전 설정 (HTML의 ?v= 값과 맞추면 더 확실합니다)
-const NOTICE_VERSION = "0781_0"; 
+const NOTICE_VERSION = "0781_2"; 
 
 let lastFocusId = null;
 let proceedOnConfirm = false;
@@ -207,8 +242,14 @@ function calculateLogic() {
     window.scrollTo({ top: document.getElementById('resultArea').offsetTop - 20, behavior: 'smooth' });
 }
 
+/* ---------------------------------------------------------
+   [MOD] 알림창 및 모바일 포커스 제어 로직 (0781_1 기준)
+   --------------------------------------------------------- */
+
 /**
- * [MOD] 알림창 및 모바일 포커스 제어 로직 (iOS/안드로이드 완벽 대응)
+ * 커스텀 모달 알림창 호출
+ * @param {string} msg - 표시할 메시지
+ * @param {string} focusId - 확인 후 포커스를 이동할 요소의 ID
  */
 function showAlert(msg, focusId = null, icon = "⚠️", allowProceed = false) {
     const modal = document.getElementById('customModal');
@@ -217,15 +258,17 @@ function showAlert(msg, focusId = null, icon = "⚠️", allowProceed = false) {
     document.getElementById('modalMsg').innerHTML = msg;
     document.getElementById('modalIcon').innerText = icon;
     
+    // 전역 변수에 포커스 타겟 저장
     lastFocusId = focusId; 
     proceedOnConfirm = allowProceed;
     
+    // 모달 표시
     modal.style.display = 'flex';
 }
 
 /**
- * [MOD] 모달 확인 버튼 클릭 시 처리
- * iOS 사파리에서 키보드를 강제로 올리기 위한 핵심 로직
+ * 모달 [확인] 버튼 클릭 시 처리
+ * 모바일(iOS/Android) 키보드 강제 호출 로직 포함
  */
 function handleModalConfirm() {
     const modal = document.getElementById('customModal');
@@ -236,22 +279,18 @@ function handleModalConfirm() {
     } else if (lastFocusId) {
         const targetEl = document.getElementById(lastFocusId);
         if (targetEl) {
-            // 1. 즉시 포커스 (iOS 키보드 활성화를 위해 지연 시간 없이 1차 호출)
-            targetEl.focus();
-            
-            // 2. 부드러운 스크롤 이동
+            // 1. 해당 위치로 부드럽게 스크롤
             targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-            // 3. 지연 후 확실한 포커스 및 클릭 이벤트 트리거 (안드로이드 및 중복 보정)
+            // 2. 모바일 브라우저 대응 지연 포커스
             setTimeout(() => {
                 targetEl.focus();
-                // 텍스트 전체 선택 (입력 편의성)
-                if (targetEl.tagName === 'INPUT' && targetEl.value.length > 0) {
-                    targetEl.setSelectionRange(0, targetEl.value.length);
+                
+                // [중요] 아이폰/안드로이드에서 키보드를 강제로 올리기 위한 트리거
+                if (targetEl.tagName === 'INPUT') {
+                    targetEl.click(); 
                 }
-                // 가상 클릭 발생
-                targetEl.click();
-            }, 300);
+            }, 300); // 스크롤 애니메이션 시간을 고려한 지연
         }
     }
 }
@@ -379,3 +418,11 @@ function switchSchedule(type) {
     generateSchedule();
 }
 
+// input value color
+document.querySelectorAll('input').forEach(input => {
+    input.addEventListener('input', function() {
+        if (document.body.classList.contains('dark')) {
+            this.style.color = '#ffffff'; // 다크모드일 때 글자색 강제 주입
+        }
+    });
+});
