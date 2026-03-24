@@ -29,10 +29,6 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e)
     applySystemTheme();
 });
 
-
-
-
-
 /* =============================================================================
    [DSR 정밀 진단 계산기 - 통합 관리 마스터 스크립트]
    파일명: common.js
@@ -164,106 +160,197 @@ function applyPolicy(id) {
     }
 }
 
-function calculateTotalDSR() {
-    const income = getNum(document.getElementById('income').value);
-    if (income <= 0) { showAlert("연간 세전 소득을 입력해주세요.", "income"); return; }
-    const items = document.querySelectorAll('[id^="loan_"]');
-    if (items.length === 0) { showAlert("부채 항목을 최소 하나 이상 추가해주세요."); return; }
-    let missingRate = false;
-    for (let i = 0; i < items.length; i++) {
-        const item = items[i];
-        const idx = item.id.split('_')[1];
-        if (getNum(item.querySelector('.l-p').value) <= 0) {
-            showAlert(`부채 항목의 <b>대출 금액</b>을 입력해주세요.`, `lp_${idx}`);
-            return;
-        }
-        if (Number(item.querySelector('.l-r').value || 0) <= 0) missingRate = true;
-    }
-    if (missingRate) showAlert("금리 미입력 항목은 시스템 <b>표준 금리</b>가 자동 적용됩니다.", null, "ℹ️", true);
-    else calculateLogic();
-}
+	function calculateTotalDSR() {
+		const income = getNum(document.getElementById('income').value);
+		if (income <= 0) { showAlert("연간 세전 소득을 입력해주세요.", "income"); return; }
+		const items = document.querySelectorAll('[id^="loan_"]');
+		if (items.length === 0) { showAlert("부채 항목을 최소 하나 이상 추가해주세요."); return; }
+		let missingRate = false;
+		for (let i = 0; i < items.length; i++) {
+			const item = items[i];
+			const idx = item.id.split('_')[1];
+			if (getNum(item.querySelector('.l-p').value) <= 0) {
+				showAlert(`부채 항목의 <b>대출 금액</b>을 입력해주세요.`, `lp_${idx}`);
+				return;
+			}
+			if (Number(item.querySelector('.l-r').value || 0) <= 0) missingRate = true;
+		}
+		if (missingRate) showAlert("금리 미입력 항목은 시스템 <b>표준 금리</b>가 자동 적용됩니다.", null, "ℹ️", true);
+		else calculateLogic();
+	}
 
-function calculateLogic() {
-    const income = getNum(document.getElementById('income').value);
-    const items = document.querySelectorAll('[id^="loan_"]');
-    
-    let totalAnnPayment = 0; // DSR용 연간 원리금 상환액 합계
-    let targetP = 0;         // 계산 대상 원금 (추가 대출 한도용)
-    let maxN = 0, bR = 4.5, bSR = 1.15;
+	/* =============================================================================
+	   [DSR 정밀 진단 계산기 - 기간 가변 추적 및 스케줄 새로고침 통합 마스터]
+	   최종 업데이트: 2026. 03. 25.
+	   ============================================================================= */
 
-    items.forEach((item, index) => {
-        const cat = item.querySelector('.l-category').value;
-        const P = getNum(item.querySelector('.l-p').value);
-        const R = Number(item.querySelector('.l-r').value || item.querySelector('.l-r').placeholder);
-        const SR = Number(item.querySelector('.l-sr-select').value);
-        const n = getNum(item.querySelector('.l-m').value);
+	function calculateLogic() {
+		// [0] 연소득 및 기초 데이터 취득
+		const income = getNum(document.getElementById('income').value);
+		const items = document.querySelectorAll('[id^="loan_"]');
+		if (income <= 0) { showAlert("연소득을 입력해주세요.", "income"); return; }
 
-        if (index === 0) { bR = R; bSR = SR; maxN = n; }
+		// [중요] 기존 경고 테두리(input-warning) 초기화
+		document.querySelectorAll('.input-warning').forEach(el => el.classList.remove('input-warning'));
 
-        const r_dsr = (R + SR) / 1200; // 스트레스 금리 포함 월리
-        
-        if (P > 0) {
-            // 1. DSR용 연간 상환액 계산 (표준 원리금균등 공식 사용)
-            if (cat === 'jeonse') {
-                totalAnnPayment += P * (R / 100); // 전세는 이자만
-            } else {
-                // 일반 대출 DSR 산정 (원리금균등분할상환 가정)
-                const mPMT_dsr = (P * r_dsr * Math.pow(1 + r_dsr, n)) / (Math.pow(1 + r_dsr, n) - 1);
-                totalAnnPayment += mPMT_dsr * 12;
-            }
+		let totalAnnPayment = 0; 
+		let combinedP = 0; // 분석 대상 합산 원금
+		let bR = 4.5, bSR = 1.15, bM = 360; // 기준값
 
-            // 2. 결과 리포트용 데이터 축적 (주담대/오피스텔 등)
-            if ((cat.includes('mortgage') || cat === 'officetel') && n >= 180) {
-                targetP += P;
-                if (n > maxN) maxN = n;
-            }
-        }
-    });
+		// [1] 부채 항목별 유효성 검사/DSR 계산 및 개별 기간(n) 추적
+		items.forEach((item, index) => {
+			const cat = item.querySelector('.l-category').value;
+			const pInput = item.querySelector('.l-p');
+			const rInput = item.querySelector('.l-r');
+			const mInput = item.querySelector('.l-m');
 
-    const dsr = (totalAnnPayment / income) * 100;
-    const divM = maxN || 360;
-    const real_r = bR / 1200; // 실제 적용 금리(월)
+			// [추가] 유효성 검사: 미입력 칸 노란색 보더라인 시각화
+			if (!pInput.value.trim()) pInput.classList.add('input-warning');
+			if (!rInput.value.trim()) rInput.classList.add('input-warning');
+			if (!mInput.value.trim()) mInput.classList.add('input-warning');
 
-    // --- 상환 방식별 정밀 계산 ---
+			const P = getNum(pInput.value);
+			const R = Number(rInput.value || 4.5);
+			const SR = Number(item.querySelector('.l-sr-select')?.value || 0);
+			
+			// 사용자가 입력한 개월수를 그대로 가져옵니다. (최소 180~최대 600 추적)
+			let n = getNum(mInput.value || 360); 
 
-    // A. 원금균등 (Principal Equal)
-    // 총이자 = 원금 * 이율 * (기간 + 1) / 2
-    const totalInt_P = targetP * real_r * (divM + 1) / 2;
-    const monthlyPrin_P = targetP / divM; 
-    const avgMonthlyInt_P = totalInt_P / divM;
+			// 메인 기준값 갱신 (한도 역산용)
+			if (index === 0) { bR = R; bSR = SR; bM = n; }
+			const r_dsr = (R + SR) / 1200;
 
-    // B. 원리금균등 (Level Equal)
-    // 월상환액 = [원금 * 이율 * (1+이율)^n] / [(1+이율)^n - 1]
-    const monthlyPMT_L = (targetP * real_r * Math.pow(1 + real_r, divM)) / (Math.pow(1 + real_r, divM) - 1);
-    const totalInt_L = (monthlyPMT_L * divM) - targetP;
-    const avgMonthlyPrin_L = targetP / divM; // UI 표시용 평균값
-    const avgMonthlyInt_L = totalInt_L / divM;
+			if (P > 0) {
+				// A. 분석 대상 (주담대 전체 + 오피스텔 구입 15년 이상)
+				// 개별 입력된 n개월을 기준으로 DSR 산출
+				if (cat.includes('mortgage') || (cat === 'officetel' && n >= 180)) {
+					combinedP += P; 
+					if (cat.includes('_prin')) {
+						totalAnnPayment += (P / n * 12) + (P * r_dsr * (n + 1) / 2) / (n / 12);
+					} else {
+						const mPMT = (P * r_dsr * Math.pow(1 + r_dsr, n)) / (Math.pow(1 + r_dsr, n) - 1);
+						totalAnnPayment += mPMT * 12;
+					}
+				} 
+				// B. 단순 보유분 (오피스텔 15년 미만 - 8년 상환 규제 적용)
+				else if (cat === 'officetel' && n < 180) {
+					const mPMT = (P * r_dsr * Math.pow(1 + r_dsr, 96)) / (Math.pow(1 + r_dsr, 96) - 1);
+					totalAnnPayment += mPMT * 12;
+				}
+				// C. 기타 대출
+				else {
+					const mPMT = (P * r_dsr * Math.pow(1 + r_dsr, n)) / (Math.pow(1 + r_dsr, n) - 1);
+					totalAnnPayment += mPMT * 12;
+				}
+			}
+		});
 
-    // --- UI 업데이트 함수 수정 ---
-    const updateUI = (type, mP, mI, totalInt) => {
-        const f = (v) => Math.floor(v).toLocaleString() + "원";
-        document.getElementById(`vis_m_p_${type}`).innerText = f(mP);
-        document.getElementById(`vis_m_i_${type}`).innerText = f(mI);
-        document.getElementById(`vis_m_t_${type}`).innerText = f(mP + mI);
-        document.getElementById(`vis_t_i_${type}`).innerText = f(totalInt);
-        document.getElementById(`vis_total_full_${type}`).innerText = f(targetP + totalInt);
-    };
+		// [2] DSR 결과 출력 및 컬러 업데이트
+		const dsr = (totalAnnPayment / income) * 100;
+		const isOver = dsr > 40;
+		const dsrView = document.getElementById('dsrVal');
+		const barView = document.getElementById('dsrBar');
 
-    updateUI('p', monthlyPrin_P, avgMonthlyInt_P, totalInt_P);
-    updateUI('l', monthlyPMT_L - avgMonthlyInt_L, avgMonthlyInt_L, totalInt_L);
+		document.getElementById('resultArea').style.display = 'block';
+		dsrView.innerText = dsr.toFixed(2) + "%";
+		
+		// 위험 구간 컬러 제어
+		dsrView.style.color = isOver ? "#e74c3c" : "#2ecc71";
+		if (barView) {
+			barView.style.backgroundColor = isOver ? "#e74c3c" : "#2ecc71";
+			barView.style.width = Math.min(dsr, 100) + "%";
+		}
 
-    // --- 한도 역산 로직 (DSR 40% 기준) ---
-    const r_lim = (bR + bSR) / 1200;
-    // 저당상수 (Loan Constant)
-    const loanConstant = (r_lim * Math.pow(1 + r_lim, divM)) / (Math.pow(1 + r_lim, divM) - 1);
-    
-    // 최대 한도 = (연소득 * 0.4 / 12) / 저당상수
-    const maxP = (income * 0.4 / 12) / loanConstant;
-    const remainingLimit = Math.max(0, (income * 0.4 - totalAnnPayment) / 12 / loanConstant);
+		// [3] 방식별 최대 한도 역산 (규제 40% 기준)
+		const targetAnnPay = income * 0.4;
+		const r_lim = (bR + bSR) / 1200;
+		
+		// [중요] 사용자가 입력한 개월수(bM)가 분모로 사용되어 가변 한도 도출
+		// 예: 600개월(50년) 입력 시 매달 원금이 줄어들어 한도는 극대화됨
+		const maxPrin = targetAnnPay / ((12 / bM) + (r_lim * (bM + 1) * 6 / bM));
+		const maxLevel = (targetAnnPay / 12) / ((r_lim * Math.pow(1 + r_lim, bM)) / (Math.pow(1 + r_lim, bM) - 1));
 
-    // 결과 적용 (기존 UI 로직 유지)
-    // ... (dsrView, barView 설정 등)
-}
+		const f = (v) => (Math.floor(v / 10000) * 10000).toLocaleString() + " 원";
+		document.getElementById('absMaxPrin').innerText = f(maxPrin); 
+		document.getElementById('absMaxLevel').innerText = f(maxLevel);
+
+		// [4] 추천 메시지 및 배지 제어 (오버 시 원금균등 우선 추천)
+		const recDesc = document.getElementById('recDesc');
+		const prinCard = document.getElementById('prinCard');
+		const levelCard = document.getElementById('levelCard');
+
+		prinCard.classList.remove('recommended');
+		levelCard.classList.remove('recommended');
+
+		if (isOver || dsr > 30) {
+			prinCard.classList.add('recommended');
+			recDesc.innerHTML = `<b>🎯 원금균등 (추천) 방식을 추천합니다</b><br>한도 임계점 도달: 한도 확보가 시급한 구간입니다. 원리금 방식보다 더 높은 승인액 확보가 가능합니다.`;
+		} else {
+			levelCard.classList.add('recommended');
+			recDesc.innerHTML = `<b>✅ 자금 여유:</b> 모든 방식에서 안정적으로 대출이 가능합니다.`;
+		}
+
+		// [5] 현재 추가 가능 대출액 (초과 시 0원, 여유 시 combinedP 차감액 표시)
+		const remainLimit = isOver ? 0 : Math.max(0, maxPrin - combinedP);
+		const remainingLimitView = document.getElementById('remainingLimit');
+		if (remainingLimitView) {
+			remainingLimitView.innerText = f(remainLimit);
+			remainingLimitView.style.color = isOver ? "#e74c3c" : "#3498db";
+		}
+
+		// [6] 핵심: 상세 리포트 호출 (입력된 기간 bM을 기반으로 스케줄 새로고침)
+		// f_format을 전달하여 통일된 금액 표시 형식 사용
+		const firstAmount = getNum(items[0].querySelector('.l-p').value);
+		if (typeof updateDetailVisualization === 'function') {
+			// [수정] P값은 첫 번째 항목의 신청 금액을 전달
+			updateDetailVisualization(firstAmount, bR, bM); 
+		}
+
+		// [7] 결과 영역으로 부드럽게 이동
+		window.scrollTo({ top: document.getElementById('resultArea').offsetTop - 20, behavior: 'smooth' });
+	}
+
+	/**
+	 * [별도 함수] 실제 금리 기준 상환액 상세 시각화
+	 */
+	function updateDetailVisualization(P, R, n) {
+		const r = R / 1200;
+		const f = (v) => Math.floor(v).toLocaleString() + "원";
+
+		// --- 원금균등 (p) ---
+		const mP_p = P / n;
+		const totalInt_p = P * r * (n + 1) / 2;
+		const mI_p = totalInt_p / n;
+
+		document.getElementById('vis_m_p_p').innerText = f(mP_p);
+		document.getElementById('vis_m_i_p').innerText = f(mI_p);
+		document.getElementById('vis_m_t_p').innerText = f(mP_p + mI_p);
+		document.getElementById('vis_y_p_p').innerText = f(mP_p * 12);
+		document.getElementById('vis_y_i_p').innerText = f(mI_p * 12);
+		document.getElementById('vis_y_t_p').innerText = f((mP_p + mI_p) * 12);
+		document.getElementById('vis_t_p_p').innerText = f(P);
+		document.getElementById('vis_t_i_p').innerText = f(totalInt_p);
+		document.getElementById('vis_total_full_p').innerText = f(P + totalInt_p);
+
+		// --- 원리금균등 (l) ---
+		const mPMT_l = (P * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+		const totalInt_l = (mPMT_l * n) - P;
+		const mI_l = totalInt_l / n;
+		const mP_l = P / n;
+
+		document.getElementById('vis_m_p_l').innerText = f(mP_l);
+		document.getElementById('vis_m_i_l').innerText = f(mI_l);
+		document.getElementById('vis_m_t_l').innerText = f(mPMT_l);
+		document.getElementById('vis_y_p_l').innerText = f(mP_l * 12);
+		document.getElementById('vis_y_i_l').innerText = f(mI_l * 12);
+		document.getElementById('vis_y_t_l').innerText = f(mPMT_l * 12);
+		document.getElementById('vis_t_p_l').innerText = f(P);
+		document.getElementById('vis_t_i_l').innerText = f(totalInt_l);
+		document.getElementById('vis_total_full_l').innerText = f(P + totalInt_l);
+	}
+
+
+
 
 /* ---------------------------------------------------------
    [MOD] 알림창 및 모바일 포커스 제어 로직 (0781_1 기준)
