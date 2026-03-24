@@ -183,57 +183,71 @@ function calculateTotalDSR() {
     else calculateLogic();
 }
 
+/* =============================================================================
+   [DSR 정밀 진단 계산기 - 로직 및 모바일 최적화 통합본]
+   파일명: common.js
+   최종 업데이트: 2026. 03. 25.
+   ============================================================================= */
+
+/**
+ * [핵심 엔진] 상환 방식별 DSR 및 한도 역산 로직
+ */
 function calculateLogic() {
     const income = getNum(document.getElementById('income').value);
     const items = document.querySelectorAll('[id^="loan_"]');
-    let totalS = 0; let sumP = 0; let sumI_P = 0; let sumI_L = 0; let maxN = 0;
-    let bR = 4.5; let bSR = 1.15; let bM = 360;
+    
+    let totalAnnPay = 0; // 연간 총 원리금 상환액
+    let sumP = 0;        // 주담대 원금 합계
+    let maxN = 0;        // 최장 만기
+    let bR = 4.5, bSR = 1.15, bM = 360; // 기준값
+
     items.forEach((item, index) => {
         const cat = item.querySelector('.l-category').value;
         const P = getNum(item.querySelector('.l-p').value);
         const R = Number(item.querySelector('.l-r').value || item.querySelector('.l-r').placeholder);
         const SR = Number(item.querySelector('.l-sr-select').value);
         const n = getNum(item.querySelector('.l-m').value);
+        
         if (index === 0) { bR = R; bSR = SR; bM = n; }
-        const r_s = (R + SR) / 1200; const r_real = R / 1200;
+
+        const r_annual = (R + SR) / 100; // 스트레스 포함 연이율
+        const r_month = r_annual / 12;   // 월이율
+
         if (P > 0) {
-            if (cat === 'jeonse') totalS += P * (R / 100);
-            else totalS += ((P * r_s * Math.pow(1+r_s, n)) / (Math.pow(1+r_s, n)-1)) * 12;
-            if ((cat.includes('mortgage') || cat === 'officetel') && n >= 180 && n <= 600) {
-                sumP += P; sumI_P += (P * r_real * (n + 1) / 2);
-                const mPMT = (P * r_real * Math.pow(1+r_real, n)) / (Math.pow(1+r_real, n)-1);
-                sumI_L += (mPMT * n) - P; if (n > maxN) maxN = n;
+            let annPay = 0;
+            if (cat === 'mortgage_prin') {
+                // [1] 원금균등: (원금/만기*12) + (평균이자)
+                const avgIntAnn = (P * r_month * (n + 1) / 2) / (n / 12);
+                annPay = (P / n * 12) + avgIntAnn;
+            } 
+            else if (cat === 'mortgage_level' || cat === 'officetel' || cat === 'credit' || cat === 'cardloan') {
+                // [2] 원리금균등: PMT 공식 적용
+                annPay = ((P * r_month * Math.pow(1 + r_month, n)) / (Math.pow(1 + r_month, n) - 1)) * 12;
+            }
+            else if (cat === 'jeonse') {
+                // [3] 전세대출: 이자만 반영
+                annPay = P * (R / 100);
+            }
+            totalAnnPay += annPay;
+
+            if (cat.includes('mortgage') || cat === 'officetel') {
+                sumP += P;
+                if (n > maxN) maxN = n;
             }
         }
     });
-    const dsr = (totalS / income) * 100;
+
+    const dsr = (totalAnnPay / income) * 100;
+    const targetAnnPay = income * 0.4; // DSR 40% 한도액
     const r_lim = (bR + bSR) / 1200;
-    const maxP = (income * 0.4 / 12) / (1 / bM + (r_lim * 0.5));
-    const addLim = (income * 0.4 - totalS) > 0 ? (income * 0.4 - totalS) / 12 / (1 / bM + (r_lim * 0.5)) : 0;
-    document.getElementById('resultArea').style.display = 'block';
-    const dsrView = document.getElementById('dsrVal');
-    const barView = document.getElementById('dsrBar');
-    dsrView.innerText = dsr.toFixed(2) + "%";
-    dsrView.className = dsr > 40 ? "dsr-main-val dsr-danger" : "dsr-main-val dsr-safe";
-    barView.style.backgroundColor = dsr > 40 ? "var(--danger)" : "var(--safe)";
-    barView.style.width = Math.min(dsr, 100) + "%";
-    document.getElementById('absMaxPrin').innerText = (Math.floor(maxP/10000)*10000).toLocaleString() + " 원";
-    document.getElementById('absMaxLevel').innerText = (Math.floor((((income*0.4/12)*(Math.pow(1+r_lim,bM)-1))/(r_lim*Math.pow(1+r_lim,bM)))/10000)*10000).toLocaleString() + " 원";
-    document.getElementById('remainingLimit').innerText = (Math.floor(addLim/10000)*10000).toLocaleString() + " 원";
-    const f = (v) => Math.floor(v).toLocaleString() + "원";
-    const divM = maxN || 360;
-    const updateUI = (type, sI) => {
-        const mP = sumP / divM; const mI = sI / divM;
-        document.getElementById(`vis_m_p_${type}`).innerText = f(mP);
-        document.getElementById(`vis_m_i_${type}`).innerText = f(mI);
-        document.getElementById(`vis_m_t_${type}`).innerText = f(mP + mI);
-        document.getElementById(`vis_y_p_${type}`).innerText = f(mP * 12);
-        document.getElementById(`vis_y_i_${type}`).innerText = f(mI * 12);
-        document.getElementById(`vis_y_t_${type}`).innerText = f((mP + mI) * 12);
-        document.getElementById(`vis_t_p_${type}`).innerText = f(sumP);
-        document.getElementById(`vis_t_i_${type}`).innerText = f(sI);
-        document.getElementById(`vis_total_full_${type}`).innerText = f(sumP + sI);
-    };
+    
+    // [4] 방식별 최대 한도 역산 (사용자 제시 정밀 산식)
+    const maxLevel = (targetAnnPay / 12) * (Math.pow(1 + r_lim, bM) - 1) / (r_lim * Math.pow(1 + r_lim, bM));
+    const maxPrin = targetAnnPay / ((12 / bM) + (r_lim * (bM + 1)));
+
+    // 결과 UI 업데이트 호출 (기존 UI 함수 연결)
+    displayResults(dsr, maxPrin, maxLevel, totalAnnPay);
+}
     updateUI('p', sumI_P); updateUI('l', sumI_L);
     if (dsr > 32) { document.getElementById('prinCard').classList.add('recommended'); document.getElementById('levelCard').classList.remove('recommended'); }
     else { document.getElementById('levelCard').classList.add('recommended'); document.getElementById('prinCard').classList.remove('recommended'); }
