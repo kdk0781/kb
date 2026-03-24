@@ -180,135 +180,148 @@ function applyPolicy(id) {
 	}
 
 	/* =============================================================================
-	   [DSR 정밀 진단 계산기 - 기간 가변 추적 및 스케줄 새로고침 통합 마스터]
-	   최종 업데이트: 2026. 03. 25.
+	   [DSR 정밀 진단 계산기 - 2026. 03. 25 통합 마스터]
 	   ============================================================================= */
 
-	function calculateLogic() {
-		// [0] 연소득 및 기초 데이터 취득
-		const income = getNum(document.getElementById('income').value);
-		const items = document.querySelectorAll('[id^="loan_"]');
-		if (income <= 0) { showAlert("연소득을 입력해주세요.", "income"); return; }
-
-		// [중요] 기존 경고 테두리(input-warning) 초기화
-		document.querySelectorAll('.input-warning').forEach(el => el.classList.remove('input-warning'));
-
-		let totalAnnPayment = 0; 
-		let combinedP = 0; // 분석 대상 합산 원금
-		let bR = 4.5, bSR = 1.15, bM = 360; // 기준값
-
-		// [1] 부채 항목별 유효성 검사/DSR 계산 및 개별 기간(n) 추적
-		items.forEach((item, index) => {
-			const cat = item.querySelector('.l-category').value;
-			const pInput = item.querySelector('.l-p');
-			const rInput = item.querySelector('.l-r');
-			const mInput = item.querySelector('.l-m');
-
-			// [추가] 유효성 검사: 미입력 칸 노란색 보더라인 시각화
-			if (!pInput.value.trim()) pInput.classList.add('input-warning');
-			if (!rInput.value.trim()) rInput.classList.add('input-warning');
-			if (!mInput.value.trim()) mInput.classList.add('input-warning');
-
-			const P = getNum(pInput.value);
-			const R = Number(rInput.value || 4.5);
-			const SR = Number(item.querySelector('.l-sr-select')?.value || 0);
+		function calculateLogic() {
+			// [0] 기초 데이터 및 연소득 취득
+			const incomeInput = document.getElementById('income');
+			const income = getNum(incomeInput.value);
+			const items = document.querySelectorAll('[id^="loan_"]');
 			
-			// 사용자가 입력한 개월수를 그대로 가져옵니다. (최소 180~최대 600 추적)
-			let n = getNum(mInput.value || 360); 
+			if (income <= 0) { 
+				showAlert("연소득을 입력해주세요.", "income"); 
+				return; 
+			}
 
-			// 메인 기준값 갱신 (한도 역산용)
-			if (index === 0) { bR = R; bSR = SR; bM = n; }
-			const r_dsr = (R + SR) / 1200;
+			// [1] 초기화: 경고 테두리 및 누적 변수 설정
+			document.querySelectorAll('.input-warning').forEach(el => el.classList.remove('input-warning'));
+			
+			let totalAnnPayment = 0;  // DSR 계산용 총 연간상환액
+			let combinedP = 0;       // 상세 리포트용 합산 원금 (주담대 + 15년이상 오피스텔)
+			let bR = 4.5, bSR = 1.15, bM = 360; // 첫 번째 항목 기준값
 
-			if (P > 0) {
-				// A. 분석 대상 (주담대 전체 + 오피스텔 구입 15년 이상)
-				// 개별 입력된 n개월을 기준으로 DSR 산출
-				if (cat.includes('mortgage') || (cat === 'officetel' && n >= 180)) {
-					combinedP += P; 
-					if (cat.includes('_prin')) {
-						totalAnnPayment += (P / n * 12) + (P * r_dsr * (n + 1) / 2) / (n / 12);
+			// [2] 단일 루프: 유효성 검사, DSR 산출, 구입자금 합산 통합 처리
+			items.forEach((item, index) => {
+				const pInput = item.querySelector('.l-p');
+				const rInput = item.querySelector('.l-r');
+				const mInput = item.querySelector('.l-m');
+				const cat = item.querySelector('.l-category').value;
+
+				// 미입력 필드 시각화
+				if (!pInput.value.trim()) pInput.classList.add('input-warning');
+				if (!rInput.value.trim()) rInput.classList.add('input-warning');
+				if (!mInput.value.trim()) mInput.classList.add('input-warning');
+
+				const P = getNum(pInput.value);
+				const R = Number(rInput.value || 4.5);
+				const SR = Number(item.querySelector('.l-sr-select')?.value || 0);
+				let n = getNum(mInput.value || 360);
+
+				// 첫 번째 항목의 금리/기간을 기준값으로 설정 (한도 역산용)
+				if (index === 0) { bR = R; bSR = SR; bM = n; }
+				
+				const r_dsr = (R + SR) / 1200;
+
+				if (P > 0) {
+					// A. 구입자금 판별 (주담대 전체 또는 오피스텔 180개월 이상)
+					const isPurchaseLoan = cat.includes('mortgage') || (cat === 'officetel' && n >= 180);
+
+					if (isPurchaseLoan) {
+						combinedP += P; // 상세 리포트 합산 대상
+						
+						if (cat.includes('_prin')) {
+							// 원금균등 DSR 산식
+							totalAnnPayment += (P / n * 12) + (P * r_dsr * (n + 1) / 2) / (n / 12);
+						} else {
+							// 원리금균등 DSR 산식
+							const mPMT = (P * r_dsr * Math.pow(1 + r_dsr, n)) / (Math.pow(1 + r_dsr, n) - 1);
+							totalAnnPayment += mPMT * 12;
+						}
+					} else if (cat === 'officetel' && n < 180) {
+						// B. 오피스텔 보유분 (8년 고정 규제 상환액 적용)
+						const mPMT = (P * r_dsr * Math.pow(1 + r_dsr, 96)) / (Math.pow(1 + r_dsr, 96) - 1);
+						totalAnnPayment += mPMT * 12;
 					} else {
+						// C. 기타 대출 (신용대출 등 입력된 n 기준)
 						const mPMT = (P * r_dsr * Math.pow(1 + r_dsr, n)) / (Math.pow(1 + r_dsr, n) - 1);
 						totalAnnPayment += mPMT * 12;
 					}
-				} 
-				// B. 단순 보유분 (오피스텔 15년 미만 - 8년 상환 규제 적용)
-				else if (cat === 'officetel' && n < 180) {
-					const mPMT = (P * r_dsr * Math.pow(1 + r_dsr, 96)) / (Math.pow(1 + r_dsr, 96) - 1);
-					totalAnnPayment += mPMT * 12;
 				}
-				// C. 기타 대출
-				else {
-					const mPMT = (P * r_dsr * Math.pow(1 + r_dsr, n)) / (Math.pow(1 + r_dsr, n) - 1);
-					totalAnnPayment += mPMT * 12;
-				}
+			});
+
+			// [3] DSR 결과 및 게이지 바 업데이트
+			const dsr = (totalAnnPayment / income) * 100;
+			const isOver = dsr > 40;
+			const dsrView = document.getElementById('dsrVal');
+			const barView = document.getElementById('dsrBar');
+			
+			document.getElementById('resultArea').style.display = 'block';
+			dsrView.innerText = dsr.toFixed(2) + "%";
+			dsrView.style.color = isOver ? "#e74c3c" : "#2ecc71";
+
+			if (barView) {
+				barView.style.width = Math.min(dsr, 100) + "%";
+				barView.style.backgroundColor = isOver ? "#e74c3c" : "#2ecc71";
+				barView.style.boxShadow = isOver ? "0 0 10px rgba(231, 76, 60, 0.5)" : "none";
 			}
-		});
 
-		// [2] DSR 결과 출력 및 컬러 업데이트
-		const dsr = (totalAnnPayment / income) * 100;
-		const isOver = dsr > 40;
-		const dsrView = document.getElementById('dsrVal');
-		const barView = document.getElementById('dsrBar');
+			// [4] 방식별 최대한도 역산 및 테마 대응
+			const targetAnnPay = income * 0.4;
+			const r_lim = (bR + bSR) / 1200;
+			const maxPrin = targetAnnPay / ((12 / bM) + (r_lim * (bM + 1) * 6 / bM));
+			const maxLevel = (targetAnnPay / 12) * (Math.pow(1 + r_lim, bM) - 1) / (r_lim * Math.pow(1 + r_lim, bM));
 
-		document.getElementById('resultArea').style.display = 'block';
-		dsrView.innerText = dsr.toFixed(2) + "%";
-		
-		// 위험 구간 컬러 제어
-		dsrView.style.color = isOver ? "#e74c3c" : "#2ecc71";
-		if (barView) {
-			barView.style.backgroundColor = isOver ? "#e74c3c" : "#2ecc71";
-			barView.style.width = Math.min(dsr, 100) + "%";
+			const f = (v) => (Math.floor(v / 10000) * 10000).toLocaleString() + " 원";
+			const prinView = document.getElementById('absMaxPrin');
+			const levelView = document.getElementById('absMaxLevel');
+
+			const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+			const themeDangerColor = isDarkMode ? "#ff8787" : "#e74c3c";
+			const themeSubTextColor = isDarkMode ? "#ccc" : "#666";
+
+			if (isOver) {
+				prinView.innerHTML = `<span style="font-size:13px; color:${themeSubTextColor}; display:block;">권장 신청액</span><span style="color:${themeDangerColor}; font-size:18px;">${f(maxPrin)} 이하</span>`;
+				levelView.innerHTML = `<span style="color:${themeDangerColor};">한도 초과</span>`;
+			} else {
+				prinView.innerText = f(maxPrin);
+				levelView.innerText = f(maxLevel);
+				prinView.style.color = ""; levelView.style.color = "";
+			}
+
+			// [5] 추가 가능 대출액 계산
+			let remainLimit = isOver ? 0 : Math.max(0, maxPrin - combinedP);
+			const remainingLimitView = document.getElementById('remainingLimit');
+			if (remainingLimitView) {
+				remainingLimitView.innerText = f(remainLimit);
+				remainingLimitView.style.color = isOver ? "#e74c3c" : (dsr > 36 ? "#f39c12" : "#3498db");
+			}
+
+			// [6] 추천 메시지 업데이트
+			const recDesc = document.getElementById('recDesc');
+			const prinCard = document.getElementById('prinCard');
+			const levelCard = document.getElementById('levelCard');
+			prinCard.classList.remove('recommended');
+			levelCard.classList.remove('recommended');
+
+			if (isOver || dsr > 30) {
+				prinCard.classList.add('recommended');
+				recDesc.innerHTML = `<span style="display:block; margin-bottom:4px;">🎯 <b>원금균등 방식</b> 추천</span><span style="font-size:13px; color:${themeSubTextColor};">추가 여력: <b style="color:#ffcc00;">${f(remainLimit)}</b></span>`;
+			} else {
+				levelCard.classList.add('recommended');
+				recDesc.innerHTML = `<span style="display:block; margin-bottom:4px;">✅ <b>자금 여유</b></span><span style="font-size:13px; color:${themeSubTextColor};">안정적인 대출 운용이 가능합니다.</span>`;
+			}
+
+			// [7] 상세 리포트 호출 (합산된 combinedP 사용)
+			if (typeof updateDetailVisualization === 'function') {
+				updateDetailVisualization(combinedP, bR, bM); 
+			}
+
+			// [8] 부드러운 스크롤
+			const resArea = document.getElementById('resultArea');
+			if (resArea) window.scrollTo({ top: resArea.offsetTop - 20, behavior: 'smooth' });
 		}
 
-		// [3] 방식별 최대 한도 역산 (규제 40% 기준)
-		const targetAnnPay = income * 0.4;
-		const r_lim = (bR + bSR) / 1200;
-		
-		// [중요] 사용자가 입력한 개월수(bM)가 분모로 사용되어 가변 한도 도출
-		// 예: 600개월(50년) 입력 시 매달 원금이 줄어들어 한도는 극대화됨
-		const maxPrin = targetAnnPay / ((12 / bM) + (r_lim * (bM + 1) * 6 / bM));
-		const maxLevel = (targetAnnPay / 12) / ((r_lim * Math.pow(1 + r_lim, bM)) / (Math.pow(1 + r_lim, bM) - 1));
-
-		const f = (v) => (Math.floor(v / 10000) * 10000).toLocaleString() + " 원";
-		document.getElementById('absMaxPrin').innerText = f(maxPrin); 
-		document.getElementById('absMaxLevel').innerText = f(maxLevel);
-
-		// [4] 추천 메시지 및 배지 제어 (오버 시 원금균등 우선 추천)
-		const recDesc = document.getElementById('recDesc');
-		const prinCard = document.getElementById('prinCard');
-		const levelCard = document.getElementById('levelCard');
-
-		prinCard.classList.remove('recommended');
-		levelCard.classList.remove('recommended');
-
-		if (isOver || dsr > 30) {
-			prinCard.classList.add('recommended');
-			recDesc.innerHTML = `<b>🎯 원금균등 (추천) 방식을 추천합니다</b><br>한도 임계점 도달: 한도 확보가 시급한 구간입니다. 원리금 방식보다 더 높은 승인액 확보가 가능합니다.`;
-		} else {
-			levelCard.classList.add('recommended');
-			recDesc.innerHTML = `<b>✅ 자금 여유:</b> 모든 방식에서 안정적으로 대출이 가능합니다.`;
-		}
-
-		// [5] 현재 추가 가능 대출액 (초과 시 0원, 여유 시 combinedP 차감액 표시)
-		const remainLimit = isOver ? 0 : Math.max(0, maxPrin - combinedP);
-		const remainingLimitView = document.getElementById('remainingLimit');
-		if (remainingLimitView) {
-			remainingLimitView.innerText = f(remainLimit);
-			remainingLimitView.style.color = isOver ? "#e74c3c" : "#3498db";
-		}
-
-		// [6] 핵심: 상세 리포트 호출 (입력된 기간 bM을 기반으로 스케줄 새로고침)
-		// f_format을 전달하여 통일된 금액 표시 형식 사용
-		const firstAmount = getNum(items[0].querySelector('.l-p').value);
-		if (typeof updateDetailVisualization === 'function') {
-			// [수정] P값은 첫 번째 항목의 신청 금액을 전달
-			updateDetailVisualization(firstAmount, bR, bM); 
-		}
-
-		// [7] 결과 영역으로 부드럽게 이동
-		window.scrollTo({ top: document.getElementById('resultArea').offsetTop - 20, behavior: 'smooth' });
-	}
 
 	/**
 	 * [별도 함수] 실제 금리 기준 상환액 상세 시각화
