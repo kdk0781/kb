@@ -86,15 +86,15 @@
             --warn-bg: #fff5f5; 
         }
 
-        /* [CORE LAYOUT] */
-        body { 
-            font-family: 'Pretendard', system-ui, sans-serif; 
-            background: var(--main-bg); 
-            margin: 0; 
-            padding: 20px 15px; 
-            color: #333; 
-            -webkit-tap-highlight-color: transparent; 
-        }
+		/* 2. 전체 레이아웃 (변수 적용) */
+		body {
+			font-family: -apple-system, sans-serif;
+			background-color: var(--bg-page);
+			color: var(--text-main);
+			margin: 0; padding: 20px;
+			transition: all 0.3s ease;
+			-webkit-font-smoothing: antialiased;
+		}
 
         .container { 
             max-width: 850px; 
@@ -187,6 +187,7 @@
         }
         input:focus { border: 2px solid var(--kb-yellow); box-shadow: 0 0 0 4px rgba(255,204,0,0.1); }
 
+		
         /* [BUTTONS] */
         .btn-add-loan { 
             background: #fff; border: 2px dashed #ddd; padding: 16px; border-radius: 14px; 
@@ -342,104 +343,712 @@
 }
 
 .btn-more-schedule {
-    display: none; /* 초기에는 숨김 처리 (JS에서 계산 완료 시 block으로 변경) */
-    width: 100%;
-    padding: 18px;
-    background: #fff;
-    border: 2px solid var(--kb-dark);
-    border-radius: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    margin-top: 15px;
-    color: var(--kb-dark);
-    transition: 0.3s;
-}
+		display: none; /* 초기에는 숨김 처리 (JS에서 계산 완료 시 block으로 변경) */
+		width: 100%;
+		padding: 18px;
+		background: #fff;
+		border: 2px solid var(--kb-dark);
+		border-radius: 14px;
+		font-weight: 700;
+		cursor: pointer;
+		margin-top: 15px;
+		color: var(--kb-dark);
+		transition: 0.3s;
+	}
 
-/* 호버 시 KB 스타일 적용 */
-.btn-more-schedule:hover {
-    background: var(--kb-dark);
-    color: var(--kb-yellow);
-}
 
-/* 스케줄 리스트 래퍼 */
-.schedule-wrapper {
-    background: #fff;
-    border-radius: 20px;
-    border: 1px solid #eee;
-    overflow: hidden;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-}
 
-/* 상환 방식 선택 탭 */
-.schedule-tabs {
-    display: flex;
-    background: #f8f9fa;
-    border-bottom: 1px solid #eee;
-}
+	/* 호버 시 KB 스타일 적용 */
+	.btn-more-schedule:hover {
+		background: var(--kb-dark);
+		color: var(--kb-yellow);
+	}
 
-.tab-btn {
-    flex: 1;
-    padding: 15px;
-    border: none;
-    background: none;
-    font-weight: 700;
-    color: #999;
-    cursor: pointer;
-}
+	/* 스케줄 리스트 래퍼 */
+	.schedule-wrapper {
+		background: #fff;
+		border-radius: 20px;
+		border: 1px solid #eee;
+		overflow: hidden;
+		box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+	}
 
-.tab-btn.active {
-    color: var(--kb-dark);
-    background: #fff;
-    border-bottom: 3px solid var(--kb-yellow);
-}
+	/* 상환 방식 선택 탭 */
+	.schedule-tabs {
+		display: flex;
+		background: #f8f9fa;
+		border-bottom: 1px solid #eee;
+	}
 
-/* 회차별 리스트 헤더 (고정) */
-.schedule-header {
-    display: grid;
-    grid-template-columns: 60px 1fr 1fr 1.2fr;
-    gap: 5px;
-    padding: 12px 5px;
-    background: #f1f1f1;
-    font-size: 12px;
-    font-weight: 800;
-    text-align: center;
-    position: sticky;
-    top: 0;
-    z-index: 10;
-}
+	.tab-btn {
+		flex: 1;
+		padding: 15px;
+		border: none;
+		background: none;
+		font-weight: 700;
+		color: #999;
+		cursor: pointer;
+	}
 
-/* 스크롤 가능한 리스트 영역 */
-.schedule-list {
-    max-height: 400px;
-    overflow-y: auto;
-}
+	.tab-btn.active {
+		color: var(--kb-dark);
+		background: #fff;
+		border-bottom: 3px solid var(--kb-yellow);
+	}
 
-/* 개별 회차 행 */
-.schedule-item {
-    display: grid;
-    grid-template-columns: 60px 1fr 1fr 1.2fr;
-    gap: 5px;
-    padding: 12px 8px;
-    border-bottom: 1px solid #f9f9f9;
-    font-size: 12px;
-    text-align: center;
-}
+	/* 회차별 리스트 헤더 (고정) */
+	.schedule-header {
+		display: grid;
+		grid-template-columns: 60px 1fr 1fr 1.2fr;
+		gap: 5px;
+		padding: 12px 5px;
+		background: #f1f1f1;
+		font-size: 12px;
+		font-weight: 800;
+		text-align: center;
+		position: sticky;
+		top: 0;
+		z-index: 10;
+	}
 
-/* 12개월(1년) 단위 연차 구분선 */
-.year-divider {
-    background: #fff9db;
-    padding: 10px 15px;
-    font-weight: 800;
-    font-size: 11.5px;
-    color: #e67e22;
-    border-left: 5px solid var(--kb-yellow);
-    margin: 15px 0 5px;
-    text-align: left;
-    border-radius: 0 8px 8px 0;
-}
+	/* 스크롤 가능한 리스트 영역 */
+	.schedule-list {
+		max-height: 400px;
+		overflow-y: auto;
+	}
 
-/* 회차별 텍스트 색상 정의 */
-.sch-num { color: #888; }
-.sch-prin { font-weight: 700; color: var(--kb-dark); }
-.sch-int { color: var(--danger); }
-.sch-bal { color: var(--blue); font-weight: 700; }
+	/* 개별 회차 행 */
+	.schedule-item {
+		display: grid;
+		grid-template-columns: 60px 1fr 1fr 1.2fr;
+		gap: 5px;
+		padding: 12px 8px;
+		border-bottom: 1px solid #f9f9f9;
+		font-size: 12px;
+		text-align: center;
+	}
+
+	/* 12개월(1년) 단위 연차 구분선 */
+	.year-divider {
+		background: #fff9db;
+		padding: 10px 15px;
+		font-weight: 800;
+		font-size: 11.5px;
+		color: #e67e22;
+		border-left: 5px solid var(--kb-yellow);
+		margin: 15px 0 5px;
+		text-align: left;
+		border-radius: 0 8px 8px 0;
+	}
+
+	/* 회차별 텍스트 색상 정의 */
+	.sch-num { color: #888; }
+	.sch-prin { font-weight: 700; color: var(--kb-dark); }
+	.sch-int { color: var(--danger); }
+	.sch-bal { color: var(--blue); font-weight: 700; }
+
+
+		/* 여기서부터 추가 */
+
+	/* 1. 시스템 테마 변수 정의 (Depth 최적화) */
+	:root {
+		/* 라이트 모드 기본값 */
+		--bg-page: #f4f7f9;
+		--bg-card: #ffffff;
+		--bg-section: #f9f9f9;
+		--text-main: #1a1a1a;
+		--text-sub: #666666;
+		--border: #eeeeee;
+		--accent: #007aff;
+		--input-bg: #fff;
+		--shadow: 0 4px 15px rgba(0,0,0,0.06);
+	}
+
+		
+		/* [화이트 모드] 기본 설정 유지 */
+		body.white select {
+			background-color: var(--input-bg);
+			color: #333333;
+			border: 1px solid var(--border);
+		}
+
+
+
+	@media (prefers-color-scheme: dark) {
+		:root {
+			/* [고도화] 다크 모드 (완벽한 Depth 설계) */
+			--bg-page: #000000;         /* 전체 배경: 어두운 블랙 */
+			--bg-card: #1c1c1e;         /* 카드 배경: 짙은 그레이 (입체감 핵심) */
+			--section-bg: #252525;       /* 섹션 구분 배경 */
+			--text-main: #ffffff;       /* 흰색 텍스트 */
+			--text-sub: #8e8e93;         /* 흐린 텍스트 */
+			--border: #2c2c2e;          /* 어두운 구분선 */
+			--shadow: 0 4px 15px rgba(0,0,0,0.5); /* 그림자 농도 조절 */
+			--bgcontainer: #1c1c1e;     /* 다크컨테이너 */
+			--borderline: #ececec;      /* border color */
+			--text_main: #fff;
+			--inputbg: #2c2c2c;
+			--loadbd:#3a3a3c;
+			--loadtext:#a0a0a0;
+			--dyguide:#2c1a1a;
+			--dyline:#4a2b2b;
+			--dytext:#ff9b9b;
+			--resultbg:#1c1c1e;
+			--resultbd:#FFCC00;
+			--reboxbg:#1a2a3a;
+			--removebg:#2c2c2c;
+		}
+	}
+	.main-layout { max-width: 500px; margin: 0 auto; }
+
+		body.dark {
+			font-family: -apple-system, sans-serif;
+			background-color: var(--bg-page);
+			color: var(--text-main);
+			margin: 0; padding: 20px;
+			transition: all 0.3s ease;
+			-webkit-font-smoothing: antialiased;
+		}
+		.dark .container {background: var(--bgcontainer);}
+		.dark .input-card {background:var(--section-bg);}
+		.dark * {border-color:var(--borderline);}
+
+		/* [입력창 스타일 핵심] */
+		.dark input, .dark select, .dark textarea, .dark input[type="text"] {
+			background-color: var(--inputbg)/* 화이트:#ffffff / 다크:#2c2c2e */
+			color: #ffffff;           /* 화이트:#333333 / 다크:#ffffff */
+			-webkit-text-fill-color: #ffffff !important; /* 웹킷 브라우저 강제 흰색 */
+			border: 1px solid #ddd;             /* 테마별 테두리 대응 */
+		}
+
+		/* 플레이스홀더(안내문구) 색상 제어 */
+		.dark input::placeholder {
+			color: var(--text-sub); /* 화이트:#bbbbbb / 다크:#8e8e93 */
+		}
+
+		/* 클릭(포커스) 시 KB 옐로우 강조 */
+		.dark input:focus {
+			border: 2px solid var(--kb-yellow);
+			box-shadow: 0 0 0 4px rgba(255, 204, 0, 0.1);
+		}
+		.dark input:-webkit-autofill,
+		.dark input:-webkit-autofill:hover, 
+		.dark input:-webkit-autofill:focus, 
+		.dark input:-webkit-autofill:active {
+			/* 자동 완성 시 배경색을 투명하게 하거나 테마 변수 강제 적용 */
+			-webkit-text-fill-color: #ffffff !important;
+			-webkit-box-shadow: 0 0 0px 1000px var(--inputbg) inset !important;
+			transition: background-color 5000s ease-in-out 0s;
+		}
+		/* [다크 모드 전용 셀렉트 박스 고도화] */
+		.dark select {
+			background-color: var(--inputbg) !important; /* #2c2c2e */
+			color: var(--text-main) !important;
+			border: 1px solid var(--borderline);
+			appearance: none;                            /* 브라우저 기본 화살표 제거(선택사항) */
+			-webkit-appearance: none;
+			background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='white' viewBox='0 0 24 24'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E"); /* 흰색 화살표 아이콘 삽입 */
+			background-repeat: no-repeat;
+			background-position: right 10px center;
+			background-size: 20px;
+			padding-right: 30px;
+		}
+
+		/* [중요] 셀렉트 박스 클릭 시 나오는 옵션 목록의 색상도 제어 */
+		body.dark select option {
+			background-color: #1c1c1e !important; /* 옵션 배경색 */
+			color: #ffffff !important;           /* 옵션 글자색 */
+		}
+		/* 3. 인풋 필드 내 텍스트 선택 시 색상 */
+		.dark input::selection {
+			background: var(--kb-yellow);
+			color: #000;
+		}
+
+		/* [다크 모드] 삭제버튼 세부 보정 */
+		.dark .btn-remove {
+			background-color: var(--inputbg) !important; /* #2c2c2e */
+			border-color: var(--border) !important;       /* #3a3a3c */
+			color: #8e8e93 !important;
+		}
+
+		.dark .btn-remove:hover {
+			background-color: #3a2525 !important;
+			color: #ff453a !important;
+			border-color: #4a2b2b !important;
+		}
+
+		.dark .btn-add-loan {background:var(--loadbd); border:2px dashed var(--loadbd); color:var(--loadtext);}
+		/* 호버 시 고도화 효과 */
+		.dark .btn-add-loan:hover {background: var(--section-bg) !important; border:2px dashed var(--kb-yellow) !important; color: var(--text-main) !important;}
+		.dark .dynamic-guide {background:var(--dyguide);border:1.5px solid var(--dyline); border-left: 6px solid var(--danger); color:var(--dytext); 0 4px 15px rgba(0,0,0,0.3)}
+		
+		/* 상황별 최적화 추천 */
+		.dark .recommendation-box {background:var(--reboxbg);}
+		.dark .rec-box-title {color:var(--text_main);}
+		.dark .result-box {background: var(--resultbg); border:1px solid var(--resultbd);}
+		.dark .rec-box-desc {color:var(--text-sub);}
+
+		/* [PROGRESS CONTAINER 레이아웃] */
+		.dark .dsr-progress-container {
+			width: 100%;
+			height: 12px;
+			background-color: var(--border); /* 화이트: #eee / 다크: #333 */
+			border-radius: 10px;
+			margin: 20px 0;
+			position: relative;
+			overflow: visible; /* 가이드라인 표시를 위해 visible */
+		}
+
+		/* [실제 진행 바] */
+		.dark .dsr-progress-bar {
+			height: 100%;
+			border-radius: 10px;
+			width: 0%; /* JS에서 조정 */
+			transition: width 1s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.5s;
+			box-shadow: 0 0 10px rgba(46, 204, 113, 0.3);
+		}
+
+		/* [40% 가이드라인] */
+		.dark .dsr-limit-line {
+			position: absolute;
+			left: 40%;
+			top: -5px;
+			bottom: -5px;
+			width: 2px;
+			background-color: #e74c3c;
+			z-index: 2;
+		}
+
+		.dark .limit-label {
+			position: absolute;
+			left: 40%;
+			top: 20px;
+			transform: translateX(-50%);
+			font-size: 11px;
+			color: #e74c3c;
+			font-weight: 700;
+			white-space: nowrap;
+		}
+
+		/* 방식별 최대 한도 분석 */
+		.dark .max-item {background:var(--bg-card);}
+		.dark .recommended {background:var(--border);}
+		.dark .max-val {color:var(--text-main);}
+
+		/* [GUIDE COLUMN 레이아웃] */
+		.dark .guide-row {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 15px;
+			margin-top: 10px;
+		}
+
+		.dark .guide-col strong {
+			color: var(--text-main);
+		}
+
+		.dark .guide-col {
+			display: flex;
+			flex-direction: column;
+			gap: 15px;
+			background: var(--section-bg); 
+		}
+
+		/* [DETAIL GROUP 레이아웃] */
+		.dark .detail-group {
+			background: var(--card-bg);
+			border-radius: 24px;
+			padding: 25px;
+			border: 1px solid var(--border);
+			margin-bottom: 10px;
+		}
+
+		/* 내부 섹션 (월/년/총액 구분) */
+		.dark .detail-section {
+			background: var(--section-bg); /* 화이트: #f8f9fa / 다크: #252525 */
+			padding: 15px;
+			border-radius: 16px;
+			margin-bottom: 12px;
+		}
+
+		/* 개별 데이터 라인 */
+		.dark .detail-row {
+			display: flex;
+			justify-content: space-between;
+			padding: 8px 0;
+			border-bottom: 1px dashed var(--border);
+		}
+
+		/* [TOTAL HIGHLIGHT CARD 레이아웃] */
+		.dark .total-highlight-card {
+			background: var(--card-bg);
+			border: 2px solid var(--blue); /* #3498db */
+			border-radius: 28px;
+			padding: 45px 20px;
+			text-align: center;
+			margin: 40px 0;
+			box-shadow: 0 10px 30px rgba(52,152,219,0.15);
+			animation: pulse 2s infinite; /* 미세한 강조 애니메이션 */
+		}
+
+		/* 메인 금액 수치 */
+		.dark .total-amount {
+			font-size: 2.8rem;
+			font-weight: 900;
+			color: var(--blue);
+			margin: 15px 0;
+			display: block;
+		}
+
+		/* [MORE SCHEDULE 버튼 레이아웃] */
+		.dark .btn-more-schedule {
+			width: 100%;
+			padding: 14px;
+			background: var(--card-bg);
+			border: 1.5px solid var(--text-main); /* 테마별 자동 대응 */
+			border-radius: 12px;
+			font-weight: 700;
+			font-size: 14px;
+			cursor: pointer;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			gap: 8px;
+			margin: 20px 0;
+			transition: 0.2s;
+		}
+
+		/* 다크 모드 가독성 보정 */
+		.dark .btn-more-schedule {
+			background: #1c1c1e !important;
+			border-color: #ffffff !important;
+			color: #ffffff !important;
+		}
+
+		/* 호버 시 KB 옐로우 포인트 (다크모드 권장) */
+		.dark .btn-more-schedule:hover {
+			background: #2c2c2e !important;
+			border-color: var(--kb-yellow) !important;
+			color: var(--kb-yellow) !important;
+		}
+
+		/* [SCHEDULE WRAPPER 레이아웃] */
+		.dark .schedule-wrapper {
+			width: 100%;
+			max-height: 400px; /* 너무 길어지지 않게 스크롤 제어 */
+			overflow-y: auto;
+			border-radius: 12px;
+			border: 1px solid var(--border);
+			margin-top: 15px;
+		}
+
+		.dark .schedule-table {
+			width: 100%;
+			border-collapse: collapse;
+			font-size: 13px;
+			text-align: right;
+		}
+
+		/* 헤더 스타일 */
+		.dark .schedule-table th {
+			background: var(--section-bg); /* 화이트: #f8f9fa / 다크: #2c2c2e */
+			padding: 12px 8px;
+			position: sticky;
+			top: 0;
+			color: var(--text-main);
+			border-bottom: 2px solid var(--kb-yellow);
+		}
+
+		/* 본문 데이터 스타일 */
+		.dark .schedule-table td {
+			padding: 10px 8px;
+			border-bottom: 1px solid var(--border);
+			color: var(--text-main); /* 다크모드 대응 */
+		}
+
+		/* [다크 모드] 지브라 패턴 및 가독성 강제 */
+		.dark .schedule-table tr:nth-child(even) {
+			background-color: #252525 !important;
+		}
+
+		.dark .schedule-table td {
+			color: #ffffff !important; /* 숫자 데이터 흰색 강제 */
+		}
+
+		/* 잔액(마지막 열) 강조 */
+		.dark .schedule-table td:last-child {
+			color: var(--blue);
+			font-weight: 600;
+		}
+
+		/* [SCHEDULE TABS 레이아웃] */
+		.dark .schedule-tabs {
+			display: flex;
+			background: var(--section-bg); /* 화이트: #f8f9fa / 다크: #252525 */
+			border-radius: 12px 12px 0 0;
+			overflow: hidden;
+			border: 1px solid var(--border);
+			border-bottom: none;
+		}
+
+		.dark .tab-item {
+			flex: 1;
+			padding: 15px;
+			text-align: center;
+			cursor: pointer;
+			font-weight: 600;
+			color: var(--text-sub);
+			transition: 0.3s;
+		}
+
+		/* 활성화된 탭 스타일 */
+		.dark .tab-item.active {
+			background: var(--bg-card); /* 화이트: #fff / 다크: #1c1c1e */
+			color: var(--text-main);
+			border-bottom: 3px solid var(--kb-yellow);
+		}
+
+		.dark .schedule-header {
+			background:var(--border);
+		}
+
+		.dark .sch-prin {color:var(--text_main);}
+
+		/* [YEAR DIVIDER 스타일] */
+		.dark .year-divider {
+			background-color: #f1f3f5; /* 화이트 기본 */
+			font-weight: 800;
+			text-align: center;
+			color: #495057;
+		}
+
+		.dark .year-divider td {
+			padding: 8px !important;
+			font-size: 11px;
+			letter-spacing: 1px;
+			border-top: 1px solid #dee2e6;
+			border-bottom: 1px solid #dee2e6;
+			text-align: center !important; /* 중앙 정렬 강제 */
+		}
+
+		/* [다크 모드] 구분선 고도화 */
+		.dark .year-divider {
+			background-color: #2c2c2e !important; /* 더 깊은 색상 */
+		}
+
+		.dark .year-divider td {
+			color: var(--kb-yellow) !important; /* 연도 구분은 옐로우로 강조 */
+			border-color: #3a3a3c !important;
+		}
+
+		/* [SCHEDULE CONTAINER 레이아웃] */
+		.dark .schedule-container {
+			background: var(--bg-card);
+			border: 1px solid var(--border);
+			border-top: none;
+			border-radius: 0 0 12px 12px;
+			padding: 20px;
+			min-height: 200px;
+		}
+
+		/* 다크 모드 텍스트 가독성 강제 */
+		.dark .schedule-container {
+			color: #ffffff !important;
+		}
+
+		/* [LIMIT CARD 레이아웃] */
+		.dakr .limit-card {
+			background: var(--card-bg); /* 화이트: #fff / 다크: #1c1c1e */
+			padding: 35px 20px;
+			border-radius: 24px;
+			text-align: center;
+			border: 1px solid var(--border);
+			box-shadow: var(--shadow);
+			transition: transform 0.3s ease;
+		}
+
+		/* 금액 텍스트 스타일 */
+		.dark .limit-amount {
+			font-size: 2.2rem;
+			font-weight: 800;
+			margin: 15px 0;
+			display: block;
+			color: var(--text-main); /* 다크대응 필수 */
+		}
+
+		/* [다크 모드] 가독성 및 강조 보정 */
+		.dark .limit-card {
+			background: #1c1c1e !important;
+			border-color: #333333 !important;
+		}
+
+		.dark .limit-amount {
+			color: #ffffff !important; /* 금액 숫자 흰색 강제 */
+		}
+
+		/* 추천 카드일 때의 특별 대우 */
+		.dark .limit-card.recommended {
+			border: 2px solid var(--kb-yellow) !important;
+			background: #2c2c2e !important;
+		}
+
+		/* [WIKI TABLE WRAPPER 레이아웃] */
+		.dark .wiki-table-wrapper {
+			width: 100%;
+			margin: 20px 0;
+			border-radius: 12px;
+			border: 1px solid var(--border);
+			overflow: hidden; /* 모서리 둥글게 유지 */
+			background: var(--card-bg);
+		}
+
+		.dark .wiki-table {
+			width: 100%;
+			border-collapse: collapse;
+			font-size: 14px;
+			line-height: 1.6;
+			background:var(--bg-card);
+		}
+
+		/* 헤더 및 구분열 스타일 */
+		.dark .wiki-table th, 
+		.dark .wiki-table td.label-col {
+			background: var(--section-bg); /* 화이트: #f1f3f5 / 다크: #2c2c2e */
+			width: 30%;
+			font-weight: 700;
+			color: var(--text-main);
+			padding: 15px;
+			border: 1px solid var(--border);
+		}
+
+		/* 본문 데이터 스타일 */
+		.dark .wiki-table td {
+			padding: 15px;
+			border: 1px solid var(--border);
+			color: var(--text-main); /* 다크모드 대응 */
+			vertical-align: middle;
+		}
+
+		/* [다크 모드] 텍스트 가독성 강제 */
+		.dark .wiki-table td {
+			color: #ffffff !important; /* 설명 텍스트 흰색 강제 */
+		}
+
+		.dark .wiki-table td.highlight {
+			color: var(--kb-yellow) !important; /* 핵심 수치는 옐로우 */
+		}
+
+
+
+		/* 다크 모드 가독성 보정 */
+		.dark .total-highlight-card {
+			background: #1c1c1e !important;
+			box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+		}
+
+		.dark .total-amount {
+			color: #5dade2 !important; /* 다크모드에서 더 잘 보이는 밝은 블루 */
+			text-shadow: 0 0 15px rgba(93, 173, 226, 0.3);
+		}
+
+		.dark .total-highlight-card p {
+			color: #a0a0a0 !important;
+		}
+
+
+
+		/* 다크 모드 가독성 보정 */
+		.dark .detail-row span:last-child {
+			color: #ffffff !important; /* 금액 수치 흰색 강제 */
+			font-weight: 700;
+		}
+
+		.dark .detail-section.total-row {
+			background: #1a2a3a !important; /* 합계 라인 강조 */
+			color: var(--blue);
+		}
+
+		/* [개별 아이템 카드] */
+		.dark .guide-item {
+			background: var(--bg-card); /* 화이트: #f9f9fb / 다크: #1c1c1e */
+			padding: 20px;
+			border-radius: 18px;
+			border: 1px solid var(--border);
+		}
+
+		/* 다크 모드 가독성 보정 */
+		.dark .guide-item h4 {
+			color: #ffffff !important;
+		}
+
+		.dark .guide-item p {
+			color: #a0a0a0 !important;
+		}
+
+
+		/* [NOTICE POPUP 레이아웃] */
+		.dark .notice-overlay {
+			position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+			background: rgba(0,0,0,0.8); /* 다크모드 기준 */
+			display: none; align-items: center; justify-content: center;
+			z-index: 1000; transition: 0.3s;
+		}
+
+		/* [최종 해결] 공지사항 팝업 내 텍스트 컬러 보정 */
+
+		/* 2. 메인 텍스트 (스트레스 금리 사항 추가) */
+		.dark .notice-body .main-text {
+			color: #ffffff !important; /* 흰색 강제 */
+			display: block;            /* 줄바꿈 보장 */
+			font-size: 18px;
+			margin-bottom: 8px;
+		}
+
+		/* 3. 서브 텍스트 (2026년 최신 금융 규제...) */
+		.dark .notice-body .sub-text {
+			color: #d1d1d6 !important; /* 약간 연한 회색으로 가독성 확보 */
+			display: block;
+			font-size: 14px;
+			line-height: 1.5;
+		}
+
+		/* 4. 혹시 모를 전체 텍스트 보강 */
+		.dark #noticePopup * {
+			-webkit-text-fill-color: initial; /* 웹킷 강제 채우기 해제 */
+		}
+
+		/* 팝업 닫기/확인 버튼 */
+		.dark .btn-popup-close {
+			background: var(--kb-yellow);
+			color: #222; border: none;
+			padding: 12px 30px; border-radius: 12px;
+			font-weight: 700; cursor: pointer; margin-top: 20px;
+		}
+
+
+
+		/* 3. 카드형 디자인 (스크린샷 투박함 해결) */
+	.card-section, .notice-box, .modal-content, .result-card {
+		background-color: var(--bg-card);
+		border-radius: 20px;
+		padding: 25px;
+		margin-bottom: 20px;
+		box-shadow: var(--shadow);
+	}
+
+	.section-title { font-size: 18px; font-weight: 700; margin-bottom: 15px; color: var(--text-main); }
+
+	/* 4. 입력 필드 최적화 (가독성 확보) */
+	.input-wrapper-refined label { font-size: 14px; color: var(--text-sub); margin-bottom: 8px; display: block; }
+	.input-inner { display: flex; align-items: center; background-color: var(--bg-page); border-radius: 12px; padding: 12px; margin-top: 8px; }
+	.input-inner input { border: none; background: transparent; color: var(--text-main); font-size: 18px; font-weight: 600; width: 100%; outline: none; }
+	.input-inner .unit { color: var(--text-sub); font-weight: 600; }
+
+	/* 5. 버튼 및 모달 디자인 고도화 (전체 조화) */
+	.btn-refined-block { width: 100%; background: var(--accent); color: white; border: none; padding: 16px; border-radius: 14px; font-size: 16px; font-weight: 700; cursor: pointer; transition: 0.2s; margin-top: 10px; }
+	.btn-refined-block:active { transform: scale(0.98); }
+
+	.notice-overlay, .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; }
+	.modal-content { text-align: center; }
+	.modal-btn { width: 100%; padding: 18px; background: var(--accent); border-radius: 16px; border: none; color: white; font-weight: 700; }
