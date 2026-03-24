@@ -1,51 +1,41 @@
 /* =============================================================================
-   [DSR 정밀 진단 계산기 - 260323_F 통합 마스터 스크립트]
+   [DSR 정밀 진단 계산기 - 통합 관리 마스터 스크립트]
    파일명: common.js / 업데이트: 2026. 03. 25.
-   수정사항: 함수 중복 제거, 괄호 오류 수정, 모바일 키보드 팝업 최적화
+   수정사항: 전 구간 유효성 검사(Validation) 및 모바일 포커스 엔진 통합
    ============================================================================= */
 
-// [1] 전역 변수 및 초기 설정
+// [1] 전역 설정 및 초기화
 const NOTICE_VERSION = "0781_2"; 
 let lastFocusId = null;
 let proceedOnConfirm = false;
 let loanCount = 0;
-let currentScheduleType = 'P'; // P: 원금균등, L: 원리금균등
+let currentScheduleType = 'P';
 
 window.onload = function() {
-    applySystemTheme(); // 테마 적용
-    initNotice();       // 공지사항 체크
-    addLoan();          // 기본 대출 항목 추가
+    applySystemTheme();
+    initNotice();
+    addLoan(); // 실행 시 기본 1개 생성
     
     const confirmBtn = document.getElementById('modalConfirm');
     if (confirmBtn) confirmBtn.onclick = handleModalConfirm;
 };
 
-/* [2] 시스템 테마 제어 */
+/* [2] 시스템 테마 및 공지사항 제어 */
 function applySystemTheme() {
     const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const body = document.body;
-    if (isDarkMode) {
-        body.classList.add('dark'); body.classList.remove('white');
-    } else {
-        body.classList.add('white'); body.classList.remove('dark');
-    }
+    document.body.classList.toggle('dark', isDarkMode);
+    document.body.classList.toggle('white', !isDarkMode);
 }
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applySystemTheme);
 
-/* [3] 공지사항 및 모달 로직 */
 function initNotice() {
     const noticePopup = document.getElementById('noticePopup');
     if (!noticePopup) return;
     const savedVersion = localStorage.getItem('hideNoticeVersion');
-    if (savedVersion !== NOTICE_VERSION) {
-        localStorage.removeItem('hideStressNotice');
-        localStorage.setItem('hideNoticeVersion', NOTICE_VERSION);
-        noticePopup.style.display = 'flex';
-    } else if (localStorage.getItem('hideStressNotice') !== 'true') {
+    if (savedVersion !== NOTICE_VERSION || localStorage.getItem('hideStressNotice') !== 'true') {
         noticePopup.style.display = 'flex';
     }
 }
-
 function closeNotice() { document.getElementById('noticePopup').style.display = 'none'; }
 function closeNoticeForever() {
     localStorage.setItem('hideStressNotice', 'true');
@@ -53,6 +43,7 @@ function closeNoticeForever() {
     closeNotice();
 }
 
+/* [3] 유효성 검사 및 알림 제어 (핵심 수정) */
 function showAlert(msg, focusId = null, icon = "⚠️", allowProceed = false) {
     const modal = document.getElementById('customModal');
     if (!modal) return;
@@ -63,18 +54,22 @@ function showAlert(msg, focusId = null, icon = "⚠️", allowProceed = false) {
     modal.style.display = 'flex';
 }
 
+/**
+ * 모달 확인 버튼 클릭 시 모바일 키보드 강제 활성화 로직
+ */
 function handleModalConfirm() {
     const modal = document.getElementById('customModal');
     if (modal) modal.style.display = 'none';
+    
     if (proceedOnConfirm) {
-        calculateLogic();
+        calculateLogic(); // 금리 미입력 경고 후 계산 진행
     } else if (lastFocusId) {
         const targetEl = document.getElementById(lastFocusId);
         if (targetEl) {
-            targetEl.focus(); // iOS 키보드 대응 동기 호출
+            targetEl.focus(); // 1차 포커스 (iOS 대응)
             targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
             setTimeout(() => {
-                targetEl.focus();
+                targetEl.focus(); // 2차 확정 포커스
                 if (targetEl.tagName === 'INPUT') {
                     targetEl.click();
                     targetEl.setSelectionRange(0, targetEl.value.length);
@@ -84,7 +79,51 @@ function handleModalConfirm() {
     }
 }
 
-/* [4] 유틸리티 및 입력 제어 */
+/* [4] 계산 실행 전 전수 유효성 체크 */
+function calculateTotalDSR() {
+    // 1. 소득 체크
+    const income = getNum(document.getElementById('income').value);
+    if (income <= 0) {
+        showAlert("<b>연간 세전 소득</b>을 입력해주세요.", "income");
+        return;
+    }
+
+    // 2. 부채 항목 존재 여부 체크
+    const items = document.querySelectorAll('[id^="loan_"]');
+    if (items.length === 0) {
+        showAlert("분석할 <b>부채 항목</b>을 최소 하나 이상 추가해주세요.");
+        return;
+    }
+
+    // 3. 개별 항목 상세 체크
+    let missingRate = false;
+    for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        const idx = item.id.split('_')[1];
+        const pVal = getNum(item.querySelector('.l-p').value);
+        const rVal = item.querySelector('.l-r').value;
+        const mVal = getNum(item.querySelector('.l-m').value);
+
+        if (pVal <= 0) {
+            showAlert(`대출 항목의 <b>원금(잔액)</b>을 입력해주세요.`, `lp_${idx}`);
+            return;
+        }
+        if (mVal <= 0) {
+            showAlert(`대출 항목의 <b>상환 기간</b>을 입력해주세요.`, `lm_${idx}`);
+            return;
+        }
+        if (Number(rVal || 0) <= 0) missingRate = true;
+    }
+
+    // 4. 금리 미입력 시 안내 후 진행, 모두 입력 시 즉시 계산
+    if (missingRate) {
+        showAlert("금리 미입력 항목은 시스템 <b>표준 금리</b>가 자동 적용됩니다.", null, "ℹ️", true);
+    } else {
+        calculateLogic();
+    }
+}
+
+/* [5] 입력 엔진 및 동적 UI */
 function getNum(val) { return Number(val.toString().replace(/,/g, "")) || 0; }
 function formatComma(obj) {
     let val = obj.value.replace(/[^0-9]/g, "");
@@ -97,22 +136,26 @@ function addLoan() {
     <div class="input-card" id="loan_${loanCount}">
         <button class="btn-remove" onclick="removeLoan(${loanCount})">×</button>
         <div class="grid-row">
-            <div><label>대출 종류</label><select class="l-category" onchange="applyPolicy(${loanCount})">
-                <option value="mortgage_level">주택담보 (원리금)</option>
-                <option value="mortgage_prin">주택담보 (원금)</option>
-                <option value="jeonse">전세대출 (만기)</option>
-                <option value="officetel">오피스텔 (원리금)</option>
-                <option value="credit">신용대출 (원리금)</option>
-                <option value="cardloan">카드론 (원리금)</option>
-            </select></div>
+            <div><label>대출 종류</label>
+                <select class="l-category" onchange="applyPolicy(${loanCount})">
+                    <option value="mortgage_level">주택담보 (원리금)</option>
+                    <option value="mortgage_prin">주택담보 (원금)</option>
+                    <option value="jeonse">전세대출 (만기)</option>
+                    <option value="officetel">오피스텔 (원리금)</option>
+                    <option value="credit">신용대출 (원리금)</option>
+                    <option value="cardloan">카드론 (원리금)</option>
+                </select>
+            </div>
             <div><label>원금/잔액 (원)</label><input type="text" id="lp_${loanCount}" class="l-p" inputmode="numeric" onkeyup="formatComma(this)" placeholder="0"></div>
             <div><label>금리 (%)</label><input type="text" id="lr_${loanCount}" class="l-r" inputmode="decimal" placeholder="4.5"></div>
-            <div><label>스트레스 금리</label><select class="l-sr-select">
-                <option value="1.15" selected>60개월변동 (1.15%)</option>
-                <option value="2.87">6,12개월변동 (2.87%)</option>
-                <option value="0.0">해당없음 (0.0%)</option>
-            </select></div>
-            <div><label>기간 (개월)</label><input type="text" class="l-m" inputmode="numeric" value="360"></div>
+            <div><label>스트레스 금리</label>
+                <select class="l-sr-select">
+                    <option value="1.15" selected>60개월변동 (1.15%)</option>
+                    <option value="2.87">6,12개월변동 (2.87%)</option>
+                    <option value="0.0">해당없음 (0.0%)</option>
+                </select>
+            </div>
+            <div><label>기간 (개월)</label><input type="text" id="lm_${loanCount}" class="l-m" inputmode="numeric" value="360"></div>
         </div>
         <div class="dynamic-guide" id="guide_${loanCount}" style="display:none;"></div>
     </div>`;
@@ -135,20 +178,7 @@ function applyPolicy(id) {
     }
 }
 
-/* [5] 정밀 계산 로직 (사용자 제시 산식 통합) */
-function calculateTotalDSR() {
-    const income = getNum(document.getElementById('income').value);
-    if (income <= 0) { showAlert("연간 세전 소득을 입력해주세요.", "income"); return; }
-    const items = document.querySelectorAll('[id^="loan_"]');
-    if (items.length === 0) { showAlert("부채 항목을 추가해주세요."); return; }
-    
-    let missingRate = false;
-    items.forEach(item => { if (Number(item.querySelector('.l-r').value || 0) <= 0) missingRate = true; });
-    
-    if (missingRate) showAlert("금리 미입력 항목은 <b>시스템 표준 금리</b>가 적용됩니다.", null, "ℹ️", true);
-    else calculateLogic();
-}
-
+/* [6] 정밀 계산 및 결과 출력 */
 function calculateLogic() {
     const income = getNum(document.getElementById('income').value);
     const items = document.querySelectorAll('[id^="loan_"]');
@@ -173,54 +203,21 @@ function calculateLogic() {
     const maxL = (income*0.4/12)*(Math.pow(1+r_lim, bM)-1)/(r_lim*Math.pow(1+r_lim, bM));
     const maxP = (income*0.4)/((12/bM)+(r_lim*(bM+1)));
 
-    // 결과 표시 UI 업데이트
+    // UI 업데이트
     document.getElementById('resultArea').style.display = 'block';
     document.getElementById('dsrVal').innerText = dsr.toFixed(2) + '%';
     document.getElementById('absMaxPrin').innerText = Math.floor(maxP).toLocaleString() + ' 원';
     document.getElementById('absMaxLevel').innerText = Math.floor(maxL).toLocaleString() + ' 원';
     
-    const recDesc = document.getElementById('recDesc');
-    recDesc.innerHTML = dsr > 32 ? "<b>🚨 한도 확보 긴급:</b> 원금균등 방식을 권장합니다." : "<b>✅ 자금 건전성 양호:</b> 원리금균등 방식을 권장합니다.";
+    // 진행바 업데이트 (40% 기준)
+    const bar = document.getElementById('dsrBar');
+    if(bar) {
+        const barWidth = Math.min(dsr, 100);
+        bar.style.width = barWidth + '%';
+        bar.style.backgroundColor = dsr > 40 ? '#e74c3c' : '#2ecc71';
+    }
+
+    document.getElementById('recDesc').innerHTML = dsr > 32 ? "<b>🚨 한도 확보 긴급:</b> 원금균등 방식을 권장합니다." : "<b>✅ 자금 건전성 양호:</b> 원리금균등 방식을 권장합니다.";
     
-    refreshScheduleUI();
     window.scrollTo({ top: document.getElementById('resultArea').offsetTop - 20, behavior: 'smooth' });
-}
-
-/* [6] 상환 스케줄 제어 */
-function refreshScheduleUI() {
-    const btn = document.getElementById('btnShowSchedule');
-    if (btn) btn.style.display = 'block';
-}
-
-function toggleSchedule() {
-    const sec = document.getElementById('scheduleSection'), btn = document.getElementById('btnShowSchedule');
-    if (sec.style.display === 'none' || sec.style.display === '') {
-        generateSchedule(); sec.style.display = 'block'; btn.innerText = "🔼 스케줄 접기";
-    } else {
-        sec.style.display = 'none'; btn.innerText = "📊 전체 상환 스케줄 상세 보기";
-    }
-}
-
-function generateSchedule() {
-    const items = document.querySelectorAll('[id^="loan_"]');
-    if (items.length === 0) return;
-    const target = items[0], P = getNum(target.querySelector('.l-p').value), R = Number(target.querySelector('.l-r').value || 4.5), n = getNum(target.querySelector('.l-m').value), r = R / 1200;
-    const listEl = document.getElementById('scheduleList');
-    listEl.innerHTML = "";
-    let bal = P, mP = P/n, mPMT = (P*r*Math.pow(1+r, n))/(Math.pow(1+r, n)-1);
-    for (let i = 1; i <= n; i++) {
-        let curI = bal * r, curP = (currentScheduleType === 'P') ? mP : mPMT - curI;
-        bal -= curP;
-        const div = document.createElement('div');
-        div.className = 'schedule-item';
-        div.innerHTML = `<div class="sch-num">${i}회</div><div>${Math.floor(curP).toLocaleString()}</div><div>${Math.floor(curI).toLocaleString()}</div><div>${Math.max(0, Math.floor(bal)).toLocaleString()}</div>`;
-        listEl.appendChild(div);
-    }
-}
-
-function switchSchedule(type) {
-    currentScheduleType = type;
-    document.getElementById('tabPrin').classList.toggle('active', type === 'P');
-    document.getElementById('tabLevel').classList.toggle('active', type === 'L');
-    generateSchedule();
 }
