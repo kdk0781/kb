@@ -266,9 +266,14 @@ function showAlert(msg, focusId = null, icon = "⚠️", allowProceed = false) {
     modal.style.display = 'flex';
 }
 
+/* =============================================================================
+   [DSR 정밀 진단 계산기 - 모바일 입력 최적화 스크립트]
+   수정사항: iOS/안드로이드 모달 확인 후 키보드 강제 팝업 로직 보강
+   ============================================================================= */
+
 /**
  * 모달 [확인] 버튼 클릭 시 처리
- * 모바일(iOS/Android) 키보드 강제 호출 로직 포함
+ * 모바일 브라우저 보안 정책(User Gesture) 대응 로직
  */
 function handleModalConfirm() {
     const modal = document.getElementById('customModal');
@@ -279,18 +284,25 @@ function handleModalConfirm() {
     } else if (lastFocusId) {
         const targetEl = document.getElementById(lastFocusId);
         if (targetEl) {
-            // 1. 해당 위치로 부드럽게 스크롤
+            // [핵심 1] 동기 포커스: 클릭 이벤트가 살아있을 때 즉시 실행해야 iOS 키보드가 열립니다.
+            targetEl.focus();
+            
+            // [핵심 2] 스크롤 이동: 해당 입력창이 화면 중앙에 오도록 부드럽게 이동
             targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-            // 2. 모바일 브라우저 대응 지연 포커스
+            // [핵심 3] 비동기 보정: 스크롤 애니메이션 종료 후 포커스 유지 및 가상 클릭
             setTimeout(() => {
                 targetEl.focus();
                 
-                // [중요] 아이폰/안드로이드에서 키보드를 강제로 올리기 위한 트리거
+                // input 태그인 경우 클릭 이벤트 트리거 및 기존 값 선택
                 if (targetEl.tagName === 'INPUT') {
                     targetEl.click(); 
+                    if(targetEl.value.length > 0) {
+                        // 기존 숫자가 있다면 전체 선택하여 바로 수정 가능하게 함
+                        targetEl.setSelectionRange(0, targetEl.value.length);
+                    }
                 }
-            }, 300); // 스크롤 애니메이션 시간을 고려한 지연
+            }, 300);
         }
     }
 }
