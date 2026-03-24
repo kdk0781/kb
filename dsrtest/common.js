@@ -1,85 +1,174 @@
-/**
- * [DSR Calculator System] 
- * Version: 260323_F (Full Integration)
- * Description: 다크모드 텍스트 컬러 완벽 보정 및 동적 요소 스타일 자동화
- */
+/* =============================================================================
+   [DSR 정밀 진단 계산기 - 260323_F 마스터 로직 완전 복구본]
+   파일명: common.js / 업데이트: 2026. 03. 25.
+   수정사항: 연간 상환액 산식 교정, 한도 역산 엔진 복구, UI ID 매칭 완결
+   ============================================================================= */
 
-const DSR_App = {
-    // [1] 다크모드 전용 컬러 강제 주입 로직
-    applyDarkStyles: function() {
-        const isDark = document.body.classList.contains('dark');
-        if (!isDark) return;
+// [1] 전역 초기화 및 시스템 설정
+const NOTICE_VERSION = "0781_2"; 
+let lastFocusId = null, proceedOnConfirm = false, loanCount = 0;
+let currentScheduleType = 'P'; // P: 원금균등, L: 원리금균등
 
-        // 보정이 필요한 모든 타겟 추출 (입력창, 팝업 텍스트, 표 데이터)
-        const targets = document.querySelectorAll(`
-            input, select, textarea, 
-            .main-text, .sub-text, 
-            .notice-header, td, .total-amount
-        `);
+window.onload = function() {
+    applySystemTheme();
+    initNotice();
+    addLoan(); // 기본 1개 생성
+    const confirmBtn = document.getElementById('modalConfirm');
+    if (confirmBtn) confirmBtn.onclick = handleModalConfirm;
+};
 
-        targets.forEach(el => {
-            // 브라우저의 Autofill 및 기본 스타일을 무시하고 흰색 강제
-            el.style.setProperty('color', '#ffffff', 'important');
-            el.style.setProperty('-webkit-text-fill-color', '#ffffff', 'important');
-            
-            // 인풋 요소일 경우 자동완성 배경색 전이 방지
-            if (el.tagName === 'INPUT') {
-                el.style.setProperty('transition', 'background-color 5000s ease-in-out 0s', 'important');
-            }
-        });
-        console.log("260323_F: 다크모드 시각적 보정 완료");
-    },
+function applySystemTheme() {
+    const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    document.body.classList.toggle('dark', isDark);
+    document.body.classList.toggle('white', !isDark);
+}
 
-    // [2] 동적 요소 감시자 (MutationObserver)
-    // '부채 항목 추가' 버튼 클릭으로 새로운 카드가 생길 때마다 자동으로 스타일 적용
-    initDynamicObserver: function() {
-        const targetNode = document.querySelector('.loan-list-container') || document.body;
-        
-        const config = { childList: true, subtree: true };
-        
-        const callback = (mutationsList) => {
-            for (const mutation of mutationsList) {
-                if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-                    // 새로운 노드가 추가되면 50ms 후 스타일 재보정 (렌더링 시간 고려)
-                    setTimeout(() => this.applyDarkStyles(), 50);
-                }
-            }
-        };
+/* [2] 유효성 검사 및 모바일 포커스 제어 */
+function showAlert(msg, focusId = null, icon = "⚠️", allowProceed = false) {
+    const modal = document.getElementById('customModal');
+    document.getElementById('modalMsg').innerHTML = msg;
+    document.getElementById('modalIcon').innerText = icon;
+    lastFocusId = focusId; proceedOnConfirm = allowProceed;
+    modal.style.display = 'flex';
+}
 
-        const observer = new MutationObserver(callback);
-        observer.observe(targetNode, config);
-    },
-
-    // [3] 앱 초기화 및 이벤트 바인딩
-    startup: function() {
-        // DOM 로드 즉시 실행
-        this.applyDarkStyles();
-        this.initDynamicObserver();
-
-        // 테마 토글 버튼이 있을 경우 연동
-        const themeBtn = document.querySelector('.theme-toggle');
-        if (themeBtn) {
-            themeBtn.addEventListener('click', () => {
-                // 클래스 변경 시간을 고려하여 지연 실행
-                setTimeout(() => this.applyDarkStyles(), 100);
-            });
-        }
-
-        // 팝업(noticePopup) 노출 여부 상시 체크
-        const popup = document.getElementById('noticePopup');
-        if (popup) {
-            const popupObserver = new MutationObserver(() => this.applyDarkStyles());
-            popupObserver.observe(popup, { attributes: true, attributeFilter: ['style', 'class'] });
+function handleModalConfirm() {
+    document.getElementById('customModal').style.display = 'none';
+    if (proceedOnConfirm) { calculateLogic(); } 
+    else if (lastFocusId) {
+        const el = document.getElementById(lastFocusId);
+        if (el) {
+            el.focus(); // iOS 키보드 호출용 동기 포커스
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setTimeout(() => { el.focus(); if(el.tagName === 'INPUT') el.click(); }, 300);
         }
     }
-};
+}
 
-// [실행 영역]
-document.addEventListener('DOMContentLoaded', () => {
-    DSR_App.startup();
-});
+/* [3] 입력 유틸리티 */
+function getNum(val) { return Number(val.toString().replace(/,/g, "")) || 0; }
+function formatComma(obj) {
+    let val = obj.value.replace(/[^0-9]/g, "");
+    obj.value = val.length > 0 ? Number(val).toLocaleString() : "";
+}
 
-// 페이지의 모든 리소스(이미지 등)가 로드된 후 최종 1회 더 실행
-window.onload = () => {
-    DSR_App.applyDarkStyles();
-};
+/* [4] 메인 계산 엔진 (로직 깨짐 전면 수정) */
+function calculateTotalDSR() {
+    const income = getNum(document.getElementById('income').value);
+    if (income <= 0) { showAlert("연간 세전 소득을 입력해주세요.", "income"); return; }
+    
+    const items = document.querySelectorAll('[id^="loan_"]');
+    if (items.length === 0) { showAlert("부채 항목을 추가해주세요."); return; }
+
+    let missingRate = false;
+    items.forEach(item => {
+        if (getNum(item.querySelector('.l-p').value) <= 0) {
+            showAlert("대출 금액을 입력해주세요.", item.querySelector('.l-p').id);
+            return;
+        }
+        if (Number(item.querySelector('.l-r').value || 0) <= 0) missingRate = true;
+    });
+
+    if (missingRate) showAlert("금리 미입력 항목은 <b>표준 금리</b>가 적용됩니다.", null, "ℹ️", true);
+    else calculateLogic();
+}
+
+function calculateLogic() {
+    const income = getNum(document.getElementById('income').value);
+    const items = document.querySelectorAll('[id^="loan_"]');
+    
+    let totalAnnPay = 0; 
+    let bR = 4.5, bSR = 1.15, bM = 360; // 기준값 (첫 번째 항목)
+
+    items.forEach((item, index) => {
+        const cat = item.querySelector('.l-category').value;
+        const P = getNum(item.querySelector('.l-p').value);
+        const R = Number(item.querySelector('.l-r').value || item.querySelector('.l-r').placeholder);
+        const SR = Number(item.querySelector('.l-sr-select').value);
+        const n = getNum(item.querySelector('.l-m').value);
+        
+        if (index === 0) { bR = R; bSR = SR; bM = n; }
+        const r_m = (R + SR) / 1200; // 월이율 (스트레스 포함)
+
+        if (P > 0) {
+            let annPay = 0;
+            if (cat === 'mortgage_prin') {
+                // [정밀 산식] 원금균등: (1년치 원금) + (연평균 이자)
+                annPay = (P / n * 12) + (P * r_m * (n + 1) / 2) / (n / 12);
+            } else if (cat === 'jeonse') {
+                // 전세: 순수 이자만 연간 상환액으로 산정
+                annPay = P * (R / 100);
+            } else {
+                // 원리금균등 (PMT 공식): 주담대(원리금), 신용, 오피스텔, 카드론 통합
+                annPay = ((P * r_m * Math.pow(1 + r_m, n)) / (Math.pow(1 + r_m, n) - 1)) * 12;
+            }
+            totalAnnPay += annPay;
+        }
+    });
+
+    const dsr = (totalAnnPay / income) * 100;
+    const targetAnnPay = income * 0.4; // DSR 40% 법정 한도
+    const r_lim = (bR + bSR) / 1200;
+    
+    // [핵심] 방식별 최대 한도 역산 로직
+    const maxL = (targetAnnPay / 12) * (Math.pow(1 + r_lim, bM) - 1) / (r_lim * Math.pow(1 + r_lim, bM));
+    const maxP = targetAnnPay / ((12 / bM) + (r_lim * (bM + 1)));
+    
+    // [핵심] 현재 추가 가능 대출액 (40% 여유분 기반)
+    const addLimAnn = Math.max(0, targetAnnPay - totalAnnPay);
+    const addLim = (addLimAnn / 12) * (Math.pow(1 + r_lim, bM) - 1) / (r_lim * Math.pow(1 + r_lim, bM));
+
+    // UI 데이터 바인딩
+    document.getElementById('resultArea').style.display = 'block';
+    document.getElementById('dsrVal').innerText = dsr.toFixed(2) + '%';
+    document.getElementById('remainingLimit').innerText = Math.floor(addLimit).toLocaleString() + ' 원';
+    document.getElementById('absMaxPrin').innerText = Math.floor(maxP).toLocaleString() + ' 원';
+    document.getElementById('absMaxLevel').innerText = Math.floor(maxL).toLocaleString() + ' 원';
+    
+    // 진행바 상태 업데이트
+    const bar = document.getElementById('dsrBar');
+    if(bar) {
+        bar.style.width = Math.min(dsr, 100) + '%';
+        bar.style.backgroundColor = dsr > 40 ? '#e74c3c' : '#2ecc71';
+    }
+
+    document.getElementById('recDesc').innerHTML = dsr > 32 ? "<b>🚨 한도 확보 긴급:</b> 원금균등 방식을 권장합니다." : "<b>✅ 자금 건전성 양호:</b> 원리금균등 방식을 권장합니다.";
+    
+    if (document.getElementById('btnShowSchedule')) document.getElementById('btnShowSchedule').style.display = 'block';
+    window.scrollTo({ top: document.getElementById('resultArea').offsetTop - 20, behavior: 'smooth' });
+}
+
+/* [5] 상환 스케줄 및 리포트 복사 */
+function toggleSchedule() {
+    const sec = document.getElementById('scheduleSection'), btn = document.getElementById('btnShowSchedule');
+    if (sec.style.display === 'none' || sec.style.display === '') {
+        generateSchedule(); sec.style.display = 'block'; btn.innerText = "🔼 스케줄 접기";
+    } else {
+        sec.style.display = 'none'; btn.innerText = "📊 전체 상환 스케줄 상세 보기";
+    }
+}
+
+function generateSchedule() {
+    const items = document.querySelectorAll('[id^="loan_"]');
+    if (items.length === 0) return;
+    const target = items[0], P = getNum(target.querySelector('.l-p').value), R = Number(target.querySelector('.l-r').value || 4.5), n = getNum(target.querySelector('.l-m').value);
+    const r = R / 1200, listEl = document.getElementById('scheduleList');
+    listEl.innerHTML = "";
+    let bal = P, mP = P/n, mPMT = (P*r*Math.pow(1+r, n))/(Math.pow(1+r, n)-1);
+    
+    for (let i = 1; i <= n; i++) {
+        let curI = bal * r, curP = (currentScheduleType === 'P') ? mP : mPMT - curI;
+        bal -= curP;
+        const div = document.createElement('div');
+        div.className = 'schedule-item';
+        div.innerHTML = `<div class="sch-num">${i}회</div><div>${Math.floor(curP).toLocaleString()}</div><div>${Math.floor(curI).toLocaleString()}</div><div>${Math.max(0, Math.floor(bal)).toLocaleString()}</div>`;
+        listEl.appendChild(div);
+    }
+}
+
+function copyResultText() {
+    const reportText = `[📊 DSR 정밀 진단 리포트]\n● 현재 종합 DSR: ${document.getElementById('dsrVal').innerText}\n● 추가 가능 대출: ${document.getElementById('remainingLimit').innerText}\n🎯 방식별 최대 한도\n- 원금균등: ${document.getElementById('absMaxPrin').innerText}\n- 원리금균등: ${document.getElementById('absMaxLevel').innerText}`;
+    const temp = document.createElement("textarea"); document.body.appendChild(temp);
+    temp.value = reportText; temp.select(); document.execCommand("copy"); document.body.removeChild(temp);
+    showAlert("리포트가 복사되었습니다!", null, "✅");
+}
