@@ -954,6 +954,8 @@ body.dark .notice-overlay {
     border: 1px solid var(--border);
     overflow: hidden;
     background: var(--bg-card);
+	overflow-x: auto;         /* 가로 스크롤 허용 */
+    -webkit-overflow-scrolling: touch; /* iOS에서 부드러운 스크롤 */
 }
 
 .wiki-table {
@@ -961,6 +963,8 @@ body.dark .notice-overlay {
     border-collapse: collapse;
     font-size: 14px;
     line-height: 1.6;
+	min-width: 600px;         /* 핵심: 모바일에서 표가 600px 이하로 줄어들지 않게 고정 */
+    table-layout: fixed;      /* 열 너비를 고정하여 레이아웃 깨짐 방지 */
 }
 
 .wiki-table th,
@@ -1525,6 +1529,13 @@ body.dark select option {
     button {
         min-height: 48px;
     }
+
+	.wiki-table {
+			font-size: 13px;      /* 모바일에선 글자를 살짝 작게 */
+		}
+		.wiki-table td, .wiki-table th {
+			padding: 12px 10px;   /* 여백 최적화 */
+		}
 }
 
 @media (max-width: 360px) {
