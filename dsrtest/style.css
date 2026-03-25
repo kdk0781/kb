@@ -796,7 +796,7 @@ body.dark .notice-overlay {
 
 .tab-btn.active {
     color: var(--kb-dark);
-    background: var(--text-main);
+    background: #f1f3f5;
     border-bottom: 3px solid var(--kb-yellow);
 }
 
@@ -828,6 +828,67 @@ body.dark .notice-overlay {
     font-size: 12px;
     text-align: center;
 }
+
+/* [SCHEDULE TABLE] 요약 행 스타일 */
+.year-summary {
+    background-color: #f8f9fa; /* 화이트 모드: 연그레이 */
+    font-weight: 700;
+}
+
+.summary-label {
+    text-align: center;
+    color: #666;
+    font-size: 13px;
+}
+
+.summary-balance {
+    color: var(--blue); /* 파란색으로 잔액 강조 */
+    text-align: right;
+    padding-right: 15px;
+}
+
+/* 합계 금액 열 (4번째 열) 강조 */
+.col-total {
+    color: #2980b9 !important; /* 화이트 모드: 신뢰의 블루 */
+}
+
+.dark .col-total {
+    color: #ffcc00 !important; /* 다크 모드: KB 옐로우 */
+}
+
+/* 요약 박스 안의 잔액 숫자 */
+.summary-value {
+    color: #e74c3c; /* 잔액은 빨간색 계열로 차별화 (선택) */
+}
+
+
+/* 1년 단위 요약 박스 */
+.year-summary-box {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #f1f3f5;
+    padding: 12px 20px;
+    margin: 5px 0 15px 0;
+    border-radius: 8px;
+    font-size: 13px;
+    border-left: 4px solid #666;
+}
+
+.summary-label span {
+    background: #666;
+    color: #fff;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+    margin-right: 5px;
+}
+
+.summary-value {
+    font-weight: 800;
+    color: #333;
+}
+
 
 .year-divider {
     background: #fff9db;
@@ -1387,6 +1448,26 @@ body.dark select option {
     background: #2c2c2e;
 }
 
+/* 월 상환액 합산 열 강조 */
+.col-total {
+    font-weight: 700;
+    color: var(--blue); /* 화이트: 블루 */
+}
+
+.dark .col-total {
+    color: var(--kb-yellow) !important; /* 다크: KB 옐로우 */
+}
+
+
+.dark .year-summary-box {
+    background-color: #2c2c2e !important;
+    border-left-color: var(--kb-yellow) !important;
+}
+
+.dark .summary-value {
+    color: #ffffff !important;
+}
+
 .dark .sch-prin {
     color: #ffffff;
 }
@@ -1464,6 +1545,29 @@ body.dark select option {
 
 .dark .schedule-container {
     color: #ffffff !important;
+}
+
+/* [다크 모드] 요약 행 보정 */
+.dark .year-summary {
+    background-color: #2c2c2e !important; /* 더 짙은 배경 */
+}
+
+.dark .summary-label {
+    color: #a0a0a0 !important;
+}
+
+.dark .summary-balance {
+    color: var(--kb-yellow) !important; /* 잔액은 노란색으로 강조 */
+}
+
+/* 월 상환액(합산) 열 강조 */
+.highlight-cell {
+    font-weight: 700;
+    background-color: rgba(52, 152, 219, 0.05);
+}
+
+.dark .highlight-cell {
+    background-color: rgba(255, 204, 0, 0.05) !important;
 }
 
 
