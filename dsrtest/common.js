@@ -4,8 +4,8 @@
    2. 정밀 유효성 검증 및 시각 피드백 (Validation & Warning)
    3. 부채 항목 동적 관리 및 정책 바인딩 (Dynamic Management)
    4. 고도화된 DSR 연산 엔진 (Calculation Engine)
-   5. [FIX] 데스크탑/모바일 통합 스크롤 및 UI (UI & Scroll)
-   6. [FIX] 다이나믹 가이드 복구 및 연간 요약 스케줄 (Advanced Scheduling)
+   5. [FIX] 데스크탑/모바일 통합 스크롤 로직 최적화 (UI & Scroll)
+   6. [NEW] 상환스케줄 순서 변경 및 N년차 잔액 디자인 고도화 (Schedule UI)
    7. 시스템 알림 및 리포트 제어 (System Interface)
    ============================================================================= */
 
@@ -140,13 +140,10 @@ function applyPolicy(id) {
     const srSelect = card.querySelector('.l-sr-select');
     const guide = card.querySelector('.dynamic-guide');
 
-    // 가이드 노출 로직 복구
     guide.style.display = 'none';
-    guide.classList.remove('visible');
 
     if (cat === 'officetel' || cat === 'cardloan') {
         guide.style.display = 'block';
-        guide.classList.add('visible');
         if (cat === 'officetel') {
             guide.innerHTML = "⚠️ 오피스텔 보유분은 8년 상환 규정이 적용됩니다.";
             m.value = "96"; r.placeholder = "5.5"; srSelect.value = "0.0";
@@ -203,23 +200,21 @@ function calculateLogic() {
     updateResultsUI(dsr, income, combinedP, bR, bSR, bM);
 }
 
-// [5] UI 고도화 및 Desktop/Mobile 통합 스크롤 로직
+// [5] Desktop/Mobile 통합 스크롤 버그 수정
 function updateResultsUI(dsr, income, combinedP, bR, bSR, bM) {
     const isOver = dsr > CONFIG.DSR_LIMIT;
     const resultArea = document.getElementById('resultArea');
     
-    // 1. 결과창 즉시 노출
+    // 결과창 노출
     resultArea.style.display = 'block';
     
     const dsrView = document.getElementById('dsrVal');
     dsrView.innerText = dsr.toFixed(2) + "%";
     dsrView.style.color = isOver ? "#e74c3c" : "#2ecc71";
     
-    document.getElementById('dsrBar').style.width = Math.min(dsr, 100) + "%";
-    document.getElementById('dsrBar').style.backgroundColor = isOver ? "#e74c3c" : "#2ecc71";
-
-    const recDesc = document.getElementById('recDesc');
-    recDesc.innerHTML = isOver ? "🔴 <b>DSR 한도 초과:</b> 추가 대출이 어렵습니다. 기간 연장이나 금리 인하 대환이 필요합니다." : "🟢 <b>안전 단계:</b> 대출 여력이 충분합니다.";
+    const dsrBar = document.getElementById('dsrBar');
+    dsrBar.style.width = Math.min(dsr, 100) + "%";
+    dsrBar.style.backgroundColor = isOver ? "#e74c3c" : "#2ecc71";
 
     const targetAnnPay = income * 0.4;
     const r_lim = (bR + bSR) / 1200;
@@ -248,23 +243,22 @@ function updateResultsUI(dsr, income, combinedP, bR, bSR, bM) {
 
     updateDetailVisualization(combinedP, bR, bM);
 
-    // [데스크탑 & 모바일 통합 스크롤 핵심]
-    // 렌더링이 완료된 후(Next Frame) 정확한 위치 계산
+    // [중요] 스크롤 미작동 해결: requestAnimationFrame과 정확한 좌표 계산 조합
     requestAnimationFrame(() => {
         setTimeout(() => {
             const rect = resultArea.getBoundingClientRect();
             const winTop = window.pageYOffset || document.documentElement.scrollTop;
-            const targetPos = rect.top + winTop - 20; // 상단 여백 20px
+            const targetPos = rect.top + winTop - 30; // 상단 30px 여유
             
             window.scrollTo({
                 top: targetPos,
                 behavior: 'smooth'
             });
-        }, 150);
+        }, 100);
     });
 }
 
-// [6] 상환 스케줄 고도화 (순서 재정렬 및 연간 요약 보고)
+// [6] 상환 스케줄 고도화 (요청 순서: 회차 | 원금 | 이자 | 합계)
 function generateSchedule() {
     const items = document.querySelectorAll('[id^="loan_"]');
     const target = items[0];
@@ -295,26 +289,36 @@ function generateSchedule() {
 
         const itemDiv = document.createElement('div');
         itemDiv.className = 'schedule-item';
-        // 재정렬: 회차 | 합계(강조) | 상세(작게) | 잔액
+        // 요청하신 순서: 회차 | 원금 | 이자 | 합계
         itemDiv.innerHTML = `
-            <div>${i}회</div>
-            <div style="font-weight:700; color:#2c3e50;">${totalPay.toLocaleString()}</div>
-            <div style="font-size:11px; color:#7f8c8d;">${Math.floor(curP).toLocaleString()} | ${Math.floor(curI).toLocaleString()}</div>
-            <div>${Math.max(0, Math.floor(balance)).toLocaleString()}</div>
+            <div class="sch-idx">${i}회</div>
+            <div class="sch-val">${Math.floor(curP).toLocaleString()}</div>
+            <div class="sch-val">${Math.floor(curI).toLocaleString()}</div>
+            <div class="sch-total" style="font-weight:700; color:#2c3e50;">${totalPay.toLocaleString()}</div>
         `;
         listEl.appendChild(itemDiv);
 
+        // [N년차 스타일 고도화 - 잔액 정보 포함]
         if (i % 12 === 0 || i === n) {
             const yearNum = Math.ceil(i / 12);
             const summaryDiv = document.createElement('div');
-            summaryDiv.className = 'year-divider-summary';
-            summaryDiv.style.cssText = "background:rgba(0,0,0,0.03); padding:10px; margin:8px 0; border-radius:8px; font-size:12px;";
+            summaryDiv.className = 'year-summary-card';
+            summaryDiv.style.cssText = `
+                background: linear-gradient(135deg, #f8f9fa 0%, #f1f3f5 100%);
+                padding: 15px; margin: 12px 0 25px 0; border-radius: 12px;
+                border-left: 6px solid #3498db; box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+            `;
             summaryDiv.innerHTML = `
-                <div style="font-weight:700; margin-bottom:5px; color:#34495e;">📅 ${yearNum}년차 누적 상환 요약</div>
-                <div style="display:flex; justify-content:space-between; color:#666;">
-                    <span>원금누계: <b>${Math.floor(yearCumP).toLocaleString()}</b></span>
-                    <span>이자누계: <b>${Math.floor(yearCumI).toLocaleString()}</b></span>
-                    <span>잔액: <b>${Math.max(0, Math.floor(balance)).toLocaleString()}</b></span>
+                <div style="font-weight:800; font-size:14px; color:#2c3e50; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+                    <span>📅 ${yearNum}년차 누적 상환 요약</span>
+                    <span style="font-size:11px; background:#3498db; color:#fff; padding:2px 8px; border-radius:10px;">${(i/12).toFixed(0)}년 경과</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; font-size:13px; color:#495057;">
+                    <div>누적원금: <b style="color:#2ecc71;">${Math.floor(yearCumP).toLocaleString()}</b></div>
+                    <div>누적이자: <b style="color:#e74c3c;">${Math.floor(yearCumI).toLocaleString()}</b></div>
+                </div>
+                <div style="margin-top:8px; padding-top:8px; border-top:1px dashed #ced4da; text-align:right; font-size:14px;">
+                    현재 대출 잔액: <b style="color:#34495e; font-size:16px;">${Math.max(0, Math.floor(balance)).toLocaleString()}원</b>
                 </div>
             `;
             listEl.appendChild(summaryDiv);
@@ -323,7 +327,7 @@ function generateSchedule() {
     }
 }
 
-// [7] 시스템 인터페이스
+// [7] 시스템 알림 및 공통 기능
 function handleModalConfirm() {
     const modal = document.getElementById('customModal');
     if (modal) modal.style.display = 'none';
