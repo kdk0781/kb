@@ -451,76 +451,67 @@ function copyResultText() {
 let currentScheduleType = 'P'; // P: 원금균등, L: 원리금균등
 
 /**
- * [MOD] 기존 calculateLogic 함수의 가장 마지막 줄에 추가
- * 계산이 완료된 후 상세 스케줄 버튼을 노출하고 데이터를 갱신합니다.
+ * [7] 상환 스케줄 생성 (기간 유동화 및 수치 분리 완벽 반영)
  */
-function refreshScheduleUI() {
-    const btn = document.getElementById('btnShowSchedule');
-    if (btn) btn.style.display = 'block';
+function generateSchedule(mode = 'P') {
+    const listContainer = document.getElementById('scheduleList');
+    if (!listContainer) return;
+    listContainer.innerHTML = ''; 
 
-    const sec = document.getElementById('scheduleSection');
-    // 섹션이 이미 열려있는 상태라면 데이터 자동 갱신
-    if (sec && sec.style.display === 'block') {
-        generateSchedule();
-    }
-}
+    // [7-1] 기간 실시간 반영: 사용자가 입력한 현재 값(l-m)을 읽어옴
+    const firstLoan = document.querySelector('.l-p')?.closest('[id^="loan_"]') || document.querySelector('[id^="loan_"]');
+    if (!firstLoan) return;
 
-/**
- * [NEW] 전체 상환 스케줄 생성 (12개월 구분선 로직 포함)
- */
-function generateSchedule() {
-    const items = document.querySelectorAll('[id^="loan_"]');
-    let target = null;
-    
-    // 주담대 또는 오피스텔 항목을 우선적으로 스케줄 대상으로 선정
-    items.forEach(item => {
-        const cat = item.querySelector('.l-category').value;
-        if(cat.includes('mortgage') || cat === 'officetel') target = item;
-    });
-    if(!target) target = items[0]; // 항목이 없으면 첫 번째 항목 기준
-
-    const P = getNum(target.querySelector('.l-p').value);
-    const R = Number(target.querySelector('.l-r').value || target.querySelector('.l-r').placeholder);
-    const n = getNum(target.querySelector('.l-m').value);
+    const P = safeGetNum(firstLoan.querySelector('.l-p')?.value);
+    const R = parseFloat(firstLoan.querySelector('.l-r')?.value) || 4.5;
+    const n = parseInt(firstLoan.querySelector('.l-m')?.value) || 360; 
     const r = R / 1200;
 
-    const listEl = document.getElementById('scheduleList');
-    listEl.innerHTML = ""; // 리스트 초기화
+    if (P <= 0 || n <= 0) return;
 
     let balance = P;
-    const mP = P / n; // 원금균등 매달 원금
-    const mPMT = (P * r * Math.pow(1+r, n)) / (Math.pow(1+r, n)-1); // 원리금균등 매달 상환액
+    const pmt = (r > 0) ? (P * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1) : P / n;
+
+    const fragment = document.createDocumentFragment();
 
     for (let i = 1; i <= n; i++) {
-        // 12개월(1년) 단위로 연차 구분선 삽입
-        if (i > 1 && (i - 1) % 12 === 0) {
-            const yearDiv = document.createElement('div');
-            yearDiv.className = 'year-divider';
-            yearDiv.innerText = `📅 대출 실행 ${(i - 1) / 12}년 경과 (현재 잔액: ${Math.floor(balance).toLocaleString()}원)`;
-            listEl.appendChild(yearDiv);
-        }
+        let mP, mI;
 
-        let curP, curI;
-        if (currentScheduleType === 'P') {
-            curI = balance * r;
-            curP = mP;
-            balance -= curP;
-        } else {
-            curI = balance * r;
-            curP = mPMT - curI;
-            balance -= curP;
+        // [7-2] 방식별 수치 분리: 원금 vs 원리금 수치 오류 해결
+        if (mode === 'L') { 
+            mI = balance * r; 
+            mP = pmt - mI; 
+        } else { 
+            mP = P / n; 
+            mI = balance * r; 
         }
+        
+        const mTotal = mP + mI; // 원금+이자 합계
+        balance -= mP; // 잔액 차감
 
-        const itemDiv = document.createElement('div');
-        itemDiv.className = 'schedule-item';
-        itemDiv.innerHTML = `
-            <div class="sch-num">${i}회</div>
-            <div class="sch-prin">${Math.floor(curP).toLocaleString()}</div>
-            <div class="sch-int">${Math.floor(curI).toLocaleString()}</div>
-            <div class="sch-bal">${Math.max(0, Math.floor(balance)).toLocaleString()}</div>
+        const row = document.createElement('div');
+        row.className = 'schedule-item';
+        row.innerHTML = `
+            <div>${i}회</div>
+            <div>${Math.floor(mP).toLocaleString()}원</div>
+            <div>${Math.floor(mI).toLocaleString()}원</div>
+            <div class="col-total" style="font-weight:bold; color:var(--blue);">${Math.floor(mTotal).toLocaleString()}원</div>
         `;
-        listEl.appendChild(itemDiv);
+        fragment.appendChild(row);
+
+        // [7-3] 1년 주기 잔액 요약 (image_8bb1a0 대응)
+        if (i % 12 === 0 || i === n) {
+            const summary = document.createElement('div');
+            summary.className = 'year-summary-box';
+            const displayBal = (i === n) ? 0 : Math.max(0, Math.floor(balance));
+            summary.innerHTML = `
+                <div class="summary-label"><span>${Math.ceil(i/12)}년차</span> 잔액</div>
+                <div class="summary-value">${displayBal.toLocaleString()} 원</div>
+            `;
+            fragment.appendChild(summary);
+        }
     }
+    listContainer.appendChild(fragment);
 }
 
 
