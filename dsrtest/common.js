@@ -466,62 +466,69 @@ function refreshScheduleUI() {
 }
 
 /**
- * [NEW] 전체 상환 스케줄 생성 (12개월 구분선 로직 포함)
+ * 상세 상환 스케줄 생성 (핵심 요청 사항 반영)
  */
-function generateSchedule() {
-    const items = document.querySelectorAll('[id^="loan_"]');
-    let target = null;
-    
-    // 주담대 또는 오피스텔 항목을 우선적으로 스케줄 대상으로 선정
-    items.forEach(item => {
-        const cat = item.querySelector('.l-category').value;
-        if(cat.includes('mortgage') || cat === 'officetel') target = item;
-    });
-    if(!target) target = items[0]; // 항목이 없으면 첫 번째 항목 기준
+function generateSchedule(mode = 'P') {
+    const listContainer = document.getElementById('scheduleList');
+    if (!listContainer) return;
+    listContainer.innerHTML = '';
 
-    const P = getNum(target.querySelector('.l-p').value);
-    const R = Number(target.querySelector('.l-r').value || target.querySelector('.l-r').placeholder);
-    const n = getNum(target.querySelector('.l-m').value);
+    // 실시간 데이터 취득: 기간(180-600개월) 변경 시 즉시 반영
+    const firstLoan = document.querySelector('.l-p')?.closest('[id^="loan_"]') || document.querySelector('[id^="loan_"]');
+    if (!firstLoan) return;
+
+    const P = safeGetNum(firstLoan.querySelector('.l-p')?.value);
+    const R = parseFloat(firstLoan.querySelector('.l-r')?.value) || 4.5;
+    const n = parseInt(firstLoan.querySelector('.l-m')?.value) || 360;
     const r = R / 1200;
 
-    const listEl = document.getElementById('scheduleList');
-    listEl.innerHTML = ""; // 리스트 초기화
+    if (P <= 0 || n <= 0) return;
 
     let balance = P;
-    const mP = P / n; // 원금균등 매달 원금
-    const mPMT = (P * r * Math.pow(1+r, n)) / (Math.pow(1+r, n)-1); // 원리금균등 매달 상환액
+    const pmt = (r > 0) ? (P * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1) : P / n;
+
+    const fragment = document.createDocumentFragment();
 
     for (let i = 1; i <= n; i++) {
-        // 12개월(1년) 단위로 연차 구분선 삽입
-        if (i > 1 && (i - 1) % 12 === 0) {
-            const yearDiv = document.createElement('div');
-            yearDiv.className = 'year-divider';
-            yearDiv.innerText = `📅 대출 실행 ${(i - 1) / 12}년 경과 (현재 잔액: ${Math.floor(balance).toLocaleString()}원)`;
-            listEl.appendChild(yearDiv);
-        }
+        let mP, mI;
 
-        let curP, curI;
-        if (currentScheduleType === 'P') {
-            curI = balance * r;
-            curP = mP;
-            balance -= curP;
-        } else {
-            curI = balance * r;
-            curP = mPMT - curI;
-            balance -= curP;
+        // 상환 방식 수치 분리: 원금균등 vs 원리금균등 명확히 구분
+        if (mode === 'L') { 
+            mI = balance * r;
+            mP = pmt - mI;
+        } else { 
+            mP = P / n;
+            mI = balance * r;
         }
+        
+        const mTotal = mP + mI;
+        balance -= mP;
 
-        const itemDiv = document.createElement('div');
-        itemDiv.className = 'schedule-item';
-        itemDiv.innerHTML = `
-            <div class="sch-num">${i}회</div>
-            <div class="sch-prin">${Math.floor(curP).toLocaleString()}</div>
-            <div class="sch-int">${Math.floor(curI).toLocaleString()}</div>
-            <div class="sch-bal">${Math.max(0, Math.floor(balance)).toLocaleString()}</div>
+        const row = document.createElement('div');
+        row.className = 'schedule-item';
+        row.innerHTML = `
+            <div>${i}회</div>
+            <div>${Math.floor(mP).toLocaleString()}원</div>
+            <div>${Math.floor(mI).toLocaleString()}원</div>
+            <div class="col-total" style="font-weight:bold; color:var(--blue);">${Math.floor(mTotal).toLocaleString()}원</div>
         `;
-        listEl.appendChild(itemDiv);
+        fragment.appendChild(row);
+
+        // 1년 주기 요약: 12회차마다 남은 잔액 박스 표시
+        if (i % 12 === 0 || i === n) {
+            const summary = document.createElement('div');
+            summary.className = 'year-summary-box';
+            const displayBal = (i === n) ? 0 : Math.max(0, Math.floor(balance));
+            summary.innerHTML = `
+                <div class="summary-label"><span>${Math.ceil(i/12)}년차</span> 남은 잔액 요약</div>
+                <div class="summary-value">${displayBal.toLocaleString()} 원</div>
+            `;
+            fragment.appendChild(summary);
+        }
     }
+    listContainer.appendChild(fragment);
 }
+
 
 
 
