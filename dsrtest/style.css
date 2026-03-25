@@ -796,7 +796,7 @@ body.dark .notice-overlay {
 
 .tab-btn.active {
     color: var(--kb-dark);
-    background: var(--bg-card);
+    background: var(--text-main);
     border-bottom: 3px solid var(--kb-yellow);
 }
 
@@ -999,7 +999,7 @@ body.dark .notice-overlay {
 
 .schedule-tabs {
     display: flex;
-    background: var(--bg-section);
+    background: var(--bg-card);
     border-radius: 12px 12px 0 0;
     overflow: hidden;
     border: 1px solid var(--border);
