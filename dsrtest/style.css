@@ -342,7 +342,6 @@ select {
     font-weight: 800;
     white-space: nowrap;
     box-shadow: 0 4px 12px rgba(255, 204, 0, 0.4);
-    display: none;
 }
 
 .max-item.recommended .rec-badge {
