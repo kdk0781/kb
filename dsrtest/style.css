@@ -1459,9 +1459,10 @@ body.dark select option {
 }
 
 
-.dark .year-summary-box {
+.dark .year-summary-card {
     background-color: #2c2c2e !important;
     border-left-color: var(--kb-yellow) !important;
+
 }
 
 .dark .summary-value {
