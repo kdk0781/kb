@@ -845,7 +845,6 @@ body.dark .wiki-blue-text { color: var(--accent-blue); }
 .modal-text {
   font-size: 14px; color: var(--text-secondary);
   line-height: 1.68; margin-bottom: 18px; word-break: keep-all;
-  text-align: left;
 }
 
 /* 금리 미입력 모달 큐 전용 스타일 */
