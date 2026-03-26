@@ -1,9 +1,10 @@
 const CACHE_NAME = 'kb-interest-v2';
 const urlsToCache = [
-  '/kb/interest/index.html',
-  '/kb/interest/style.css',
-  '/kb/interest/script.js',
-  '/kb/interest/interest.json'
+  './index.html',
+  './style.css',
+  './script.js',
+  './interest.json',
+  '../ico/interest.png'
 ];
 
 // 서비스 워커 설치
