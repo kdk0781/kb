@@ -34,13 +34,36 @@
         </svg>
     </button>
 
+	<div id="notice-overlay" class="notice-overlay">
+		<div id="notice-content" class="notice-content">
+			<div class="notice-header">
+				<h3>KB 금리표 공지사항</h3>
+				<button onclick="closeNoticeTemporarily()" class="close-top-btn" title="이번 주 닫기">×</button>
+			</div>
+			
+			<div class="notice-body">
+				<p><strong>[시스템 업데이트 안내]</strong></p>
+				<p>접속시 이전 금리가 노출되면 브라우저 캐시를 지워야 합니다</p>
+				<p>각 브라우저 인터넷 사용 기록삭제</p>
+				<p>캐시된 이미지 및 파일 삭제후 새로고침</p>
+			</div>
+			
+			<div class="notice-footer">
+				<button onclick="closeNoticeNextWeek()" class="close-until-btn">
+					다음 주 월요일까지 보지 않기 (닫기)
+				</button>
+			</div>
+		</div>
+	</div>
+
+
     <footer class="footer-info">
         <p>시스템 설정에 따라 테마가 자동 적용됩니다.</p>
         <p>오늘 기준 금리이며 잔금일 기준 금리는 변동될수 있습니다.</p>
     </footer>
 
 
-	<script src="script.js"></script>
+	<script src="script.js?v0781_2"></script>
     <script src="sw.js"></script>
 </body>
 </html>

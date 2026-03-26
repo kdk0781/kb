@@ -44,10 +44,10 @@ function renderSummary() {
 
 function renderContent() {
     const groups = [
-        { title: "주택담보대출", desc: "부동산 담보 대출 금리 리포트 <br/> <b style='color:var(--red);'>이전 금리가 표시되는 경우 브라우저 캐시삭제</b>", id: 'mort' },
-        { title: "전세 (HF 주택금융공사)", desc: "공사 보증 전세자금대출 <br/> 접수 가능 기간 : 잔금일 기준(포함) 50일 전부터 <br/> <b style='color:var(--red);'>이전 금리가 표시되는 경우 브라우저 캐시삭제</b>", id: 'hf' },
-        { title: "전세 (HUG 주택도시보증)", desc: "안심전세 보증금 반환보증 <br/> 접수 가능 기간 : 잔금일 기준(포함) 30일 전부터 <br/><b style='color:var(--red);'>이전 금리가 표시되는 경우 브라우저 캐시삭제</b>", id: 'hug' },
-        { title: "전세 (SGI 서울보증보험)", desc: "고액 전세자금 SGI 보증 <br/> 접수 가능 기간 : 잔금일 기준(포함) 45일 전부터 <br/><b style='color:var(--red);'>이전 금리가 표시되는 경우 브라우저 캐시삭제</b>", id: 'sgi' }
+        { title: "주택담보대출", desc: "부동산 담보 대출 금리 리포트 <br/> <b style='color:var(--red);'>접속시 이전 금리가 표시되는 경우 브라우저 캐시삭제</b>", id: 'mort' },
+        { title: "전세 (HF 주택금융공사)", desc: "공사 보증 전세자금대출 <br/> 접수 가능 기간 : 잔금일 기준(포함) 50일 전부터 <br/> <b style='color:var(--red);'>접속시 이전 금리가 표시되는 경우 브라우저 캐시삭제</b>", id: 'hf' },
+        { title: "전세 (HUG 주택도시보증)", desc: "안심전세 보증금 반환보증 <br/> 접수 가능 기간 : 잔금일 기준(포함) 30일 전부터 <br/><b style='color:var(--red);'>접속시 이전 금리가 표시되는 경우 브라우저 캐시삭제</b>", id: 'hug' },
+        { title: "전세 (SGI 서울보증보험)", desc: "고액 전세자금 SGI 보증 <br/> 접수 가능 기간 : 잔금일 기준(포함) 45일 전부터 <br/><b style='color:var(--red);'>접속시 이전 금리가 표시되는 경우 브라우저 캐시삭제</b>", id: 'sgi' }
     ];
 
     let finalHtml = "";
@@ -181,3 +181,81 @@ window.onload = () => {
     startClock();
 };
 
+/* ======================================================
+   7. 공지사항 팝업 고도화 (다음 주 월요일 재오픈 로직)
+   ===================================================== */
+
+const NOTICE_KEY = 'kb_notice_next_monday';
+
+// 1. 공지사항 팝업 띄우기 함수 (아래서 위로 부드럽게)
+function showNotice() {
+    const overlay = document.getElementById('notice-overlay');
+    
+    // 이전에 저장된 '닫기 시간' 확인 (없으면 공지사항 띄움)
+    const storedCloseTime = localStorage.getItem(NOTICE_KEY);
+    if (storedCloseTime) {
+        const storedDate = new Date(parseInt(storedCloseTime));
+        const today = new Date();
+
+        // [중요 로직] 오늘이 저장된 날짜와 같은 주(Monday 기준)에 포함되는지 확인
+        if (isSameWeek(today, storedDate)) {
+            // 같은 주라면 공지사항을 띄우지 않음
+            console.log("공지사항: 이번 주 닫기 상태 유지");
+            return;
+        } else {
+            // 다른 주(다음 주 월요일 이후)라면 저장된 시간 삭제 후 공지사항 띄움
+            localStorage.removeItem(NOTICE_KEY);
+            console.log("공지사항: 다음 주 월요일이 되어 다시 표시");
+        }
+    }
+
+    // 팝업 표시 및 CSS 애니메이션 트리거
+    setTimeout(() => { overlay.classList.add('active'); }, 100);
+}
+
+// 2. [고도화] 오늘이 저장된 날짜와 같은 주(월요일 기준)인지 확인하는 함수
+function isSameWeek(today, storedDate) {
+    // 요일을 0(일요일) ~ 6(토요일)로 가져옴
+    const todayDay = today.getDay(); 
+    const storedDay = storedDate.getDay();
+
+    // 월요일을 기준(1)으로 각 요일의 오프셋 계산 (일요일은 7로 처리)
+    const todayMondayOffset = todayDay === 0 ? 7 : todayDay;
+    const storedMondayOffset = storedDay === 0 ? 7 : storedDay;
+
+    // 해당 요일을 월요일로 강제로 맞춰서 같은 주인지 비교
+    const todayMonday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - todayMondayOffset + 1);
+    const storedMonday = new Date(storedDate.getFullYear(), storedDate.getMonth(), storedDate.getDate() - storedMondayOffset + 1);
+
+    // 연도와 월요일 날짜가 같으면 같은 주
+    return todayMonday.getTime() === storedMonday.getTime();
+}
+
+// 3. 우측 상단 '×' 버튼: 이번 주 닫기 (localStorage에 현재 시간 저장)
+function closeNoticeTemporarily() {
+    localStorage.setItem(NOTICE_KEY, new Date().getTime());
+    hideNoticeWithAnimation();
+}
+
+// 4. 하단 '다음 주 월요일까지 보지 않기' 버튼: 동일한 로직 적용
+function closeNoticeNextWeek() {
+    closeNoticeTemporarily();
+}
+
+// 5. 팝업 부드럽게 숨기기 함수
+function hideNoticeWithAnimation() {
+    const overlay = document.getElementById('notice-overlay');
+    overlay.classList.remove('active');
+    setTimeout(() => { overlay.style.display = 'none'; }, 500); // 애니메이션 후 완전히 숨김
+}
+
+// 6. 페이지 로드 완료 시 공지사항 상태 확인
+window.onload = () => {
+    console.log("페이지 로드 완료");
+    renderSummary();
+    renderContent();
+    startClock();
+    
+    // [추가] 공지사항 팝업 여부 확인
+    showNotice();
+};

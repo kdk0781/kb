@@ -146,3 +146,75 @@ body { font-family: 'Pretendard', sans-serif; background-color: var(--bg-body); 
 .footer-info { padding: 60px 20px; text-align: center; font-size: 0.8rem; color: var(--text-sub); opacity: 0.6; line-height: 1.6; }
 .footer-info h3 { color: var(--kb-yellow); font-weight: 800; margin-bottom: 15px; }
 .footer-info p { margin: 5px 0; }
+
+/* ======================================================
+   6. 공지사항 팝업 고도화 (이미지 테마 반영)
+   ====================================================== */
+
+/* 팝업 오버레이 (배경 블러 처리) */
+.notice-overlay {
+    display: none; /* 기본은 숨김 */
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.7); /* 배경 어둡게 */
+    backdrop-filter: blur(5px); /* 이미지처럼 배경 블러 */
+    z-index: 2000; /* 최상단 배치 */
+    justify-content: center; align-items: flex-end; /* 아래에서 올라오도록 */
+    opacity: 0; transition: opacity 0.4s ease;
+}
+
+/* 팝업 본문 (이미지 카드 스타일 계승) */
+.notice-content {
+    width: 100%; max-width: 500px; /* 모바일 중심 */
+    background: var(--bg-card); /* 이미지 카드 배경색 */
+    border-radius: 24px 24px 0 0; /* 아래서 올라오는 모바일 앱 스타일 */
+    border: 1.5px solid var(--border-color); 
+    border-bottom: none; /* 하단 테두리 제거 */
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5); /* 상단 그림자 */
+    
+    /* [중요] 아래서 위로 부드럽게 올라오는 애니메이션 */
+    transform: translateY(100%); 
+    transition: transform 0.5s cubic-bezier(0.32, 1, 0.67, 1);
+}
+
+/* 활성화 상태 (CSS 애니메이션 트리거) */
+.notice-overlay.active { display: flex; opacity: 1; }
+.notice-overlay.active .notice-content { transform: translateY(0); }
+
+/* 팝업 헤더 (이미지 블랙 & 골드 테마 반영) */
+.notice-header {
+    padding: 20px 25px;
+    background: var(--bg-item); /* 이미지의 서머리바 배경색 */
+    border-radius: 24px 24px 0 0;
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid var(--border-color);
+}
+/* 이미지 상품명 스타일 */
+.notice-header h3 { margin: 0; font-size: 1.1rem; font-weight: 800; color: var(--kb-yellow); }
+
+/* 이미지 BEST 라벨 스타일을 닫기 버튼으로 변경 */
+.close-top-btn {
+    background: var(--kb-yellow); color: #000;
+    border: none; border-radius: 8px; font-size: 1.4rem; font-weight: 900;
+    width: 32px; height: 32px; cursor: pointer;
+    display: flex; justify-content: center; align-items: center;
+    transition: 0.2s;
+}
+.close-top-btn:active { transform: scale(0.9); opacity: 0.9; }
+
+/* 팝업 본문 (이미지 카드 내부 스타일) */
+.notice-body { padding: 25px; color: var(--text-main); font-size: 0.9rem; line-height: 1.7; }
+.notice-body strong { color: var(--kb-yellow); font-weight: 700; }
+.notice-body p { margin: 0 0 12px; }
+
+/* 팝업 푸터 (이미지 타겟 박스 강조 효과) */
+.notice-footer { padding: 0 25px 30px; }
+.close-until-btn {
+    width: 100%; padding: 16px; 
+    border-radius: 16px;
+    background: var(--bg-body); /* 이미지 카드 내부 박스 배경색 */
+    border: 1.5px solid var(--kb-yellow); /* 노란색 네온 테두리 */
+    color: var(--kb-yellow); /* 노란색 수치 색상 계승 */
+    font-size: 0.95rem; font-weight: 800; cursor: pointer;
+    transition: 0.2s;
+}
+.close-until-btn:active { transform: scale(0.98); background: rgba(255, 188, 0, 0.1); }
