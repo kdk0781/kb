@@ -105,7 +105,6 @@ function startClock() {
     setInterval(tick, 1000);
 }
 
-window.onload = () => { renderSummary(); renderContent(); startClock(); };
 
 /* ======================================================
    5. PWA 앱 설치 및 서비스 워커 등록
@@ -137,49 +136,43 @@ if (window.matchMedia('(display-mode: standalone)').matches) {
 }
 
 /* ======================================================
-   6. 새로고침 로직 (Button & Pull-to-Refresh)
+   4. 새로고침 로직 (확실한 작동 보장형)
    ====================================================== */
-
 function refreshData() {
+    console.log("새로고침 시작..."); // 브라우저 개발자 도구(F12)에서 확인 가능
+    
     const fab = document.getElementById('fab-refresh');
-    // 버튼 회전 애니메이션
-    fab.style.transition = "transform 0.5s ease";
-    fab.style.transform = "rotate(360deg)";
     
-    // 데이터 갱신
-    renderSummary();
-    renderContent();
-    
+    // 1. 시각적 피드백 (버튼 회전)
+    if (fab) {
+        fab.style.transition = "transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)";
+        fab.style.transform = "rotate(360deg)";
+    }
+
+    // 2. 데이터 재렌더링
+    try {
+        renderSummary(); // 상단 요약 바 갱신
+        renderContent(); // 하단 카드 리스트 갱신
+        console.log("데이터 렌더링 완료");
+    } catch (error) {
+        console.error("렌더링 중 오류 발생:", error);
+    }
+
+    // 3. 애니메이션 초기화 (0.6초 후)
     setTimeout(() => {
-        fab.style.transform = "rotate(0deg)";
-        fab.style.transition = "none";
-        // 성공 알림 (선택 사항)
-        console.log("금리 데이터가 최신화되었습니다.");
-    }, 500);
+        if (fab) {
+            fab.style.transition = "none";
+            fab.style.transform = "rotate(0deg)";
+        }
+    }, 600);
 }
 
-// 2. 모바일 '당겨서 새로고침' 구현
-let startY = 0;
-const pullIndicator = document.getElementById('pull-indicator');
+// 초기 로드 시 실행 확인
+window.onload = () => {
+    console.log("페이지 로드 완료");
+    renderSummary();
+    renderContent();
+    startClock();
+};
 
-window.addEventListener('touchstart', (e) => {
-    if (window.scrollY === 0) startY = e.touches[0].pageY;
-}, {passive: true});
-
-window.addEventListener('touchmove', (e) => {
-    const y = e.touches[0].pageY;
-    const pullDistance = y - startY;
-    
-    if (window.scrollY === 0 && pullDistance > 80) {
-        pullIndicator.classList.add('visible');
-    }
-}, {passive: true});
-
-window.addEventListener('touchend', () => {
-    if (pullIndicator.classList.contains('visible')) {
-        refreshData();
-        setTimeout(() => {
-            pullIndicator.classList.remove('visible');
-        }, 1000);
-    }
-});
+window.onload = () => { renderSummary(); renderContent(); startClock(); };
