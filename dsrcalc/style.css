@@ -368,16 +368,35 @@ select {
 
 /* ── 다이나믹 가이드 ─────────────────────────────────────────────────────── */
 .dynamic-guide {
-  margin-top: 11px; padding: 9px 12px;
-  background: var(--warn-bg);
-  border: 1px solid var(--warn-border);
-  border-left: 4px solid var(--warn);
+  margin-top: 11px; padding: 10px 13px;
   border-radius: var(--radius-sm);
-  font-size: 12px; line-height: 1.7;
-  color: var(--text-secondary);
+  font-size: 12px; line-height: 1.78;
   transition: background var(--dur-base) var(--ease),
               border-color var(--dur-base) var(--ease);
 }
+/* 주의 (오피스텔) */
+.dynamic-guide--warn {
+  background: var(--warn-bg);
+  border: 1px solid var(--warn-border);
+  border-left: 4px solid var(--warn);
+  color: var(--text-secondary);
+}
+/* 위험 강조 (카드론) */
+.dynamic-guide--danger {
+  background: var(--danger-bg);
+  border: 1.5px solid var(--danger-border);
+  border-left: 5px solid var(--danger);
+  color: var(--danger);
+  font-weight: 500;
+}
+.dynamic-guide--danger b { color: var(--danger); font-weight: 800; }
+body.dark .dynamic-guide--danger {
+  background: rgba(248,113,113,.10);
+  border-color: rgba(248,113,113,.30);
+  border-left-color: var(--danger);
+  color: var(--accent-red);
+}
+body.dark .dynamic-guide--danger b { color: var(--accent-red); }
 
 /* ── 액션 버튼 ───────────────────────────────────────────────────────────── */
 .btn-add-loan {
@@ -557,6 +576,57 @@ body.dark .rec-badge { color: var(--kb-yellow); background: rgba(255,184,28,.12)
               border-color var(--dur-base) var(--ease);
 }
 
+/* ── 대출 항목 요약 카드 (스케줄 최상단) ────────────────────────────────── */
+.sch-summary-card {
+  padding: 12px 14px;
+  background: var(--bg-surface-2);
+  border-bottom: 2px solid var(--border-strong);
+}
+.sch-summary-title {
+  font-size: 11px; font-weight: 700;
+  color: var(--text-muted); letter-spacing: .06em;
+  text-transform: uppercase; margin-bottom: 8px;
+}
+.sch-summary-row {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 4px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 12.5px;
+}
+.sch-summary-row:last-child { border-bottom: none; }
+.sch-summary-emoji  { font-size: 14px; width: 20px; flex-shrink: 0; }
+.sch-summary-label  { font-weight: 700; color: var(--text-primary); min-width: 120px; }
+.sch-summary-sep    { color: var(--text-muted); }
+.sch-summary-amount { font-family: var(--font-num); font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.sch-summary-divider{ color: var(--border-strong); margin: 0 2px; }
+.sch-summary-rate   { font-family: var(--font-num); font-weight: 600; color: var(--kb-navy-mid); }
+body.dark .sch-summary-rate { color: var(--accent-blue); }
+.sch-summary-term   { font-family: var(--font-num); font-size: 12px; color: var(--text-muted); }
+
+/* ── 스케줄 계산 헤더 ────────────────────────────────────────────────────── */
+.sch-calc-header {
+  display: flex; flex-direction: column; gap: 3px;
+  padding: 10px 14px;
+  background: var(--kb-navy-light);
+  border-top: 1px solid var(--border-strong);
+  border-bottom: 1.5px solid var(--border-strong);
+}
+body.dark .sch-calc-header { background: var(--bg-surface-3); }
+.sch-calc-title {
+  font-size: 12.5px; font-weight: 800;
+  color: var(--kb-navy-mid); letter-spacing: -.01em;
+}
+body.dark .sch-calc-title { color: var(--text-primary); }
+.sch-calc-meta {
+  font-family: var(--font-num);
+  font-size: 12px; font-weight: 600;
+  color: var(--text-secondary);
+}
+.sch-calc-parts {
+  font-size: 11px; color: var(--text-muted); line-height: 1.5;
+  margin-top: 2px;
+}
+
 /* 탭 */
 .schedule-tabs {
   display: grid; grid-template-columns: 1fr 1fr;
@@ -578,28 +648,31 @@ body.dark .rec-badge { color: var(--kb-yellow); background: rgba(255,184,28,.12)
 }
 body.dark .tab-btn.active { color: var(--text-primary); }
 
-/* 헤더 행 */
+/* ── 헤더 행 & 데이터 행 — 공통 그리드 (정렬 완전 일치) ──────────────────── */
+.schedule-header,
+.schedule-item {
+  display: grid;
+  /* 회차:고정 | 원금:1fr | 이자:1fr | 합계:고정 */
+  grid-template-columns: 52px 1fr 1fr 88px;
+  align-items: center;
+  padding: 0 14px;
+}
+
 .schedule-header {
-  display: grid; grid-template-columns: 56px 1fr 1fr 1fr;
-  padding: 0 13px; height: 38px; align-items: center;
-  background: var(--bg-surface-3); border-bottom: 1.5px solid var(--border);
+  height: 38px;
+  background: var(--bg-surface-3);
+  border-bottom: 1.5px solid var(--border);
 }
 .schedule-header > div {
-  font-size: 11px; font-weight: 700; color: var(--text-muted);
-  letter-spacing: .05em; text-transform: uppercase; text-align: right;
+  font-size: 11px; font-weight: 700;
+  color: var(--text-muted); letter-spacing: .05em;
+  text-transform: uppercase;
+  text-align: right;
 }
 .schedule-header > div:first-child { text-align: left; }
 
-/* 스크롤 목록 */
-.schedule-list { max-height: 440px; overflow-y: auto; overscroll-behavior: contain; }
-.schedule-list::-webkit-scrollbar { width: 4px; }
-.schedule-list::-webkit-scrollbar-track { background: transparent; }
-.schedule-list::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
-
-/* 회차 행 */
 .schedule-item {
-  display: grid; grid-template-columns: 56px 1fr 1fr 1fr;
-  padding: 0 13px; min-height: 46px; align-items: center;
+  min-height: 46px;
   border-bottom: 1px solid var(--border);
   background: var(--bg-surface);
   transition: background var(--dur-fast) var(--ease);
@@ -608,29 +681,29 @@ body.dark .tab-btn.active { color: var(--text-primary); }
 .schedule-item:hover { background: var(--kb-yellow-pale) !important; }
 .schedule-item:last-of-type { border-bottom: none; }
 
-/* 병합 구분 헤더 행 */
-.sch-loan-header {
-  display: flex; align-items: center; gap: 6px;
-  padding: 7px 13px; min-height: unset;
-  background: var(--kb-navy-light) !important;
-  border-top: 2px solid var(--border-strong);
-  border-bottom: 1px solid var(--border-strong);
-  font-size: 11.5px; font-weight: 700;
-  color: var(--kb-navy-mid); letter-spacing: -.01em;
+.sch-idx {
+  font-size: 11.5px; font-weight: 600;
+  color: var(--text-muted); letter-spacing: -.01em;
+  text-align: left;
 }
-body.dark .sch-loan-header { background: var(--bg-surface-3) !important; color: var(--text-secondary); }
-
-.sch-idx { font-size: 11.5px; font-weight: 600; color: var(--text-muted); letter-spacing: -.01em; }
 .sch-val {
   font-family: var(--font-num); font-size: 12.5px; font-weight: 500;
-  color: var(--text-secondary); text-align: right; font-variant-numeric: tabular-nums;
+  color: var(--text-secondary); text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 .sch-total {
   font-family: var(--font-num); font-size: 13px; font-weight: 800;
-  color: var(--kb-navy); text-align: right; font-variant-numeric: tabular-nums;
+  color: var(--kb-navy); text-align: right;
+  font-variant-numeric: tabular-nums;
   transition: color var(--dur-base) var(--ease);
 }
 body.dark .sch-total { color: var(--text-primary); }
+
+/* 스크롤 목록 */
+.schedule-list { max-height: 440px; overflow-y: auto; overscroll-behavior: contain; }
+.schedule-list::-webkit-scrollbar { width: 4px; }
+.schedule-list::-webkit-scrollbar-track { background: transparent; }
+.schedule-list::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
 
 /* ── N년차 요약 카드 ─────────────────────────────────────────────────────── */
 .year-summary-card {
@@ -769,7 +842,46 @@ body.dark .wiki-blue-text { color: var(--accent-blue); }
   to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 .modal-icon { display: block; font-size: 36px; margin-bottom: 12px; }
-.modal-text { font-size: 14px; color: var(--text-secondary); line-height: 1.68; margin-bottom: 18px; word-break: keep-all; }
+.modal-text {
+  font-size: 14px; color: var(--text-secondary);
+  line-height: 1.68; margin-bottom: 18px; word-break: keep-all;
+  text-align: left;
+}
+
+/* 금리 미입력 모달 큐 전용 스타일 */
+.modal-queue-counter {
+  display: inline-block;
+  font-size: 10.5px; font-weight: 700;
+  background: var(--warn-bg); color: var(--warn);
+  border: 1px solid var(--warn-border);
+  border-radius: var(--radius-full);
+  padding: 2px 9px; margin-bottom: 10px;
+  letter-spacing: .02em;
+}
+.modal-rate-title {
+  display: block;
+  font-size: 14px; font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 8px; line-height: 1.4;
+}
+.modal-rate-body {
+  display: block;
+  font-size: 13px; color: var(--text-secondary);
+  line-height: 1.7;
+}
+.modal-rate-default {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 5px 10px;
+  background: var(--warn-bg);
+  border: 1px solid var(--warn-border);
+  border-radius: var(--radius-sm);
+  color: var(--warn); font-weight: 600;
+}
+.modal-rate-default b { color: var(--warn); font-size: 15px; }
+body.dark .modal-queue-counter { background: rgba(251,176,36,.1); border-color: rgba(251,176,36,.3); }
+body.dark .modal-rate-default  { background: rgba(251,176,36,.1); border-color: rgba(251,176,36,.25); }
+
 .modal-btn {
   display: block; width: 100%; height: 48px;
   background: linear-gradient(135deg, var(--kb-yellow) 0%, var(--kb-yellow-deep) 100%);
@@ -829,12 +941,17 @@ body.dark .wiki-blue-text { color: var(--accent-blue); }
   .dsr-main-val { font-size: 40px; }
   .max-val      { font-size: 14px; }
   .limit-val    { font-size: 26px; }
-  .schedule-header, .schedule-item { grid-template-columns: 48px 1fr 1fr 1fr; padding: 0 10px; }
+  .schedule-header, .schedule-item {
+    grid-template-columns: 44px 1fr 1fr 76px;
+    padding: 0 10px;
+  }
   .sch-val, .sch-total { font-size: 11.5px; }
   .sch-idx             { font-size: 11px; }
   .card-stats          { flex-direction: column; gap: 3px; }
   .balance-value       { font-size: 14px; }
   .max-grid            { gap: 8px; }
+  .sch-summary-label   { min-width: 90px; font-size: 11.5px; }
+  .sch-summary-amount, .sch-summary-rate { font-size: 11.5px; }
 }
 @media (max-width: 320px) { .max-grid { grid-template-columns: 1fr; } }
 
