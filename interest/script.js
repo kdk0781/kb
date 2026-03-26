@@ -107,35 +107,6 @@ function startClock() {
 
 
 /* ======================================================
-   5. PWA 앱 설치 및 서비스 워커 등록
-   ====================================================== */
-
-// 서비스 워커 등록 (오프라인 캐싱 및 앱 작동 지원)
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js').then(reg => {
-            console.log('PWA 서비스 워커 등록 완료');
-        }).catch(err => {
-            console.log('서비스 워커 등록 실패:', err);
-        });
-    });
-}
-
-// 설치 권장 팝업 제어 (안드로이드/크롬 전용)
-let deferredPrompt;
-window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    // 여기에 '앱 설치하기' 버튼을 노출하는 로직을 추가할 수 있습니다.
-});
-
-// 앱 모드로 실행 중인지 확인 (CSS 분기 처리 등에 활용 가능)
-if (window.matchMedia('(display-mode: standalone)').matches) {
-    console.log("현재 앱 모드로 실행 중입니다.");
-    // 앱 모드일 때만 푸터 문구를 변경하는 등의 작업 가능
-}
-
-/* ======================================================
    4. 새로고침 로직 (확실한 작동 보장형)
    ====================================================== */
 function refreshData() {
@@ -167,6 +138,37 @@ function refreshData() {
     }, 600);
 }
 
+
+/* ======================================================
+   5. PWA 앱 설치 및 서비스 워커 등록
+   ====================================================== */
+
+// 서비스 워커 등록 (오프라인 캐싱 및 앱 작동 지원)
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').then(reg => {
+            console.log('PWA 서비스 워커 등록 완료');
+        }).catch(err => {
+            console.log('서비스 워커 등록 실패:', err);
+        });
+    });
+}
+
+// 설치 권장 팝업 제어 (안드로이드/크롬 전용)
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    // 여기에 '앱 설치하기' 버튼을 노출하는 로직을 추가할 수 있습니다.
+});
+
+// 앱 모드로 실행 중인지 확인 (CSS 분기 처리 등에 활용 가능)
+if (window.matchMedia('(display-mode: standalone)').matches) {
+    console.log("현재 앱 모드로 실행 중입니다.");
+    // 앱 모드일 때만 푸터 문구를 변경하는 등의 작업 가능
+}
+
+
 // 초기 로드 시 실행 확인
 window.onload = () => {
     console.log("페이지 로드 완료");
@@ -176,4 +178,3 @@ window.onload = () => {
 };
 
 window.onload = () => { renderSummary(); renderContent(); startClock(); };
-window.scrollTo({ top: 0, behavior: 'smooth' });
