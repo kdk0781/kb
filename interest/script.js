@@ -176,3 +176,4 @@ window.onload = () => {
 };
 
 window.onload = () => { renderSummary(); renderContent(); startClock(); };
+window.scrollTo({ top: 0, behavior: 'smooth' });
