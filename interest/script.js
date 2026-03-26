@@ -142,14 +142,14 @@ function refreshData() {
 /* ======================================================
    5. PWA 앱 설치 및 서비스 워커 등록
    ====================================================== */
-
+/*
 // 서비스 워커 등록
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js')
         .then(reg => console.log('서비스 워커 등록 성공:', reg.scope))
         .catch(err => console.log('서비스 워커 등록 실패:', err));
 }
-/*
+
 // 설치 팝업 제어
 let deferredPrompt;
 window.addEventListener('beforeinstallprompt', (e) => {
