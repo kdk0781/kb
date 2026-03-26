@@ -28,26 +28,17 @@
 
     <main id="main-content"></main>
 
-	<div class="sticky-top-container">
-		<header class="main-nav">
-			<h1>KB 담보,전세 금리</h1>
-			<div class="nav-right">
-				<div id="clock" class="clock-display"></div>
-			</div>
-		</header>
-		<aside class="summary-bar" id="top-summary"></aside>
-	</div>
-
+	<button onclick="refreshData()" class="refresh-fab" id="fab-refresh">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M3 22v-6h6M21 12a9 9 0 0 1-15 6.7L3 16"/>
+        </svg>
+    </button>
 
     <footer class="footer-info">
         <p>시스템 설정에 따라 테마가 자동 적용됩니다.</p>
         <p>오늘 기준 금리이며 잔금일 기준 금리는 변동될수 있습니다.</p>
     </footer>
-	<button onclick="refreshData()" class="refresh-fab" id="fab-refresh">
-		<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-			<path d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M3 22v-6h6M21 12a9 9 0 0 1-15 6.7L3 16"/>
-		</svg>
-	</button>
+
 
 	<script src="script.js"></script>
     <script src="sw.js"></script>
