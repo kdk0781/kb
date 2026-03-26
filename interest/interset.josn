@@ -1,0 +1,15 @@
+{
+  "short_name": "KB금리",
+  "name": "KB 담보·전세 금리 리포트",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/584/584012.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "/kb/interest/index.html",
+  "display": "standalone",
+  "theme_color": "#ffbc00",
+  "background_color": "#ffffff"
+}

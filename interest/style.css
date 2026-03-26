@@ -79,5 +79,6 @@ body { font-family: 'Pretendard', sans-serif; background-color: var(--bg-body); 
 .value { font-size: 1.45rem; font-weight: 900; color: var(--red); letter-spacing: -0.5px; }
 .formula { font-size: 0.65rem; color: var(--text-sub); margin-top: 6px; display: block; opacity: 0.6; }
 
-.footer-info { padding: 60px 20px; text-align: center; font-size: 0.75rem; color: var(--text-sub); opacity: 0.6; }
+.footer-info { padding: 60px 20px; text-align: center; font-size: 0.75rem; color: var(--text-sub); }
+
 .calc a {display:block; text-align: center; font-size: 0.9rem; color: var(--kb-yellow); opacity: 0.6;}

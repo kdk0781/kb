@@ -1,5 +1,9 @@
+/* ======================================================
+   1. 데이터 설정
+   ====================================================== */
 const r = {
-    base: { mor5: 3.87, mor2: 3.40, ncofix: 2.82, scofix: 2.47, primeOn: 1.10, primeOff: 0.90 },
+    base: { mor5: 3.87, mor2: 3.40, ncofix: 2.82, scofix: 2.47,
+			primeOn: 1.10, primeOff: 0.90 },
     stress: { m5_cycle: 1.15, m5_mix: 1.72, v_6_12: 2.87 },
     add: {
         mort: { m5: 2.17, n6: 2.74, n12: 2.69, s6: 3.08, s12: 3.20 },
@@ -11,13 +15,27 @@ const r = {
 
 const calc = (b, a, p) => parseFloat((b + a - p).toFixed(2));
 
+/* ======================================================
+   2. 상단 서머리 렌더링 (최저 변동형 스트레스 금리 반영)
+   ====================================================== */
 function renderSummary() {
+	const ga = r.add.mort;
+
+	// 6, 12개월 변동형 모든 조합 중 최저 금리 찾기 (신규/신잔액 포함)
+    const varRates = [
+        calc(r.base.ncofix, ga.n6, r.base.primeOn),  // 신규 6M
+        calc(r.base.ncofix, ga.n12, r.base.primeOn), // 신규 12M
+        calc(r.base.scofix, ga.s6, r.base.primeOn),  // 신잔액 6M
+        calc(r.base.scofix, ga.s12, r.base.primeOn)  // 신잔액 12M
+    ];
+
+    const minVarRate = Math.min(...varRates); // 가장 낮은 변동 금리값
     const items = [
         {l:'금융채5Y', v:r.base.mor5}, {l:'금융채2Y', v:r.base.mor2},
         {l:'신규COFIX', v:r.base.ncofix}, {l:'신잔액', v:r.base.scofix},
         {l:'ST 주기형(5Y)', v: calc(r.base.mor5, r.add.mort.m5 + r.stress.m5_cycle, r.base.primeOn), s: true},
         {l:'ST 혼합형(5Y)', v: calc(r.base.mor5, r.add.mort.m5 + r.stress.m5_mix, r.base.primeOn), s: true},
-        {l:'ST 변동형(6/12M)', v: calc(r.base.ncofix, r.add.mort.n6 + r.stress.v_6_12, r.base.primeOn), s: true}
+        {l:'ST 변동형(최저)', v: parseFloat((minVarRate + r.stress.v_6_12).toFixed(2)), s: true}
     ];
     document.getElementById('top-summary').innerHTML = items.map(i => `
         <div class="summary-item ${i.s ? 'stress-item' : ''}">${i.l}<span>${i.v.toFixed(2)}%</span></div>
