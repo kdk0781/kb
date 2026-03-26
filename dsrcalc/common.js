@@ -11,7 +11,7 @@
 
 // ─── [1] 시스템 설정 ─────────────────────────────────────────────────────────
 
-const NOTICE_VERSION = "0781_2";
+const NOTICE_VERSION = "0781_3";
 const CONFIG = {
   DEFAULT_RATE:    4.5,
   DSR_LIMIT:       40,
