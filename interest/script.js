@@ -2,7 +2,7 @@
    1. 데이터 설정
    ====================================================== */
 const r = {
-    base: { mor5: 3.87, mor2: 3.40, ncofix: 2.82, scofix: 2.47,
+    base: { mor5: 4.06, mor2: 3.40, ncofix: 2.82, scofix: 2.47,
 			primeOn: 1.10, primeOff: 0.90 },
     stress: { m5_cycle: 1.15, m5_mix: 1.72, v_6_12: 2.87 },
     add: {
@@ -44,10 +44,10 @@ function renderSummary() {
 
 function renderContent() {
     const groups = [
-        { title: "주택담보대출", desc: "부동산 담보 대출 금리 리포트", id: 'mort' },
-        { title: "전세 (HF 주택금융공사)", desc: "공사 보증 전세자금대출 | 접수 가능 기간 : 잔금일 기준(포함) 50일 전부터", id: 'hf' },
-        { title: "전세 (HUG 주택도시보증)", desc: "안심전세 보증금 반환보증 | 접수 가능 기간 : 잔금일 기준(포함) 30일 전부터", id: 'hug' },
-        { title: "전세 (SGI 서울보증보험)", desc: "고액 전세자금 SGI 보증 | 접수 가능 기간 : 잔금일 기준(포함) 45일 전부터", id: 'sgi' }
+        { title: "주택담보대출", desc: "부동산 담보 대출 금리 리포트 <br/> <b style='color:var(--red);'>이전 금리가 표시되는 경우 브라우저 캐시삭제</b>", id: 'mort' },
+        { title: "전세 (HF 주택금융공사)", desc: "공사 보증 전세자금대출 <br/> 접수 가능 기간 : 잔금일 기준(포함) 50일 전부터 <br/> <b style='color:var(--red);'>이전 금리가 표시되는 경우 브라우저 캐시삭제</b>", id: 'hf' },
+        { title: "전세 (HUG 주택도시보증)", desc: "안심전세 보증금 반환보증 <br/> 접수 가능 기간 : 잔금일 기준(포함) 30일 전부터 <br/><b style='color:var(--red);'>이전 금리가 표시되는 경우 브라우저 캐시삭제</b>", id: 'hug' },
+        { title: "전세 (SGI 서울보증보험)", desc: "고액 전세자금 SGI 보증 <br/> 접수 가능 기간 : 잔금일 기준(포함) 45일 전부터 <br/><b style='color:var(--red);'>이전 금리가 표시되는 경우 브라우저 캐시삭제</b>", id: 'sgi' }
     ];
 
     let finalHtml = "";
