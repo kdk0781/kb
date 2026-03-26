@@ -143,16 +143,29 @@ function refreshData() {
    5. PWA 앱 설치 및 서비스 워커 등록
    ====================================================== */
 
-// 서비스 워커 등록 (오프라인 캐싱 및 앱 작동 지원)
+// 서비스 워커 등록
 if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').then(reg => {
-            console.log('PWA 서비스 워커 등록 완료');
-        }).catch(err => {
-            console.log('서비스 워커 등록 실패:', err);
-        });
-    });
+    navigator.serviceWorker.register('./kb/interest/sw.js')
+        .then(reg => console.log('서비스 워커 등록 성공:', reg.scope))
+        .catch(err => console.log('서비스 워커 등록 실패:', err));
 }
+
+// 설치 팝업 제어
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+    // 브라우저의 기본 팝업을 일단 막음
+    e.preventDefault();
+    deferredPrompt = e;
+    
+    // 사용자가 페이지의 특정 부분(예: 새로고침 버튼 등)을 클릭했을 때 
+    // 설치 팝업을 띄우고 싶다면 deferredPrompt.prompt()를 호출하면 됩니다.
+    console.log("'beforeinstallprompt' 이벤트 발생 - 설치 가능");
+	deferredPrompt.prompt()
+});
+
+
+
+
 
 // 설치 권장 팝업 제어 (안드로이드/크롬 전용)
 let deferredPrompt;
