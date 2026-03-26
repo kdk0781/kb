@@ -1,9 +1,9 @@
-const CACHE_NAME = 'kb-interest-v0';
+const CACHE_NAME = 'kb-interest-v1';
 const urlsToCache = [
   './index.html',
   './style.css',
   './script.js',
-  './interest.json' // 매니페스트 파일명이 interest.json인지 확인 필요
+  './interest.json' 
 ];
 
 self.addEventListener('install', event => {
