@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kb-interest-v3';
+const CACHE_NAME = 'kb-interest-v0';
 const urlsToCache = [
   './index.html',
   './style.css',
