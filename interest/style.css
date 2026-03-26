@@ -73,26 +73,30 @@ body { font-family: 'Pretendard', sans-serif; background-color: var(--bg-body); 
 .card-list { padding: 15px; }
 
 .rate-card { 
-    background: var(--bg-card); border-radius: 24px; padding: 22px; 
-    margin-bottom: 20px; border: 1.5px solid var(--border-color); 
-    position: relative; box-shadow: var(--card-shadow); 
+    background: var(--bg-card); 
+    border-radius: 24px; 
+    padding: 35px 22px 22px; 
+    margin-bottom: 20px; 
+    border: 1.5px solid var(--border-color); 
+    position: relative; 
+    box-shadow: var(--card-shadow); 
 }
 
 /* 최저가(BEST) 카드 강조 - 이미지 노란색 네온 테두리 */
 .rate-card.best-rate { border-color: var(--kb-yellow); }
 
 .best-label { 
-    display: none; position: absolute; top: 0; right: 25px; 
+    display: none; position: absolute; top: 0; left: 20px; 
     background: var(--kb-yellow); color: #000; font-size: 0.7rem; 
-    font-weight: 850; padding: 5px 14px; border-radius: 0 0 12px 12px; 
+    font-weight: 850; padding: 5px 14px; border-radius: 0 0 12px 12px; z-index: 10;
 }
 .best-rate .best-label { display: block; }
 
-.card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+.card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; gap: 10px;}
 /* 카드 제목 노란색 */
-.product-name { font-size: 1.1rem; font-weight: 750; color: var(--kb-yellow); }
+.product-name { font-size: 1.1rem; font-weight: 750; color: var(--kb-yellow); flex:1; word-break: keep-all;}
 /* 변동 주기 노란색 배경 */
-.cycle-tag { font-size: 0.72rem; color: #000; background: var(--kb-yellow); padding: 4px 10px; border-radius: 8px; font-weight: 800; }
+.cycle-tag { font-size: 0.72rem; color: #000; background: var(--kb-yellow); padding: 3px 8px; border-radius: 6px; font-weight: 800;  white-space:nowrap;}
 
 /* 금리 박스 그리드 - 이미지 반영 */
 .price-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
