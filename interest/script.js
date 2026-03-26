@@ -149,7 +149,7 @@ if ('serviceWorker' in navigator) {
         .then(reg => console.log('서비스 워커 등록 성공:', reg.scope))
         .catch(err => console.log('서비스 워커 등록 실패:', err));
 }
-
+/*
 // 설치 팝업 제어
 let deferredPrompt;
 window.addEventListener('beforeinstallprompt', (e) => {
@@ -163,7 +163,7 @@ window.addEventListener('beforeinstallprompt', (e) => {
 	deferredPrompt.prompt()
 });
 
-
+*/
 
 
 
