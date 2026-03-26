@@ -106,3 +106,80 @@ function startClock() {
 }
 
 window.onload = () => { renderSummary(); renderContent(); startClock(); };
+
+/* ======================================================
+   5. PWA 앱 설치 및 서비스 워커 등록
+   ====================================================== */
+
+// 서비스 워커 등록 (오프라인 캐싱 및 앱 작동 지원)
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').then(reg => {
+            console.log('PWA 서비스 워커 등록 완료');
+        }).catch(err => {
+            console.log('서비스 워커 등록 실패:', err);
+        });
+    });
+}
+
+// 설치 권장 팝업 제어 (안드로이드/크롬 전용)
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    // 여기에 '앱 설치하기' 버튼을 노출하는 로직을 추가할 수 있습니다.
+});
+
+// 앱 모드로 실행 중인지 확인 (CSS 분기 처리 등에 활용 가능)
+if (window.matchMedia('(display-mode: standalone)').matches) {
+    console.log("현재 앱 모드로 실행 중입니다.");
+    // 앱 모드일 때만 푸터 문구를 변경하는 등의 작업 가능
+}
+
+/* ======================================================
+   6. 새로고침 로직 (Button & Pull-to-Refresh)
+   ====================================================== */
+
+function refreshData() {
+    const fab = document.getElementById('fab-refresh');
+    // 버튼 회전 애니메이션
+    fab.style.transition = "transform 0.5s ease";
+    fab.style.transform = "rotate(360deg)";
+    
+    // 데이터 갱신
+    renderSummary();
+    renderContent();
+    
+    setTimeout(() => {
+        fab.style.transform = "rotate(0deg)";
+        fab.style.transition = "none";
+        // 성공 알림 (선택 사항)
+        console.log("금리 데이터가 최신화되었습니다.");
+    }, 500);
+}
+
+// 2. 모바일 '당겨서 새로고침' 구현
+let startY = 0;
+const pullIndicator = document.getElementById('pull-indicator');
+
+window.addEventListener('touchstart', (e) => {
+    if (window.scrollY === 0) startY = e.touches[0].pageY;
+}, {passive: true});
+
+window.addEventListener('touchmove', (e) => {
+    const y = e.touches[0].pageY;
+    const pullDistance = y - startY;
+    
+    if (window.scrollY === 0 && pullDistance > 80) {
+        pullIndicator.classList.add('visible');
+    }
+}, {passive: true});
+
+window.addEventListener('touchend', () => {
+    if (pullIndicator.classList.contains('visible')) {
+        refreshData();
+        setTimeout(() => {
+            pullIndicator.classList.remove('visible');
+        }, 1000);
+    }
+});
