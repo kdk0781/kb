@@ -105,31 +105,32 @@ function startClock() {
     setInterval(tick, 1000);
 }
 
-
 /* ======================================================
-   4. 새로고침 로직 (확실한 작동 보장형)
+   4. 새로고침 로직 (상단 이동 추가)
    ====================================================== */
 function refreshData() {
-    console.log("새로고침 시작..."); // 브라우저 개발자 도구(F12)에서 확인 가능
+    console.log("새로고침 및 상단 이동 시작...");
     
+    // 1. 즉시 최상단으로 부드럽게 이동
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
     const fab = document.getElementById('fab-refresh');
     
-    // 1. 시각적 피드백 (버튼 회전)
+    // 2. 시각적 피드백 (버튼 회전)
     if (fab) {
         fab.style.transition = "transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)";
         fab.style.transform = "rotate(360deg)";
     }
 
-    // 2. 데이터 재렌더링
+    // 3. 데이터 재렌더링
     try {
-        renderSummary(); // 상단 요약 바 갱신
-        renderContent(); // 하단 카드 리스트 갱신
-        console.log("데이터 렌더링 완료");
+        renderSummary(); 
+        renderContent(); 
     } catch (error) {
         console.error("렌더링 중 오류 발생:", error);
     }
 
-    // 3. 애니메이션 초기화 (0.6초 후)
+    // 4. 애니메이션 초기화
     setTimeout(() => {
         if (fab) {
             fab.style.transition = "none";
@@ -138,51 +139,41 @@ function refreshData() {
     }, 600);
 }
 
+// 브라우저 자체 새로고침 시에도 상단으로 이동하도록 설정
+if ('scrollRestoration' in history) {
+    history.scrollRestoration = 'manual';
+}
+
+window.addEventListener('beforeunload', () => {
+    window.scrollTo(0, 0);
+});
 
 /* ======================================================
    5. PWA 앱 설치 및 서비스 워커 등록
    ====================================================== */
-/*
-// 서비스 워커 등록
 if ('serviceWorker' in navigator) {
+    // 로컬호스트 환경에 대응하기 위해 ./sw.js 사용
     navigator.serviceWorker.register('./sw.js')
         .then(reg => console.log('서비스 워커 등록 성공:', reg.scope))
         .catch(err => console.log('서비스 워커 등록 실패:', err));
 }
 
-// 설치 팝업 제어
-let deferredPrompt;
+// [수정] 변수 선언은 한 번만 수행해야 합니다.
+let deferredPrompt; 
 window.addEventListener('beforeinstallprompt', (e) => {
-    // 브라우저의 기본 팝업을 일단 막음
     e.preventDefault();
     deferredPrompt = e;
-    
-    // 사용자가 페이지의 특정 부분(예: 새로고침 버튼 등)을 클릭했을 때 
-    // 설치 팝업을 띄우고 싶다면 deferredPrompt.prompt()를 호출하면 됩니다.
     console.log("'beforeinstallprompt' 이벤트 발생 - 설치 가능");
-	deferredPrompt.prompt()
 });
 
-*/
-
-
-
-// 설치 권장 팝업 제어 (안드로이드/크롬 전용)
-let deferredPrompt;
-window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    // 여기에 '앱 설치하기' 버튼을 노출하는 로직을 추가할 수 있습니다.
-});
-
-// 앱 모드로 실행 중인지 확인 (CSS 분기 처리 등에 활용 가능)
+// 앱 모드 확인
 if (window.matchMedia('(display-mode: standalone)').matches) {
     console.log("현재 앱 모드로 실행 중입니다.");
-    // 앱 모드일 때만 푸터 문구를 변경하는 등의 작업 가능
 }
 
-
-// 초기 로드 시 실행 확인
+/* ======================================================
+   6. 초기 로드 통합
+   ====================================================== */
 window.onload = () => {
     console.log("페이지 로드 완료");
     renderSummary();
@@ -190,4 +181,3 @@ window.onload = () => {
     startClock();
 };
 
-window.onload = () => { renderSummary(); renderContent(); startClock(); };
