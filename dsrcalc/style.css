@@ -633,6 +633,11 @@ body.dark .rec-badge { color: var(--kb-yellow); background: rgba(255,184,28,.12)
 body.dark .sch-summary-rate { color: var(--accent-blue); }
 .sch-summary-term   { font-family: var(--font-num); font-size: 11.5px; color: var(--text-muted); }
 
+/* ── 금리 유형 wrapper — 비담보 시 클릭 감지용 ───────────────────────────── */
+.rate-type-wrapper { position: relative; }
+.rate-type-wrapper select:disabled { pointer-events: none; }
+/* wrapper 클릭 이벤트가 JS로 전달됨 (disabled select 위에서도 작동) */
+
 /* ── 금리 유형 disabled 상태 ──────────────────────────────────────────────── */
 .rate-type--disabled label::after {
   content: ' — 담보대출 전용';
