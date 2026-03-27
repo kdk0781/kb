@@ -122,47 +122,46 @@ function startClock() {
 }
 
 /* ======================================================
-   4. 새로고침 로직 (상단 이동 추가)
+   4. 강력 새로고침 로직 (캐시 삭제 및 강제 로드)
    ====================================================== */
-function refreshData() {
-    console.log("새로고침 및 상단 이동 시작...");
+async function refreshData() {
+    console.log("강력 새로고침 및 캐시 초기화 시작...");
     
-    // 1. 즉시 최상단으로 부드럽게 이동
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-
     const fab = document.getElementById('fab-refresh');
     
-    // 2. 시각적 피드백 (버튼 회전)
+    // 1. 시각적 피드백 (버튼 회전 애니메이션)
     if (fab) {
-        fab.style.transition = "transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)";
-        fab.style.transform = "rotate(360deg)";
+        fab.style.transition = "transform 0.8s cubic-bezier(0.4, 0, 0.2, 1)";
+        fab.style.transform = "rotate(720deg)"; // 두 바퀴 회전
     }
 
-    // 3. 데이터 재렌더링
-    try {
-        renderSummary(); 
-        renderContent(); 
-    } catch (error) {
-        console.error("렌더링 중 오류 발생:", error);
-    }
-
-    // 4. 애니메이션 초기화
-    setTimeout(() => {
-        if (fab) {
-            fab.style.transition = "none";
-            fab.style.transform = "rotate(0deg)";
+    // 2. 서비스 워커 캐시 및 브라우저 캐시 삭제 시도
+    if ('caches' in window) {
+        try {
+            const cacheNames = await caches.keys();
+            await Promise.all(
+                cacheNames.map(name => caches.delete(name))
+            );
+            console.log("모든 서비스 워커 캐시가 삭제되었습니다.");
+        } catch (err) {
+            console.error("캐시 삭제 중 오류 발생:", err);
         }
-    }, 600);
+    }
+
+    // 3. 약간의 지연 후 페이지 강제 새로고침 (서버에서 새로 받아옴)
+    setTimeout(() => {
+        // window.location.reload(true)는 일부 브라우저에서 지원 중단되었으므로
+        // 주소 뒤에 랜덤 파라미터를 붙여 서버가 새 파일로 인식하게 만듭니다.
+        const currentUrl = window.location.href.split('?')[0];
+        window.location.href = currentUrl + '?update=' + new Date().getTime();
+    }, 800);
 }
 
-// 브라우저 자체 새로고침 시에도 상단으로 이동하도록 설정
+// [추가] 페이지 로드 시 스크롤을 최상단으로 강제 이동
 if ('scrollRestoration' in history) {
     history.scrollRestoration = 'manual';
 }
 
-window.addEventListener('beforeunload', () => {
-    window.scrollTo(0, 0);
-});
 
 /* ======================================================
    5. PWA 앱 설치 및 서비스 워커 등록
