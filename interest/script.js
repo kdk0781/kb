@@ -4,7 +4,7 @@
 const r = {
     base: { mor5: 4.06, mor2: 3.68, ncofix: 2.82, scofix: 2.47,
 			primeOn: 1.10, primeOff: 0.90 },
-    stress: { m5_cycle: 1.15, m5_mix: 1.72, v_6_12: 2.87 },
+    stress: { m5_cycle: 1.15, m5_mix: 1.50, v_6_12: 2.87 },
     add: {
         mort: { m5: 2.18, n6: 2.73, n12: 2.69, s6: 3.07, s12: 3.20 },
         hf:   { m2: 2.20, n6: 2.43, n12: 2.54, s6: 2.68, s12: 3.07 },
