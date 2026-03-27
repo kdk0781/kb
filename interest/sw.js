@@ -1,5 +1,5 @@
 // [수정] 날짜나 숫자를 조합해 매번 고유한 이름을 갖게 하면 업데이트가 더 확실합니다.
-const CACHE_NAME = '0781_2' + Date.now(); 
+const CACHE_NAME = '0781_3' + Date.now(); 
 const urlsToCache = [
   './index.html',
   './style.css',
