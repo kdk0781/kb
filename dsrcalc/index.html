@@ -2,39 +2,22 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <!-- ── 뷰포트 & 앱 기본 설정 ──────────────────────────────────────────── -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
-
-  <!-- ── 테마 컬러 (라이트/다크 자동) ──────────────────────────────────── -->
   <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#131926" media="(prefers-color-scheme: dark)">
-
-  <!-- ── iOS 웹앱 설정 ──────────────────────────────────────────────────── -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="DSR계산기">
-
-  <!-- ── Android 웹앱 설정 ──────────────────────────────────────────────── -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="application-name" content="DSR계산기">
-
-  <!-- ── SEO & OG ─────────────────────────────────────────────────────────── -->
   <meta name="description" content="KB DSR 계산기 — 스트레스금리 반영 DSR 진단 및 대출 한도 분석">
-  <meta name="author" content="KB DSR System">
-  <meta property="og:title" content="DSR 계산기">
-  <meta property="og:description" content="스트레스금리 반영 DSR 진단 및 대출 한도 분석">
-  <meta property="og:type" content="website">
 
-  <!-- ── 파비콘 (경로: ../ico/파일명.png 으로 변경하세요) ──────────────── -->
+  <!-- 파비콘 (ico 폴더 경로 변경 가능) -->
   <link rel="apple-touch-icon" sizes="180x180" href="../ico/dsrcalc.png">
   <link rel="icon" type="image/png" sizes="192x192" href="../ico/dsrcalc.png">
-  <link rel="icon" type="image/png" sizes="32x32"  href="../ico/dsrcalc.png">
+  <link rel="icon" type="image/png" sizes="32x32"   href="../ico/dsrcalc.png">
   <link rel="shortcut icon" href="../ico/dsrcalc.png">
-
-  <!-- ── PWA 매니페스트 ────────────────────────────────────────────────── -->
   <link rel="manifest" href="dsr.json">
-
-  <!-- ── 스타일시트 ────────────────────────────────────────────────────── -->
   <link rel="stylesheet" href="style.css" media="all">
 
   <title>DSR 계산기</title>
@@ -42,13 +25,13 @@
 
 <body>
 
-  <!-- ── 공지 팝업 (바텀시트) ───────────────────────────────────────────── -->
+  <!-- 공지 팝업 -->
   <div id="noticePopup" class="notice-overlay" style="display:none;">
     <div class="notice-box">
       <div class="notice-header">📢 업데이트 안내</div>
       <div class="notice-body">
-        <span class="main-text">스트레스 금리 및 상환금액 표 반영</span>
-        <span class="sub-text">기준금리 입력후 스트레스 금리 선택후 계산해야 정확히 계산됨</span>
+        <span class="main-text">KB 금리 자동 적용 · 임시 링크 공유 추가</span>
+        <span class="sub-text">담보대출 금리유형 자동 적용 및 리포트 임시 링크 기능이 추가되었습니다.</span>
       </div>
       <div class="notice-footer">
         <button onclick="closeNoticeForever()">다시 보지 않기</button>
@@ -57,10 +40,8 @@
     </div>
   </div>
 
-  <!-- ── 메인 컨테이너 ──────────────────────────────────────────────────── -->
   <div class="container">
 
-    <!-- 헤더 (sticky) -->
     <div class="header">
       <h2>📊 DSR 계산기</h2>
     </div>
@@ -79,7 +60,7 @@
     <button class="btn-add-loan" onclick="addLoan()">+ 부채 항목 추가</button>
     <button class="btn-calc" onclick="calculateTotalDSR()">DSR 분석 및 한도 확인</button>
 
-    <!-- 3. 결과 영역 -->
+    <!-- 결과 영역 -->
     <div id="resultArea" class="result-box" style="display:none;">
 
       <!-- 추천 박스 -->
@@ -146,7 +127,16 @@
         <span class="limit-info-text">* 원금균등 방식 · 주담대 30년 기준 자동 산출</span>
       </div>
 
-      <button class="btn-copy" onclick="copyResultText()">📋 DSR 진단 리포트 복사</button>
+      <!-- 면책 고지 -->
+      <div class="result-disclaimer">
+        ⚠️ 본 결과는 입력값 기준 예상 수치이며, 실제 심사 결과와 상이할 수 있습니다.
+        금융 의사결정 전 반드시 담당 금융기관에 확인하시기 바랍니다.
+      </div>
+
+      <!-- 리포트 복사 (id 추가 — JS에서 카운트 배지 업데이트) -->
+      <button id="btnCopyReport" class="btn-copy" onclick="copyResultText()">
+        📋 DSR 진단 리포트 복사
+      </button>
 
       <!-- 위키 가이드 -->
       <div class="section-title">부동산 위키 부채 산정 가이드</div>
@@ -180,7 +170,6 @@
     </div>
   </div>
 
-  <!-- 스크립트 (버전 쿼리로 캐시 방지) -->
-  <script src="common.js?v=2026.04-C"></script>
+  <script src="common.js?v=2026.05"></script>
 </body>
 </html>

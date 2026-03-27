@@ -254,13 +254,28 @@ html, body {
   border-radius: 2px; flex-shrink: 0;
 }
 
+/* ── 결과 면책 고지 ──────────────────────────────────────────────────────── */
+.result-disclaimer {
+  font-size: 11.5px; color: var(--text-muted);
+  line-height: 1.65; word-break: keep-all;
+  padding: 10px 14px; margin: 8px 0;
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  transition: background var(--dur-base) var(--ease),
+              border-color var(--dur-base) var(--ease);
+}
+@media (min-width: 640px) {
+  .result-disclaimer { font-size: 12px; }
+}
+
 /* ── 인풋 카드 ───────────────────────────────────────────────────────────── */
 .input-card {
   background: var(--bg-surface);
   border: 1.5px solid var(--border);
   border-radius: var(--radius-md);
-  padding: 15px 15px 13px;
-  margin-bottom: 10px;
+  padding: 16px 15px 13px;  /* top 패딩 16px으로 통일 */
+  margin-bottom: 12px;       /* 카드 간격 약간 확보 */
   box-shadow: var(--shadow-sm);
   position: relative;
   transition: border-color var(--dur-base) var(--ease),
@@ -276,17 +291,24 @@ html, body {
 .input-card.rate-warning-card {
   border-left: 4px solid var(--warn);
 }
+/* rate-missing-banner — 한 줄 레이아웃으로 텍스트 깨짐 방지 */
 .rate-missing-banner {
-  display: flex; align-items: center; gap: 7px;
-  margin-top: 10px; padding: 8px 11px;
+  display: flex; align-items: center; gap: 6px;
+  margin-top: 10px; padding: 9px 12px;
   background: var(--warn-bg);
   border: 1px solid var(--warn-border);
   border-left: 3px solid var(--warn);
   border-radius: var(--radius-sm);
-  font-size: 11.5px; font-weight: 600;
-  color: var(--warn); letter-spacing: -0.01em;
   animation: fade-up .22s var(--ease) both;
+  min-width: 0;
 }
+.rmb-icon { font-size: 14px; flex-shrink: 0; }
+.rmb-text {
+  font-size: 12px; font-weight: 600; color: var(--warn);
+  line-height: 1.4; word-break: keep-all; min-width: 0;
+}
+.rmb-text b { color: var(--text-primary); }
+.rmb-rate  { color: var(--warn); font-size: 13px; }
 
 /* ── 레이블 ──────────────────────────────────────────────────────────────── */
 label {
@@ -825,11 +847,30 @@ body.dark .btn-more-schedule:hover { color: var(--kb-yellow); }
 body.dark .btn-copy:hover { color: var(--kb-yellow); }
 .btn-copy:active { transform: scale(.98); }
 
-/* ── 위키 테이블 ─────────────────────────────────────────────────────────── */
-.wiki-table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: var(--radius-md); border: 1.5px solid var(--border); box-shadow: var(--shadow-sm); margin-top: 4px; }
-.wiki-table { font-size: 12px; min-width: 400px; }
-.wiki-table th { background: var(--bg-surface-3); color: var(--text-secondary); font-weight: 700; padding: 10px 12px; text-align: left; border-bottom: 2px solid var(--border-strong); font-size: 11px; letter-spacing: .03em; white-space: nowrap; transition: background var(--dur-base) var(--ease); }
-.wiki-table td { padding: 9px 12px; color: var(--text-secondary); border-bottom: 1px solid var(--border); vertical-align: middle; line-height: 1.5; transition: background var(--dur-base) var(--ease), color var(--dur-base) var(--ease); }
+/* ── 위키 테이블 (모바일 가독성 강화) ────────────────────────────────────── */
+.wiki-table-wrapper {
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
+  border-radius: var(--radius-md); border: 1.5px solid var(--border);
+  box-shadow: var(--shadow-sm); margin-top: 4px;
+}
+.wiki-table { font-size: 12.5px; min-width: unset; width: 100%; table-layout: fixed; }
+.wiki-table th {
+  background: var(--bg-surface-3); color: var(--text-secondary); font-weight: 700;
+  padding: 10px 12px; text-align: left; border-bottom: 2px solid var(--border-strong);
+  font-size: 11.5px; letter-spacing: .03em; white-space: nowrap;
+  transition: background var(--dur-base) var(--ease);
+}
+/* 컬럼 너비 고정 */
+.wiki-table th:nth-child(1) { width: 34%; }
+.wiki-table th:nth-child(2) { width: 40%; }
+.wiki-table th:nth-child(3) { width: 26%; }
+.wiki-table td {
+  padding: 10px 12px; color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
+  vertical-align: top; line-height: 1.55;
+  word-break: keep-all; hyphens: auto;
+  transition: background var(--dur-base) var(--ease), color var(--dur-base) var(--ease);
+}
 .wiki-table tr:last-child td { border-bottom: none; }
 .wiki-table tbody tr:nth-child(odd) td  { background: var(--bg-surface); }
 .wiki-table tbody tr:nth-child(even) td { background: var(--bg-surface-2); }
@@ -837,6 +878,34 @@ body.dark .btn-copy:hover { color: var(--kb-yellow); }
 .wiki-table td b { color: var(--text-primary); font-weight: 700; }
 .wiki-blue-text { color: var(--kb-navy-mid); font-weight: 600; }
 body.dark .wiki-blue-text { color: var(--accent-blue); }
+
+/* ── KB 담보 금리 유형 셀렉트 ────────────────────────────────────────────── */
+.rate-type-wrap {
+  animation: fade-up .2s var(--ease) both;
+}
+
+/* ── 복사 버튼 카운트 배지 ────────────────────────────────────────────────── */
+.copy-count-badge {
+  display: inline-block;
+  font-size: 10px; font-weight: 700;
+  background: rgba(0,0,0,.12); color: inherit;
+  padding: 1px 7px; border-radius: 10px; margin-left: 6px;
+  vertical-align: middle;
+}
+.btn-copy--exhausted {
+  opacity: .5; cursor: not-allowed !important;
+  border-color: var(--border) !important;
+  color: var(--text-muted) !important;
+}
+
+/* ── 마일스톤 카드 강조 행 ────────────────────────────────────────────────── */
+.milestone-row--total {
+  margin-top: 6px; padding-top: 6px;
+  border-top: 1px dashed var(--border-strong);
+  font-weight: 700;
+}
+.milestone-row--total .milestone-key { color: var(--text-primary); }
+.milestone-row--total .milestone-val { font-size: 13.5px; color: var(--text-primary); }
 
 /* ── FAB 새로고침 ────────────────────────────────────────────────────────── */
 .refresh-btn {
