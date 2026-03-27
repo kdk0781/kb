@@ -1,0 +1,22 @@
+{
+  "name": "DSR 계산기",
+  "short_name": "DSR 계산기",
+  "start_url": "index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FFFFFF",
+  "theme_color": "#FFCC00",
+  "icons": [
+    {
+      "src": "../ico/dsrcalc.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "../ico/dsrcalc.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
