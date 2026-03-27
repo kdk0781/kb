@@ -122,47 +122,44 @@ function startClock() {
 }
 
 
-/* ======================================================
-   4. 강력 새로고침 로직 (캐시 및 서비스워커 강제 초기화)
+ /* ======================================================
+   4. 강력 새로고침 고도화 (로딩 애니메이션 통합 버전)
    ====================================================== */
 async function refreshData() {
     const fab = document.getElementById('fab-refresh');
+    const loading = document.getElementById('loading-overlay');
     
-    // 시각적 피드백: 버튼 회전
+    // [단계 0] 로딩 화면 표시 및 버튼 회전
+    if (loading) loading.style.display = 'flex';
     if (fab) {
-        fab.style.transition = "transform 0.8s cubic-bezier(0.4, 0, 0.2, 1)";
+        fab.style.transition = "transform 0.8s ease-in-out";
         fab.style.transform = "rotate(720deg)";
     }
 
-    // [1단계] 서비스 워커 업데이트 확인 및 강제 활성화
+    // [단계 1] 서비스 워커 업데이트 강제 실행
     if ('serviceWorker' in navigator) {
-        const registrations = await navigator.serviceWorker.getRegistrations();
-        for (let registration of registrations) {
-            await registration.update(); // 깃허브의 새 파일을 체크함
-        }
+        try {
+            const regs = await navigator.serviceWorker.getRegistrations();
+            for (let r of regs) await r.update();
+        } catch (e) { console.error('SW Update Error:', e); }
     }
 
-    // [2단계] 브라우저 캐시 스토리지(Cache Storage) 전면 삭제
+    // [단계 2] 모든 브라우저 캐시 스토리지 삭제
     if ('caches' in window) {
-        const cacheNames = await caches.keys();
-        await Promise.all(
-            cacheNames.map(cacheName => {
-                console.log('기존 캐시 삭제 중:', cacheName);
-                return caches.delete(cacheName);
-            })
-        );
+        try {
+            const names = await caches.keys();
+            await Promise.all(names.map(n => caches.delete(n)));
+        } catch (e) { console.error('Cache Clear Error:', e); }
     }
 
-    // [3단계] 강제 로드 (URL 뒤에 타임스탬프를 붙여 브라우저를 속임)
+    // [단계 3] 1.5초간 로딩 애니메이션을 보여준 뒤 강제 리로드
     setTimeout(() => {
-        const currentUrl = window.location.origin + window.location.pathname;
-        const newUrl = currentUrl + '?v=' + new Date().getTime();
+        const url = window.location.origin + window.location.pathname;
+        const newUrl = url.split('?')[0] + '?update=' + new Date().getTime();
         
-        // 세션 스토리지 등 임시 데이터도 비우고 싶다면 추가
         sessionStorage.clear();
-        
-        window.location.replace(newUrl); // 히스토리에 남지 않게 교체
-    }, 600);
+        window.location.replace(newUrl);
+    }, 1500); // 점(....)이 움직이는 것을 보여주기 위해 시간을 조금 늘렸습니다.
 }
 
 
