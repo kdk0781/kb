@@ -11,174 +11,74 @@
   <link rel="stylesheet" href="common.css" media="all">
   <title>DSR 진단 리포트</title>
   <style>
-    /* ── 리포트 전용 스타일 ───────────────────────────────────────────────── */
-    .rpt-header {
-      position: sticky; top: 0; z-index: 100;
-      background: var(--bg-header);
-      border-bottom: 1px solid var(--border);
-      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-      transition: background var(--dur-base);
-    }
-    .rpt-header::before {
-      content: ''; display: block; height: 3px;
-      background: linear-gradient(90deg, var(--kb-yellow), var(--kb-yellow-deep), #1A2B5A);
-    }
-    .rpt-header-inner {
-      max-width: 680px; margin: 0 auto;
-      padding: 12px 16px;
-      display: flex; justify-content: space-between; align-items: center;
-    }
-    .rpt-title    { font-size: 16px; font-weight: 800; color: var(--text-primary); letter-spacing: -.03em; }
-    .rpt-ro-badge {
-      font-size: 10px; font-weight: 700; padding: 3px 9px;
-      background: var(--bg-surface-3); color: var(--text-muted);
-      border: 1px solid var(--border); border-radius: 20px;
-    }
-    .rpt-expiry-bar {
-      max-width: 680px; margin: 0 auto;
-      padding: 5px 16px 10px;
-      display: flex; align-items: center; gap: 6px;
-      font-size: 11px; color: var(--text-muted);
-    }
-    .rpt-expiry-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--safe); flex-shrink: 0; }
-    .rpt-expiry-dot.warn   { background: var(--warn); }
-    .rpt-expiry-dot.danger { background: var(--danger); }
-
-    /* ── 본문 컨테이너 ────────────────────────────────────────────────────── */
-    .rpt-body { max-width: 680px; margin: 0 auto; padding: 14px 16px 60px; }
-
-    /* ── 면책 안내 ────────────────────────────────────────────────────────── */
-    .rpt-notice {
-      background: var(--warn-bg); border: 1px solid var(--warn-border);
-      border-left: 4px solid var(--warn);
-      border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 16px;
-      font-size: 12.5px; line-height: 1.7; color: var(--text-secondary); word-break: keep-all;
-    }
-    .rpt-notice strong { color: var(--warn); display: block; margin-bottom: 4px; font-weight: 700; font-size: 13px; }
-
-    /* ── 입력 정보 섹션 ──────────────────────────────────────────────────── */
-    .rpt-input-section {
-      background: var(--bg-surface); border: 1.5px solid var(--border);
-      border-radius: var(--radius-md); overflow: hidden;
-      margin-bottom: 14px; box-shadow: var(--shadow-sm);
-    }
-    .rpt-section-title {
-      background: var(--bg-surface-3);
-      padding: 9px 14px;
-      font-size: 11px; font-weight: 700; color: var(--text-muted);
-      letter-spacing: .06em; text-transform: uppercase;
-      border-bottom: 1px solid var(--border);
-    }
-    .rpt-income-row {
-      padding: 12px 14px;
-      display: flex; justify-content: space-between; align-items: center;
-      border-bottom: 1px solid var(--border);
-    }
-    .rpt-income-label { font-size: 12.5px; color: var(--text-secondary); font-weight: 500; }
-    .rpt-income-val   { font-family: 'Barlow', var(--font-num), sans-serif; font-size: 15px; font-weight: 800; color: var(--text-primary); }
-
-    /* ── 대출 항목 행 ────────────────────────────────────────────────────── */
-    .rpt-loan-row {
-      padding: 11px 14px; border-bottom: 1px solid var(--border);
-    }
-    .rpt-loan-row:last-child { border-bottom: none; }
-    .rpt-loan-top {
-      display: flex; align-items: center; gap: 7px;
-      margin-bottom: 5px;
-    }
-    .rpt-loan-emoji { font-size: 15px; }
-    .rpt-loan-cat   { font-size: 13.5px; font-weight: 700; color: var(--text-primary); }
-    .rpt-loan-bottom {
-      display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
-      padding-left: 22px; font-size: 13px;
-    }
-    .rpt-loan-amount { font-family: 'Barlow', var(--font-num), sans-serif; font-weight: 700; color: var(--text-primary); }
-    .rpt-sep        { color: var(--border-strong); }
-    .rpt-loan-rate  { font-family: 'Barlow', var(--font-num), sans-serif; color: var(--kb-navy-mid); font-weight: 600; }
-    body.dark .rpt-loan-rate { color: var(--accent-blue); }
-    .rpt-loan-term  { font-size: 12px; color: var(--text-muted); }
-    .rpt-loan-rtype { font-size: 11px; font-weight: 600; color: var(--kb-yellow-deep); background: var(--kb-yellow-light); border: 1px solid var(--kb-yellow); border-radius: 10px; padding: 1px 7px; }
-    body.dark .rpt-loan-rtype { color: var(--kb-yellow); background: rgba(255,184,28,.12); }
-
-    /* ── DSR 수치 ─────────────────────────────────────────────────────────── */
-    .rpt-dsr-card {
-      text-align: center;
-      background: var(--bg-surface); border: 1.5px solid var(--border);
-      border-radius: var(--radius-lg); padding: 22px 16px 18px;
-      margin-bottom: 14px; box-shadow: var(--shadow-md);
-    }
-    .rpt-dsr-label { font-size: 11px; font-weight: 700; color: var(--text-muted); letter-spacing: .07em; text-transform: uppercase; margin-bottom: 4px; }
-    .rpt-dsr-val   { font-family: 'Barlow', var(--font-num), sans-serif; font-size: 52px; font-weight: 900; letter-spacing: -.04em; line-height: 1.1; margin-bottom: 8px; }
-    .rpt-rec-text  { font-size: 13px; color: var(--text-secondary); line-height: 1.7; text-align: left; }
-
-    /* ── 결과 그리드 ──────────────────────────────────────────────────────── */
-    .rpt-result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
-    .rpt-result-card {
-      background: var(--bg-surface); border: 1.5px solid var(--border);
-      border-radius: var(--radius-md); padding: 13px 12px; box-shadow: var(--shadow-xs);
-    }
-    .rpt-rc-label { font-size: 11px; color: var(--text-muted); font-weight: 600; margin-bottom: 7px; }
-    .rpt-rc-val   { font-family: 'Barlow', var(--font-num), sans-serif; font-size: 16px; font-weight: 800; color: var(--text-primary); word-break: break-all; }
-    .rpt-remain-card {
-      background: var(--safe-bg); border: 1.5px solid var(--safe-border);
-      border-radius: var(--radius-md); padding: 14px 16px; margin-bottom: 14px; text-align: center;
-    }
-    .rpt-remain-label { font-size: 11px; font-weight: 700; color: var(--text-muted); letter-spacing: .07em; text-transform: uppercase; margin-bottom: 7px; }
-    .rpt-remain-val   { font-family: 'Barlow', var(--font-num), sans-serif; font-size: 30px; font-weight: 900; color: var(--safe); letter-spacing: -.04em; }
-
-    /* ── 리포트 하단 안내 ────────────────────────────────────────────────── */
-    .rpt-bottom-notice {
-      background: var(--bg-surface-2); border: 1px solid var(--border);
-      border-left: 4px solid var(--kb-yellow);
-      border-radius: var(--radius-md); padding: 12px 14px; margin-top: 20px;
-      font-size: 12px; line-height: 1.7; color: var(--text-secondary); word-break: keep-all;
-    }
-    .rpt-bottom-notice strong { color: var(--text-primary); display: block; margin-bottom: 4px; }
-
-    /* ── 만료 모달 ──────────────────────────────────────────────────────── */
-    .expiry-overlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,.52);
-      backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
-      display: flex; align-items: center; justify-content: center;
-      z-index: 500; padding: 20px;
-    }
-    .expiry-box {
-      background: var(--bg-surface); border: 1.5px solid var(--border);
-      border-radius: 20px; padding: 28px 22px 20px;
-      max-width: 320px; width: 100%; text-align: center;
-      box-shadow: 0 16px 50px rgba(0,0,0,.18);
-    }
-    .expiry-box-icon  { font-size: 36px; margin-bottom: 12px; }
-    .expiry-box-title { font-size: 16px; font-weight: 800; color: var(--text-primary); margin-bottom: 8px; }
-    .expiry-box-body  { font-size: 13px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 18px; word-break: keep-all; }
-    .expiry-box-btns  { display: flex; gap: 8px; }
-    .expiry-box-btns button {
-      flex: 1; height: 44px; border-radius: 10px; border: none; cursor: pointer;
-      font-size: 13.5px; font-weight: 700;
-    }
-    .btn-exp-today { background: linear-gradient(135deg, var(--kb-yellow), var(--kb-yellow-deep)); color: var(--kb-navy); }
-    .btn-exp-close { background: var(--bg-surface-3); color: var(--text-secondary); border: 1px solid var(--border) !important; }
-
-    /* ── 에러 화면 ──────────────────────────────────────────────────────── */
-    .rpt-error { text-align: center; padding: 60px 20px; }
-    .rpt-error .ei { font-size: 48px; margin-bottom: 16px; }
-    .rpt-error h2  { font-size: 18px; font-weight: 800; color: var(--text-primary); margin-bottom: 8px; }
-    .rpt-error p   { font-size: 14px; color: var(--text-secondary); line-height: 1.7; word-break: keep-all; }
-
-    /* ── 반응형 ─────────────────────────────────────────────────────────── */
-    @media (max-width: 480px) {
-      .rpt-dsr-val  { font-size: 40px; }
-      .rpt-rc-val   { font-size: 13px; }
-      .rpt-remain-val { font-size: 24px; }
-    }
+    .rpt-header{position:sticky;top:0;z-index:100;background:var(--bg-header);border-bottom:1px solid var(--border);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);transition:background var(--dur-base);}
+    .rpt-header::before{content:'';display:block;height:3px;background:linear-gradient(90deg,var(--kb-yellow),var(--kb-yellow-deep),#1A2B5A);}
+    .rpt-header-inner{max-width:680px;margin:0 auto;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;}
+    .rpt-title{font-size:16px;font-weight:800;color:var(--text-primary);letter-spacing:-.03em;}
+    .rpt-ro-badge{font-size:10px;font-weight:700;padding:3px 9px;background:var(--bg-surface-3);color:var(--text-muted);border:1px solid var(--border);border-radius:20px;}
+    .rpt-expiry-bar{max-width:680px;margin:0 auto;padding:5px 16px 10px;display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-muted);}
+    .rpt-expiry-dot{width:6px;height:6px;border-radius:50%;background:var(--safe);flex-shrink:0;}
+    .rpt-expiry-dot.warn{background:var(--warn);} .rpt-expiry-dot.danger{background:var(--danger);}
+    .rpt-body{max-width:680px;margin:0 auto;padding:14px 16px 60px;}
+    .rpt-notice{background:var(--warn-bg);border:1px solid var(--warn-border);border-left:4px solid var(--warn);border-radius:var(--radius-md);padding:12px 14px;margin-bottom:16px;font-size:12.5px;line-height:1.7;color:var(--text-secondary);word-break:keep-all;}
+    .rpt-notice strong{color:var(--warn);display:block;margin-bottom:4px;font-weight:700;font-size:13px;}
+    .rpt-input-section{background:var(--bg-surface);border:1.5px solid var(--border);border-radius:var(--radius-md);overflow:hidden;margin-bottom:14px;box-shadow:var(--shadow-sm);}
+    .rpt-section-title{background:var(--bg-surface-3);padding:9px 14px;font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.06em;text-transform:uppercase;border-bottom:1px solid var(--border);}
+    .rpt-income-row{padding:12px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);}
+    .rpt-income-label{font-size:12.5px;color:var(--text-secondary);font-weight:500;}
+    .rpt-income-val{font-family:'Barlow',var(--font-num),sans-serif;font-size:15px;font-weight:800;color:var(--text-primary);}
+    .rpt-loan-row{padding:11px 14px;border-bottom:1px solid var(--border);}
+    .rpt-loan-row:last-child{border-bottom:none;}
+    .rpt-loan-top{display:flex;align-items:center;gap:7px;margin-bottom:5px;}
+    .rpt-loan-emoji{font-size:15px;}
+    .rpt-loan-cat{font-size:13.5px;font-weight:700;color:var(--text-primary);}
+    .rpt-loan-bottom{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding-left:22px;font-size:13px;}
+    .rpt-loan-amount{font-family:'Barlow',var(--font-num),sans-serif;font-weight:700;color:var(--text-primary);}
+    .rpt-sep{color:var(--border-strong);}
+    .rpt-loan-rate{font-family:'Barlow',var(--font-num),sans-serif;color:var(--kb-navy-mid);font-weight:600;}
+    body.dark .rpt-loan-rate{color:var(--accent-blue);}
+    .rpt-loan-term{font-size:12px;color:var(--text-muted);}
+    .rpt-loan-rtype{font-size:11px;font-weight:600;color:var(--kb-yellow-deep);background:var(--kb-yellow-light);border:1px solid var(--kb-yellow);border-radius:10px;padding:1px 7px;}
+    body.dark .rpt-loan-rtype{color:var(--kb-yellow);background:rgba(255,184,28,.12);}
+    .rpt-dsr-card{text-align:center;background:var(--bg-surface);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:22px 16px 18px;margin-bottom:14px;box-shadow:var(--shadow-md);}
+    .rpt-dsr-label{font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.07em;text-transform:uppercase;margin-bottom:4px;}
+    .rpt-dsr-val{font-family:'Barlow',var(--font-num),sans-serif;font-size:52px;font-weight:900;letter-spacing:-.04em;line-height:1.1;margin-bottom:8px;}
+    .rpt-rec-text{font-size:13px;color:var(--text-secondary);line-height:1.7;text-align:left;}
+    .rpt-result-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+    .rpt-result-card{background:var(--bg-surface);border:1.5px solid var(--border);border-radius:var(--radius-md);padding:13px 12px;box-shadow:var(--shadow-xs);}
+    .rpt-rc-label{font-size:11px;color:var(--text-muted);font-weight:600;margin-bottom:7px;}
+    .rpt-rc-val{font-family:'Barlow',var(--font-num),sans-serif;font-size:16px;font-weight:800;color:var(--text-primary);word-break:break-all;}
+    .rpt-remain-card{background:var(--safe-bg);border:1.5px solid var(--safe-border);border-radius:var(--radius-md);padding:14px 16px;margin-bottom:14px;text-align:center;}
+    .rpt-remain-label{font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.07em;text-transform:uppercase;margin-bottom:7px;}
+    .rpt-remain-val{font-family:'Barlow',var(--font-num),sans-serif;font-size:30px;font-weight:900;color:var(--safe);letter-spacing:-.04em;}
+    .rpt-bottom-notice{background:var(--bg-surface-2);border:1px solid var(--border);border-left:4px solid var(--kb-yellow);border-radius:var(--radius-md);padding:12px 14px;margin-top:20px;font-size:12px;line-height:1.7;color:var(--text-secondary);word-break:keep-all;}
+    .rpt-bottom-notice strong{color:var(--text-primary);display:block;margin-bottom:4px;}
+    /* 만료 모달 */
+    .expiry-overlay{position:fixed;inset:0;background:rgba(0,0,0,.52);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);display:flex;align-items:center;justify-content:center;z-index:500;padding:20px;}
+    .expiry-box{background:var(--bg-surface);border:1.5px solid var(--border);border-radius:20px;padding:28px 22px 20px;max-width:320px;width:100%;text-align:center;box-shadow:0 16px 50px rgba(0,0,0,.18);}
+    .expiry-box-icon{font-size:36px;margin-bottom:12px;}
+    .expiry-box-title{font-size:16px;font-weight:800;color:var(--text-primary);margin-bottom:8px;}
+    .expiry-box-body{font-size:13px;color:var(--text-secondary);line-height:1.7;margin-bottom:18px;word-break:keep-all;}
+    .expiry-box-btns{display:flex;gap:8px;}
+    .expiry-box-btns button{flex:1;height:44px;border-radius:10px;border:none;cursor:pointer;font-size:13.5px;font-weight:700;}
+    .btn-exp-today{background:linear-gradient(135deg,var(--kb-yellow),var(--kb-yellow-deep));color:var(--kb-navy);}
+    .btn-exp-close{background:var(--bg-surface-3);color:var(--text-secondary);border:1px solid var(--border)!important;}
+    /* 에러 */
+    .rpt-error{text-align:center;padding:60px 20px;}
+    .rpt-error .ei{font-size:48px;margin-bottom:16px;}
+    .rpt-error h2{font-size:18px;font-weight:800;color:var(--text-primary);margin-bottom:8px;}
+    .rpt-error p{font-size:14px;color:var(--text-secondary);line-height:1.7;word-break:keep-all;}
+    @media(max-width:480px){.rpt-dsr-val{font-size:40px;}.rpt-rc-val{font-size:13px;}.rpt-remain-val{font-size:24px;}}
   </style>
 </head>
 <body>
 
-<!-- 만료 안내 모달 -->
+<!-- 만료 안내 모달
+     ・ 닫기(btn-exp-close): DOM만 닫음 — 재방문 시 다시 표시
+     ・ 오늘 하루 보지 않기: localStorage에 오늘 날짜 기록 — 오늘 하루만 숨김 -->
 <div id="expiryModal" class="expiry-overlay" style="display:none;">
   <div class="expiry-box">
-    <div class="expiry-box-icon" id="expiryIcon">🔗</div>
+    <div class="expiry-box-icon">🔗</div>
     <div class="expiry-box-title" id="expiryTitle">임시 리포트 링크 안내</div>
     <div class="expiry-box-body"  id="expiryBody"></div>
     <div class="expiry-box-btns">
@@ -188,7 +88,6 @@
   </div>
 </div>
 
-<!-- 헤더 -->
 <div class="rpt-header">
   <div class="rpt-header-inner">
     <div class="rpt-title">📊 DSR 진단 리포트</div>
@@ -197,7 +96,6 @@
   <div class="rpt-expiry-bar" id="expiryBar"></div>
 </div>
 
-<!-- 본문 -->
 <div class="rpt-body" id="rptBody">
   <div class="rpt-error"><div class="ei">⏳</div><h2>로딩 중...</h2></div>
 </div>
@@ -205,123 +103,117 @@
 <script>
 // ── 테마 ──────────────────────────────────────────────────────────────────────
 (function(){
-  const d = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  document.body.classList.toggle('dark', d);
-  document.body.classList.toggle('white', !d);
+  const d=window.matchMedia('(prefers-color-scheme: dark)').matches;
+  document.body.classList.toggle('dark',d); document.body.classList.toggle('white',!d);
 })();
-window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-  document.body.classList.toggle('dark', e.matches);
-  document.body.classList.toggle('white', !e.matches);
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',e=>{
+  document.body.classList.toggle('dark',e.matches); document.body.classList.toggle('white',!e.matches);
 });
 
-// ── 레이블/이모티콘 ──────────────────────────────────────────────────────────
-const LABELS = {
-  mortgage_level:'주택담보 (원리금)', mortgage_prin:'주택담보 (원금)',
-  jeonse:'전세대출 (만기)', officetel:'오피스텔 (원리금)',
-  credit:'신용대출 (원리금)', cardloan:'카드론 (원리금)',
-};
-const EMOJIS = {
-  mortgage_level:'🏠', mortgage_prin:'🏠', jeonse:'🔑',
-  officetel:'🏢', credit:'💳', cardloan:'💰',
-};
+const LABELS={mortgage_level:'주택담보 (원리금)',mortgage_prin:'주택담보 (원금)',jeonse:'전세대출 (만기)',officetel:'오피스텔 (원리금)',credit:'신용대출 (원리금)',cardloan:'카드론 (원리금)'};
+const EMOJIS={mortgage_level:'🏠',mortgage_prin:'🏠',jeonse:'🔑',officetel:'🏢',credit:'💳',cardloan:'💰'};
 
 // ── 만료 모달 ─────────────────────────────────────────────────────────────────
-const EXP_SEEN_KEY = 'dsr_report_expiry_seen';
-function closeExpiryModal() { document.getElementById('expiryModal').style.display = 'none'; }
-function closeExpiryToday()  {
-  localStorage.setItem(EXP_SEEN_KEY, new Date().toISOString().slice(0, 10));
+const EXP_KEY = 'dsr_report_expiry_seen';
+
+/**
+ * 닫기 — DOM만 닫음 (localStorage 저장 안함)
+ * → 탭 닫고 다시 링크 열면 모달 다시 표시됨
+ */
+function closeExpiryModal() { document.getElementById('expiryModal').style.display='none'; }
+
+/**
+ * 오늘 하루 보지 않기 — localStorage에 오늘 날짜 저장
+ * → 오늘 날짜가 같으면 모달 표시 안 함
+ */
+function closeExpiryToday() {
+  localStorage.setItem(EXP_KEY, new Date().toISOString().slice(0,10));
   closeExpiryModal();
 }
+
 function showExpiryModal(data) {
-  const today = new Date().toISOString().slice(0, 10);
-  if (localStorage.getItem(EXP_SEEN_KEY) === today) return;
+  const today = new Date().toISOString().slice(0,10);
+  if (localStorage.getItem(EXP_KEY) === today) return; // 오늘 이미 본 경우만 숨김
 
   const rem   = data.expiry - Date.now();
   const days  = Math.floor(rem / 86400000);
   const hours = Math.floor((rem % 86400000) / 3600000);
-  const expD  = new Date(data.expiry).toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric' });
+  const expD  = new Date(data.expiry).toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'});
 
   document.getElementById('expiryBody').innerHTML =
     `이 리포트는 임시 공유 링크로 열람 중입니다.<br><br>` +
     `<b>만료일: ${expD}</b><br>` +
     `<b>남은 시간: ${days}일 ${hours}시간</b><br><br>` +
     `링크 만료 후에는 내용을 확인할 수 없으니 필요한 내용을 미리 저장하세요.`;
-  document.getElementById('expiryModal').style.display = 'flex';
+  document.getElementById('expiryModal').style.display='flex';
 }
 
 // ── 수학 유틸 ─────────────────────────────────────────────────────────────────
-function calcPMT(P, r, n) {
-  if (r === 0) return P / n;
-  return (P * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
-}
-function isPurchase(cat, n) {
-  return cat === 'mortgage_level' || cat === 'mortgage_prin' || (cat === 'officetel' && n >= 180);
-}
+function calcPMT(P,r,n){if(r===0)return P/n;return(P*r*Math.pow(1+r,n))/(Math.pow(1+r,n)-1);}
+function isPurchase(cat,n){return cat==='mortgage_level'||cat==='mortgage_prin'||(cat==='officetel'&&n>=180);}
 
-// ── DSR 재계산 ────────────────────────────────────────────────────────────────
-function recalcDSR(income, loans) {
-  if (!income || !loans.length) return { dsr: 0, maxPrin: 0, maxLevel: 0, remain: 0 };
-  let totalAnn = 0, combinedP = 0;
-  let bR = 4.5, bSR = 1.15, bM = 360;
-
-  loans.forEach((l, idx) => {
-    const R   = l.R || 4.5;
-    const SR  = l.SR || 0;
-    const n   = l.n  || 360;
-    if (idx === 0) { bR = R; bSR = SR; bM = n; }
-    if (l.P <= 0) return;
-    const r_dsr = (R + SR) / 1200;
-    if (l.cat === 'jeonse') { totalAnn += l.P * (R / 1200) * 12; return; }
-    if (isPurchase(l.cat, l.n)) {
-      combinedP += l.P;
-      if (l.cat === 'mortgage_prin') {
-        totalAnn += (l.P / n) * 12 + (l.P * r_dsr * (n + 1) / 2) / (n / 12);
-      } else { totalAnn += calcPMT(l.P, r_dsr, n) * 12; }
-    } else {
-      const tN = l.cat === 'cardloan' ? 36 : l.cat === 'credit' ? 60 : n;
-      totalAnn += calcPMT(l.P, r_dsr, tN) * 12;
-    }
+function recalcDSR(income,loans){
+  if(!income||!loans.length)return{dsr:0,maxPrin:0,maxLevel:0,remain:0,combinedP:0};
+  let totalAnn=0,combinedP=0,bR=4.5,bSR=1.15,bM=360;
+  loans.forEach((l,idx)=>{
+    const R=l.R||4.5,SR=l.SR||0,n=l.n||360;
+    if(idx===0){bR=R;bSR=SR;bM=n;}
+    if(l.P<=0)return;
+    const r_dsr=(R+SR)/1200;
+    if(l.cat==='jeonse'){totalAnn+=l.P*(R/1200)*12;return;}
+    if(isPurchase(l.cat,l.n)){combinedP+=l.P;if(l.cat==='mortgage_prin'){totalAnn+=(l.P/n)*12+(l.P*r_dsr*(n+1)/2)/(n/12);}else{totalAnn+=calcPMT(l.P,r_dsr,n)*12;}}
+    else{const tN=l.cat==='cardloan'?36:l.cat==='credit'?60:n;totalAnn+=calcPMT(l.P,r_dsr,tN)*12;}
   });
-
-  const dsr     = (totalAnn / income) * 100;
-  const tAnn    = income * 0.4;
-  const r_lim   = (bR + bSR) / 1200;
-  const n       = bM;
-  const maxPrin = ((12 / n) + (r_lim * 6 * (n + 1) / n)) > 0
-    ? tAnn / ((12 / n) + (r_lim * 6 * (n + 1) / n)) : 0;
-  const maxLevel = r_lim === 0 ? (tAnn / 12) * n
-    : (tAnn / 12) * (Math.pow(1 + r_lim, n) - 1) / (r_lim * Math.pow(1 + r_lim, n));
-  const remain  = dsr > 40 ? 0 : Math.max(0, maxPrin - combinedP);
-
-  return { dsr, maxPrin, maxLevel, remain };
+  const dsr=(totalAnn/income)*100,tAnn=income*0.4,r_lim=(bR+bSR)/1200,n=bM;
+  const maxPrin=((12/n)+(r_lim*6*(n+1)/n))>0?tAnn/((12/n)+(r_lim*6*(n+1)/n)):0;
+  const maxLevel=r_lim===0?(tAnn/12)*n:(tAnn/12)*(Math.pow(1+r_lim,n)-1)/(r_lim*Math.pow(1+r_lim,n));
+  const remain=dsr>40?0:Math.max(0,maxPrin-combinedP);
+  return{dsr,maxPrin,maxLevel,remain,combinedP};
 }
 
-// ── 스케줄 렌더링 ─────────────────────────────────────────────────────────────
-let _schedLoan = null;
-let _schedType = 'P';
+// ── 스케줄 렌더링 (마일스톤 로직 완전 포함) ───────────────────────────────────
+let _schedLoan=null,_schedType='P';
+
+function _buildMilestoneMap(loan) {
+  const { P, n, merged, parts } = loan;
+  const map = {};
+  if (merged && parts) {
+    // 복수 구입자금: 각 서브론 종료 회차 등록
+    parts.forEach(part => {
+      const key = part.n;
+      (map[key] = map[key] || []).push({ ...part, isSub: true });
+    });
+  } else {
+    // 단일 대출: 마지막 회차에 단일 종료 카드
+    map[n] = [{ ...loan, label: loan.label, cat: loan.cat, isSub: false }];
+  }
+  return map;
+}
 
 function renderSchedule(loan, type) {
-  const { P, R, n, label } = loan;
-  const r     = R / 1200;
+  const { P, R, n, label, merged } = loan;
+  const r = R / 1200;
   const isLvl = type === 'L';
-  const mP    = P / n;
-  const mPMT  = calcPMT(P, r, n);
-  let html = '', bal = P, yCumP = 0, yCumI = 0, totI = 0;
+  const mP = P / n, mPMT = calcPMT(P, r, n);
+  const milestoneMap = _buildMilestoneMap(loan);
+
+  let html = '', bal = P, yCumP = 0, yCumI = 0, totCumP = 0, totI = 0;
 
   for (let i = 1; i <= n; i++) {
     let curP, curI;
     if (isLvl) { curI = bal * r; curP = mPMT - curI; }
     else       { curI = bal * r; curP = mP; }
     if (i === n) { curP = bal; curI = bal * r; }
-    bal -= curP; yCumP += curP; yCumI += curI; totI += curI;
+    bal -= curP; yCumP += curP; yCumI += curI; totCumP += curP; totI += curI;
 
     html += `<div class="schedule-item">
       <div class="sch-idx">${i}회</div>
       <div class="sch-val">${Math.round(curP).toLocaleString()}</div>
       <div class="sch-val">${Math.round(curI).toLocaleString()}</div>
-      <div class="sch-total">${Math.round(curP + curI).toLocaleString()}</div>
+      <div class="sch-total">${Math.round(curP+curI).toLocaleString()}</div>
     </div>`;
 
+    // N년차 요약 카드
     if (i % 12 === 0 || i === n) {
       const yr = Math.ceil(i / 12);
       html += `<div class="year-summary-card">
@@ -330,26 +222,53 @@ function renderSchedule(loan, type) {
           <div>누적원금: <b class="stat-prin">${Math.round(yCumP).toLocaleString()}원</b></div>
           <div>누적이자: <b class="stat-int">${Math.round(yCumI).toLocaleString()}원</b></div>
         </div>
-        <div class="card-balance-row">
-          <span class="balance-label">잔액</span>
-          <span class="balance-value">${Math.max(0, Math.round(bal)).toLocaleString()}원</span>
-        </div>
+        <div class="card-balance-row"><span class="balance-label">잔액</span><span class="balance-value">${Math.max(0,Math.round(bal)).toLocaleString()}원</span></div>
       </div>`;
       yCumP = 0; yCumI = 0;
     }
+
+    // ★ 마일스톤 카드
+    if (milestoneMap[i]) {
+      milestoneMap[i].forEach(part => {
+        const pRatio   = part.isSub ? (part.P / P) : 1;
+        const eCumP    = Math.round(totCumP * pRatio);
+        const eCumI    = Math.round(totI * pRatio);
+        const catLabel = part.isSub ? (LABELS[part.cat] || label) : label;
+        const catEmoji = part.isSub ? (EMOJIS[part.cat] || '🏠') : (EMOJIS[loan.cat] || '🏠');
+        const partP    = part.isSub ? part.P : P;
+        html += `<div class="year-summary-card loan-milestone-card">
+          <div class="card-title-row">
+            <span class="card-title">${catEmoji} ${catLabel} 잔금 상환 완료</span>
+            <span class="milestone-badge">종료</span>
+          </div>
+          <div class="milestone-body">
+            <div class="milestone-row"><span class="milestone-key">대출 원금</span><span class="milestone-val">${Math.round(partP).toLocaleString()}원</span></div>
+            <div class="milestone-row"><span class="milestone-key">상환 기간</span><span class="milestone-val">${part.n}개월 (${Math.round(part.n/12)}년)</span></div>
+            <div class="milestone-row"><span class="milestone-key">누적 상환원금 (추정)</span><span class="milestone-val stat-prin">${eCumP.toLocaleString()}원</span></div>
+            <div class="milestone-row"><span class="milestone-key">누적 이자 (추정)</span><span class="milestone-val stat-int">${eCumI.toLocaleString()}원</span></div>
+            <div class="milestone-row milestone-row--total"><span class="milestone-key">원금+이자 합계</span><span class="milestone-val">${(eCumP+eCumI).toLocaleString()}원</span></div>
+          </div>
+          <div class="card-balance-row">
+            <span class="balance-label">${part.isSub?'전체 잔액 (통합 기준)':'잔액'}</span>
+            <span class="balance-value">${Math.max(0,Math.round(bal)).toLocaleString()}원</span>
+          </div>
+        </div>`;
+      });
+    }
   }
 
-  html += `<div class="year-summary-card total-card">
-    <div class="card-title-row"><span class="card-title">📊 ${label} 상환 총계</span></div>
-    <div class="card-stats">
-      <div>총 원금: <b class="stat-prin">${Math.round(P).toLocaleString()}원</b></div>
-      <div>총 이자: <b class="stat-int">${Math.round(totI).toLocaleString()}원</b></div>
-    </div>
-    <div class="card-balance-row">
-      <span class="balance-label">총 납입액</span>
-      <span class="balance-value">${Math.round(P + totI).toLocaleString()}원</span>
-    </div>
-  </div>`;
+  // 통합 총계 카드 (merged 시에만)
+  if (merged) {
+    html += `<div class="year-summary-card total-card">
+      <div class="card-title-row"><span class="card-title">📊 ${label} 상환 총계</span></div>
+      <div class="card-stats">
+        <div>총 원금: <b class="stat-prin">${Math.round(P).toLocaleString()}원</b></div>
+        <div>총 이자: <b class="stat-int">${Math.round(totI).toLocaleString()}원</b></div>
+      </div>
+      <div class="card-balance-row"><span class="balance-label">총 납입액</span><span class="balance-value">${Math.round(P+totI).toLocaleString()}원</span></div>
+    </div>`;
+  }
+
   return html;
 }
 
@@ -360,14 +279,11 @@ function switchTab(type) {
   if (_schedLoan) document.getElementById('rSchedList').innerHTML = renderSchedule(_schedLoan, type);
 }
 
-// ── 날짜 포맷 ─────────────────────────────────────────────────────────────────
-function _fmtDate(iso) {
-  return new Date(iso).toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit' });
-}
-function _fmtMoney(v) { return (Math.floor(Math.max(0, v) / 10000) * 10000).toLocaleString() + " 원"; }
+function _fmtDate(iso) { return new Date(iso).toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'}); }
+function _fmtMoney(v) { return (Math.floor(Math.max(0,v)/10000)*10000).toLocaleString()+" 원"; }
 
 // ── 메인 렌더 ─────────────────────────────────────────────────────────────────
-window.onload = function () {
+window.onload = function() {
   const hash = window.location.hash.slice(1);
   const body = document.getElementById('rptBody');
 
@@ -392,8 +308,8 @@ window.onload = function () {
   const rem   = data.expiry - Date.now();
   const days  = Math.floor(rem / 86400000);
   const hours = Math.floor((rem % 86400000) / 3600000);
-  const expD  = new Date(data.expiry).toLocaleDateString('ko-KR', { month:'long', day:'numeric' });
-  const dotCls = days <= 1 ? 'danger' : days <= 3 ? 'warn' : '';
+  const expD  = new Date(data.expiry).toLocaleDateString('ko-KR',{month:'long',day:'numeric'});
+  const dotCls = days<=1?'danger':days<=3?'warn':'';
   document.getElementById('expiryBar').innerHTML =
     `<span class="rpt-expiry-dot ${dotCls}"></span>${expD} 만료 · 남은 ${days}일 ${hours}시간`;
 
@@ -401,34 +317,28 @@ window.onload = function () {
   const loans  = data.loans || [];
   const income = data.income || 0;
   const { dsr, maxPrin, maxLevel, remain } = recalcDSR(income, loans);
-  const isOver  = dsr > 40;
+  const isOver = dsr > 40;
   const dsrColor = isOver ? "var(--danger)" : dsr > 36 ? "var(--warn)" : "var(--safe)";
   const f = _fmtMoney;
 
   // 스케줄 대상 결정
   const pLoans = loans.filter(l => isPurchase(l.cat, l.n));
   if (pLoans.length >= 2) {
-    const totalP    = pLoans.reduce((s, l) => s + l.P, 0);
-    const weightedR = pLoans.reduce((s, l) => s + l.R * l.P, 0) / totalP;
-    const maxN      = Math.max(...pLoans.map(l => l.n));
-    _schedLoan = { P: totalP, R: weightedR, n: maxN, label: '통합 구입자금' };
-  } else if (pLoans.length === 1) {
-    _schedLoan = { ...pLoans[0], label: LABELS[pLoans[0].cat] || pLoans[0].cat };
+    const totalP    = pLoans.reduce((s,l)=>s+l.P,0);
+    const weightedR = pLoans.reduce((s,l)=>s+l.R*l.P,0)/totalP;
+    const maxN      = Math.max(...pLoans.map(l=>l.n));
+    _schedLoan = { P: totalP, R: weightedR, n: maxN, label:'통합 구입자금', merged:true, parts:pLoans };
+  } else if (pLoans.length===1) {
+    _schedLoan = { ...pLoans[0], label:LABELS[pLoans[0].cat]||pLoans[0].cat, merged:false };
   } else if (loans[0]) {
-    _schedLoan = { ...loans[0], label: LABELS[loans[0].cat] || loans[0].cat };
+    _schedLoan = { ...loans[0], label:LABELS[loans[0].cat]||loans[0].cat, merged:false };
   }
 
   // 대출 항목 행
   const loanRows = loans.map(l => {
-    const rtTag = l.rt && l.rt !== '직접입력'
-      ? `<span class="rpt-loan-rtype">${l.rt}</span>` : '';
-    return `
-    <div class="rpt-loan-row">
-      <div class="rpt-loan-top">
-        <span class="rpt-loan-emoji">${EMOJIS[l.cat] || '📌'}</span>
-        <span class="rpt-loan-cat">${LABELS[l.cat] || l.cat}</span>
-        ${rtTag}
-      </div>
+    const rtTag = l.rt&&l.rt!=='직접입력' ? `<span class="rpt-loan-rtype">${l.rt}</span>`:'' ;
+    return `<div class="rpt-loan-row">
+      <div class="rpt-loan-top"><span class="rpt-loan-emoji">${EMOJIS[l.cat]||'📌'}</span><span class="rpt-loan-cat">${LABELS[l.cat]||l.cat}</span>${rtTag}</div>
       <div class="rpt-loan-bottom">
         <span class="rpt-loan-amount">${Math.round(l.P).toLocaleString()}원</span>
         <span class="rpt-sep">|</span>
@@ -439,67 +349,41 @@ window.onload = function () {
     </div>`;
   }).join('');
 
-  // 생성일 표시 (createdAt 사용)
+  // 추천 문구
+  let recText='';
+  if(isOver) recText=`<b style="color:var(--danger)">⛔ DSR 규제선(40%) 초과 — ${dsr.toFixed(1)}%</b><br><span style="font-size:12px;">신규 주택담보대출 실행이 제한됩니다. 고금리 부채 우선 상환 또는 만기 연장을 권장합니다.</span>`;
+  else if(dsr>=36) recText=`<b style="color:var(--warn)">⚠️ DSR 경계 구간 — ${dsr.toFixed(1)}%</b><br><span style="font-size:12px;">규제선까지 여유 ${(40-dsr).toFixed(1)}%p. 추가 여력: <b>${f(remain)}</b></span>`;
+  else if(dsr>=25) recText=`<b style="color:#e6a000">✅ 안정 구간 — ${dsr.toFixed(1)}%</b><br><span style="font-size:12px;">부채 구조 양호. 추가 여력 ${f(remain)}</span>`;
+  else recText=`<b style="color:var(--safe)">💚 우량 구간 — ${dsr.toFixed(1)}%</b><br><span style="font-size:12px;">부채 건전성 매우 양호. 추가 여력 ${f(remain)}</span>`;
+
   const createdStr = data.createdAt ? _fmtDate(data.createdAt) : '-';
 
-  // 추천 문구 재생성
-  const remainStr = f(remain);
-  let recText = '';
-  if (isOver) {
-    recText = `<b style="color:var(--danger)">⛔ DSR 규제선(40%) 초과 — ${dsr.toFixed(1)}%</b><br><span style="font-size:12px;">신규 주택담보대출 실행이 제한됩니다. 고금리 부채 우선 상환 또는 만기 연장을 권장합니다.</span>`;
-  } else if (dsr >= 36) {
-    recText = `<b style="color:var(--warn)">⚠️ DSR 경계 구간 — ${dsr.toFixed(1)}%</b><br><span style="font-size:12px;">규제선까지 여유 ${(40-dsr).toFixed(1)}%p. 추가 여력: <b>${remainStr}</b></span>`;
-  } else if (dsr >= 25) {
-    recText = `<b style="color:#e6a000">✅ 안정 구간 — ${dsr.toFixed(1)}%</b><br><span style="font-size:12px;">부채 구조 양호. 추가 여력 ${remainStr}</span>`;
-  } else {
-    recText = `<b style="color:var(--safe)">💚 우량 구간 — ${dsr.toFixed(1)}%</b><br><span style="font-size:12px;">부채 건전성 매우 양호. 추가 여력 ${remainStr}</span>`;
-  }
-
   body.innerHTML = `
-    <!-- ① 면책 안내 -->
-    <div class="rpt-notice">
-      <strong>⚠️ 안내 사항</strong>
-      본 결과는 입력값 기준 예상 수치이며, 실제 심사 결과와 상이할 수 있습니다.
-      금융 의사결정 전 반드시 담당 금융기관에 확인하시기 바랍니다.
-    </div>
+    <div class="rpt-notice"><strong>⚠️ 안내 사항</strong>본 결과는 입력값 기준 예상 수치이며, 실제 심사 결과와 상이할 수 있습니다. 금융 의사결정 전 반드시 담당 금융기관에 확인하시기 바랍니다.</div>
 
-    <!-- ② 입력 정보 (연소득 + 부채) -->
     <div class="rpt-input-section">
       <div class="rpt-section-title">📋 입력 정보</div>
-      <div class="rpt-income-row">
-        <span class="rpt-income-label">연간 세전 소득</span>
-        <span class="rpt-income-val">${income.toLocaleString()}원</span>
-      </div>
+      <div class="rpt-income-row"><span class="rpt-income-label">연간 세전 소득</span><span class="rpt-income-val">${income.toLocaleString()}원</span></div>
       ${loanRows}
     </div>
 
-    <!-- ③ 종합 DSR 수치 -->
     <div class="rpt-dsr-card">
       <div class="rpt-dsr-label">종합 DSR 지수 (스트레스 반영)</div>
       <div class="rpt-dsr-val" style="color:${dsrColor};">${dsr.toFixed(2)}%</div>
       <div class="rpt-rec-text">${recText}</div>
     </div>
 
-    <!-- ④ 방식별 최대 한도 -->
     <div class="section-title" style="margin-top:4px;">방식별 최대 한도 분석</div>
     <div class="rpt-result-grid">
-      <div class="rpt-result-card">
-        <div class="rpt-rc-label">원금균등 방식 최대 한도</div>
-        <div class="rpt-rc-val">${f(maxPrin)}</div>
-      </div>
-      <div class="rpt-result-card">
-        <div class="rpt-rc-label">원리금균등 방식 최대 한도</div>
-        <div class="rpt-rc-val">${f(maxLevel)}</div>
-      </div>
+      <div class="rpt-result-card"><div class="rpt-rc-label">원금균등 방식 최대 한도</div><div class="rpt-rc-val">${f(maxPrin)}</div></div>
+      <div class="rpt-result-card"><div class="rpt-rc-label">원리금균등 방식 최대 한도</div><div class="rpt-rc-val">${f(maxLevel)}</div></div>
     </div>
 
-    <!-- ⑤ 추가 가능 대출액 -->
     <div class="rpt-remain-card">
       <div class="rpt-remain-label">현재 추가 가능 대출액</div>
-      <div class="rpt-remain-val" style="color:${isOver ? 'var(--danger)' : 'var(--safe)'};">${f(remain)}</div>
+      <div class="rpt-remain-val" style="color:${isOver?'var(--danger)':'var(--safe)'};">${f(remain)}</div>
     </div>
 
-    <!-- ⑥ 회차별 상세 상환 스케줄 -->
     ${_schedLoan ? `
     <div class="section-title" style="margin-top:4px;">📅 회차별 상세 상환 스케줄</div>
     <div class="schedule-wrapper">
@@ -507,13 +391,10 @@ window.onload = function () {
         <button id="rTabP" class="tab-btn active" onclick="switchTab('P')">원금균등 방식</button>
         <button id="rTabL" class="tab-btn"        onclick="switchTab('L')">원리금균등 방식</button>
       </div>
-      <div class="schedule-header">
-        <div>회차</div><div>원금</div><div>이자</div><div>합계</div>
-      </div>
+      <div class="schedule-header"><div>회차</div><div>원금</div><div>이자</div><div>합계</div></div>
       <div id="rSchedList" class="schedule-list"></div>
     </div>` : ''}
 
-    <!-- ⑦ 본 리포트 안내 -->
     <div class="rpt-bottom-notice">
       <strong>📌 본 리포트 안내</strong>
       이 리포트는 DSR 계산기에서 생성된 임시 공유본입니다.<br>
@@ -521,12 +402,9 @@ window.onload = function () {
       복사 날짜: ${createdStr}
     </div>`;
 
-  // 스케줄 초기 렌더
-  if (_schedLoan) {
-    document.getElementById('rSchedList').innerHTML = renderSchedule(_schedLoan, 'P');
-  }
+  if (_schedLoan) document.getElementById('rSchedList').innerHTML = renderSchedule(_schedLoan, 'P');
 
-  // 만료 모달
+  // 만료 모달 표시 (오늘 하루 보지 않기를 눌렀으면 숨김, 닫기만 눌렀으면 다시 표시)
   showExpiryModal(data);
 };
 </script>
