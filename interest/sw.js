@@ -1,4 +1,4 @@
-const CACHE_NAME = '0781_2';
+const CACHE_NAME = '0781_3';
 const urlsToCache = [
   './index.html',
   './style.css',
