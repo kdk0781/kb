@@ -2,7 +2,7 @@
    1. 데이터 설정
    ====================================================== */
 const r = {
-    base: { mor5: 14.06, mor2: 3.68, ncofix: 2.82, scofix: 2.47,
+    base: { mor5: 4.06, mor2: 3.68, ncofix: 2.82, scofix: 2.47,
 			primeOn: 1.10, primeOff: 0.90 },
     stress: { m5_cycle: 1.15, m5_mix: 1.50, v_6_12: 2.87 },
     add: {
