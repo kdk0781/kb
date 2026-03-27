@@ -248,3 +248,42 @@ body { font-family: 'Pretendard', sans-serif; background-color: var(--bg-body); 
     transition: 0.2s;
 }
 .close-until-btn:active { transform: scale(0.98); background: rgba(255, 188, 0, 0.1); }
+
+
+/* 전체 화면 로딩 오버레이 */
+.loading-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.8); /* 반투명 블랙 */
+    backdrop-filter: blur(4px);
+    display: flex; justify-content: center; align-items: center;
+    z-index: 9999; /* 최상단 */
+}
+
+/* 로딩 스피너 (움직이는 이미지 효과) */
+.loading-spinner {
+    width: 50px; height: 50px;
+    border: 5px solid rgba(255, 188, 0, 0.2);
+    border-top: 5px solid var(--kb-yellow); /* KB 노란색 포인트 */
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+}
+
+/* 로딩 텍스트 및 점 움직임 */
+.loading-text {
+    color: #fff; font-size: 1.1rem; font-weight: 700; text-align: center;
+}
+.dots::after {
+    content: '';
+    animation: dots 1.5s steps(5, end) infinite;
+}
+
+/* 애니메이션 정의 */
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+@keyframes dots {
+    0%, 20% { content: '.'; }
+    40% { content: '..'; }
+    60% { content: '...'; }
+    80% { content: '....'; }
+    100% { content: '.....'; }
+}
