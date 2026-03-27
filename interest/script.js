@@ -121,45 +121,48 @@ function startClock() {
     setInterval(tick, 1000);
 }
 
+
 /* ======================================================
-   4. 강력 새로고침 로직 (캐시 삭제 및 강제 로드)
+   4. 강력 새로고침 로직 (캐시 및 서비스워커 강제 초기화)
    ====================================================== */
 async function refreshData() {
-    console.log("강력 새로고침 및 캐시 초기화 시작...");
-    
     const fab = document.getElementById('fab-refresh');
     
-    // 1. 시각적 피드백 (버튼 회전 애니메이션)
+    // 시각적 피드백: 버튼 회전
     if (fab) {
         fab.style.transition = "transform 0.8s cubic-bezier(0.4, 0, 0.2, 1)";
-        fab.style.transform = "rotate(720deg)"; // 두 바퀴 회전
+        fab.style.transform = "rotate(720deg)";
     }
 
-    // 2. 서비스 워커 캐시 및 브라우저 캐시 삭제 시도
-    if ('caches' in window) {
-        try {
-            const cacheNames = await caches.keys();
-            await Promise.all(
-                cacheNames.map(name => caches.delete(name))
-            );
-            console.log("모든 서비스 워커 캐시가 삭제되었습니다.");
-        } catch (err) {
-            console.error("캐시 삭제 중 오류 발생:", err);
+    // [1단계] 서비스 워커 업데이트 확인 및 강제 활성화
+    if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (let registration of registrations) {
+            await registration.update(); // 깃허브의 새 파일을 체크함
         }
     }
 
-    // 3. 약간의 지연 후 페이지 강제 새로고침 (서버에서 새로 받아옴)
-    setTimeout(() => {
-        // window.location.reload(true)는 일부 브라우저에서 지원 중단되었으므로
-        // 주소 뒤에 랜덤 파라미터를 붙여 서버가 새 파일로 인식하게 만듭니다.
-        const currentUrl = window.location.href.split('?')[0];
-        window.location.href = currentUrl + '?update=' + new Date().getTime();
-    }, 800);
-}
+    // [2단계] 브라우저 캐시 스토리지(Cache Storage) 전면 삭제
+    if ('caches' in window) {
+        const cacheNames = await caches.keys();
+        await Promise.all(
+            cacheNames.map(cacheName => {
+                console.log('기존 캐시 삭제 중:', cacheName);
+                return caches.delete(cacheName);
+            })
+        );
+    }
 
-// [추가] 페이지 로드 시 스크롤을 최상단으로 강제 이동
-if ('scrollRestoration' in history) {
-    history.scrollRestoration = 'manual';
+    // [3단계] 강제 로드 (URL 뒤에 타임스탬프를 붙여 브라우저를 속임)
+    setTimeout(() => {
+        const currentUrl = window.location.origin + window.location.pathname;
+        const newUrl = currentUrl + '?v=' + new Date().getTime();
+        
+        // 세션 스토리지 등 임시 데이터도 비우고 싶다면 추가
+        sessionStorage.clear();
+        
+        window.location.replace(newUrl); // 히스토리에 남지 않게 교체
+    }, 600);
 }
 
 
