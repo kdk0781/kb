@@ -472,7 +472,7 @@ body.dark .rec-box-title { color: var(--kb-yellow); }
 }
 
 /* ── DSR 수치 & 게이지 ──────────────────────────────────────────────────── */
-.dsr-result-header { text-align: center; margin-bottom: 40px; }
+.dsr-result-header { text-align: center; margin-bottom: 20px; }
 .dsr-result-header > label {
   font-size: 11.5px; font-weight: 700;
   color: var(--text-muted); letter-spacing: .07em;
@@ -717,12 +717,37 @@ body.dark .sch-total { color: var(--text-primary); }
 }
 body.dark .year-summary-card { border-left-color: var(--accent-blue); }
 .year-summary-card.total-card {
-  background: var(--kb-yellow-pale); border-color: rgba(255,184,28,.4); border-left-color: var(--kb-yellow-deep);
-  margin-top: 12px;
+  background: var(--kb-yellow-pale); border-color: rgba(255,184,28,.4); border-left-color: var(--kb-yellow-deep); margin-top: 12px;
 }
 body.dark .year-summary-card.total-card {
   background: rgba(255,184,28,.07); border-color: rgba(255,184,28,.25); border-left-color: var(--kb-yellow);
 }
+
+/* ── 서브론 종료 마일스톤 카드 ────────────────────────────────────────────── */
+.loan-milestone-card {
+  background: linear-gradient(135deg, var(--safe-bg) 0%, var(--bg-surface-2) 100%);
+  border: 1.5px solid var(--safe-border);
+  border-left: 5px solid var(--safe);
+  margin: 12px 10px 22px;
+  box-shadow: 0 4px 16px rgba(26,154,92,.12);
+  animation: fade-up .28s var(--ease) both;
+}
+body.dark .loan-milestone-card {
+  background: linear-gradient(135deg, rgba(74,222,128,.08) 0%, var(--bg-surface-2) 100%);
+  border-color: rgba(74,222,128,.22); border-left-color: var(--accent-green);
+  box-shadow: 0 4px 16px rgba(74,222,128,.10);
+}
+.milestone-badge {
+  display: inline-flex; align-items: center;
+  font-size: 10px; font-weight: 800; letter-spacing: .04em;
+  background: var(--safe); color: #fff;
+  padding: 2px 9px; border-radius: var(--radius-full);
+}
+.milestone-body  { display: flex; flex-direction: column; gap: 5px; margin-top: 9px; }
+.milestone-row   { display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
+.milestone-key   { color: var(--text-secondary); font-weight: 500; }
+.milestone-val   { font-family: var(--font-num); font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+
 .card-title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
 .card-title { font-size: 12.5px; font-weight: 800; color: var(--text-primary); letter-spacing: -.02em; }
 .year-badge { font-size: 10px; font-weight: 700; background: var(--kb-yellow); color: var(--kb-navy); padding: 2px 8px; border-radius: var(--radius-full); }
@@ -738,19 +763,31 @@ body.dark .year-summary-card.total-card {
 .balance-label { font-size: 11.5px; color: var(--text-secondary); font-weight: 500; }
 .balance-value { font-family: var(--font-num); font-size: 15px; font-weight: 800; color: var(--text-primary); letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
 
-/* ── 스케줄 토글 버튼 ────────────────────────────────────────────────────── */
+/* ── 스케줄 토글 버튼 (가독성 강화) ──────────────────────────────────────── */
 .btn-more-schedule {
-  display: block; width: 100%; margin: 12px 0 6px; padding: 12px 0;
-  background: transparent; border: 1.5px solid var(--border);
-  border-radius: var(--radius-md); color: var(--text-secondary);
-  font-size: 13px; font-weight: 600; letter-spacing: -.01em;
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  width: 100%; margin: 14px 0 6px; padding: 15px 0;
+  background: var(--bg-surface-2);
+  border: 2px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-size: 13.5px; font-weight: 700; letter-spacing: -.01em;
+  position: relative; overflow: hidden;
   transition: background var(--dur-fast) var(--ease),
               border-color var(--dur-fast) var(--ease),
-              color var(--dur-fast) var(--ease);
+              color var(--dur-fast) var(--ease),
+              box-shadow var(--dur-fast) var(--ease);
+}
+.btn-more-schedule::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--kb-yellow), var(--kb-yellow-deep));
+  opacity: 0; transition: opacity var(--dur-fast) var(--ease);
 }
 .btn-more-schedule:hover {
-  background: var(--kb-yellow-pale); border-color: var(--kb-yellow); color: var(--kb-yellow-deep);
+  background: var(--kb-yellow-pale); border-color: var(--kb-yellow);
+  color: var(--kb-yellow-deep); box-shadow: var(--shadow-kb);
 }
+.btn-more-schedule:hover::before { opacity: 1; }
 body.dark .btn-more-schedule:hover { color: var(--kb-yellow); }
 .btn-more-schedule:active { transform: scale(.99); }
 
@@ -845,6 +882,7 @@ body.dark .wiki-blue-text { color: var(--accent-blue); }
 .modal-text {
   font-size: 14px; color: var(--text-secondary);
   line-height: 1.68; margin-bottom: 18px; word-break: keep-all;
+  text-align: left;
 }
 
 /* 금리 미입력 모달 큐 전용 스타일 */

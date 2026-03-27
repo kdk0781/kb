@@ -2,36 +2,53 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
+  <!-- ── 뷰포트 & 앱 기본 설정 ──────────────────────────────────────────── -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+
+  <!-- ── 테마 컬러 (라이트/다크 자동) ──────────────────────────────────── -->
   <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#131926" media="(prefers-color-scheme: dark)">
 
-  <!-- PWA / 앱 메타 -->
+  <!-- ── iOS 웹앱 설정 ──────────────────────────────────────────────────── -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="DSR계산기">
+
+  <!-- ── Android 웹앱 설정 ──────────────────────────────────────────────── -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="application-name" content="DSR계산기">
 
-  <link rel="apple-touch-icon" href="../ico/dsrcalc.png">
-  <link rel="shortcut icon"    href="../ico/dsrcalc.png">
-  <link rel="icon"             href="../ico/dsrcalc.png">
-  <link rel="manifest"         href="dsr.json">
-  <link rel="stylesheet" href="common.css" media="all">
+  <!-- ── SEO & OG ─────────────────────────────────────────────────────────── -->
+  <meta name="description" content="KB DSR 계산기 — 스트레스금리 반영 DSR 진단 및 대출 한도 분석">
+  <meta name="author" content="KB DSR System">
+  <meta property="og:title" content="DSR 계산기">
+  <meta property="og:description" content="스트레스금리 반영 DSR 진단 및 대출 한도 분석">
+  <meta property="og:type" content="website">
+
+  <!-- ── 파비콘 (경로: ../ico/파일명.png 으로 변경하세요) ──────────────── -->
+  <link rel="apple-touch-icon" sizes="180x180" href="../ico/dsrcalc.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="../ico/dsrcalc.png">
+  <link rel="icon" type="image/png" sizes="32x32"  href="../ico/dsrcalc.png">
+  <link rel="shortcut icon" href="../ico/dsrcalc.png">
+
+  <!-- ── PWA 매니페스트 ────────────────────────────────────────────────── -->
+  <link rel="manifest" href="dsr.json">
+
+  <!-- ── 스타일시트 ────────────────────────────────────────────────────── -->
+  <link rel="stylesheet" href="style.css" media="all">
 
   <title>DSR 계산기</title>
 </head>
 
 <body>
 
-  <!-- ── 공지 팝업 ───────────────────────────────────────────────────────── -->
+  <!-- ── 공지 팝업 (바텀시트) ───────────────────────────────────────────── -->
   <div id="noticePopup" class="notice-overlay" style="display:none;">
     <div class="notice-box">
       <div class="notice-header">📢 업데이트 안내</div>
       <div class="notice-body">
-        <span class="main-text">스트레스 금리 · 복수 구입자금 스케줄 반영</span>
-        <span class="sub-text">스트레스 금리 추가 - 금리 입력시 현재 금리 입력후 스트레스 주기형에 맞게 입력해야 정확히 계산됨</span>
-        <span class="sub-text">대출 상환 스케줄 추가</span>
+        <span class="main-text">스트레스 금리 · 복수 구입자금 · 마일스톤 반영</span>
+        <span class="sub-text">2026년 최신 금융 규제 및 서브론 종료 마일스톤 기능이 추가되었습니다.</span>
       </div>
       <div class="notice-footer">
         <button onclick="closeNoticeForever()">다시 보지 않기</button>
@@ -40,14 +57,15 @@
     </div>
   </div>
 
-  <!-- ── 메인 ────────────────────────────────────────────────────────────── -->
+  <!-- ── 메인 컨테이너 ──────────────────────────────────────────────────── -->
   <div class="container">
 
+    <!-- 헤더 (sticky) -->
     <div class="header">
       <h2>📊 DSR 계산기</h2>
     </div>
 
-    <!-- 연소득 -->
+    <!-- 1. 연소득 -->
     <div class="section-title">1. 연소득 정보</div>
     <div class="input-card">
       <label>연간 세전 소득 (원)</label>
@@ -55,13 +73,13 @@
              onkeyup="formatComma(this)" placeholder="예: 60,000,000">
     </div>
 
-    <!-- 부채 항목 -->
+    <!-- 2. 부채 항목 -->
     <div class="section-title">2. 부채 상세 설정</div>
     <div id="loanList"></div>
     <button class="btn-add-loan" onclick="addLoan()">+ 부채 항목 추가</button>
     <button class="btn-calc" onclick="calculateTotalDSR()">DSR 분석 및 한도 확인</button>
 
-    <!-- 결과 영역 -->
+    <!-- 3. 결과 영역 -->
     <div id="resultArea" class="result-box" style="display:none;">
 
       <!-- 추천 박스 -->
@@ -96,6 +114,11 @@
         </div>
       </div>
 
+      <!-- 스케줄 토글 버튼 -->
+      <button id="btnShowSchedule" class="btn-more-schedule" onclick="toggleSchedule()">
+        📊 전체 상환 스케줄 상세 보기
+      </button>
+
       <!-- 상환 스케줄 -->
       <div id="scheduleSection" class="schedule-section-hidden">
         <div class="section-title">📅 회차별 상세 상환 스케줄</div>
@@ -115,10 +138,6 @@
           </div>
         </div>
       </div>
-
-      <button id="btnShowSchedule" class="btn-more-schedule" onclick="toggleSchedule()">
-        📊 전체 상환 스케줄 상세 보기
-      </button>
 
       <!-- 추가 가능 대출액 -->
       <div class="limit-card">
@@ -150,7 +169,7 @@
   </div><!-- /container -->
 
   <!-- FAB 새로고침 -->
-  <div class="refresh-btn" onclick="location.reload();">↻</div>
+  <div class="refresh-btn" onclick="location.reload();" title="새로고침">↻</div>
 
   <!-- 커스텀 모달 -->
   <div id="customModal" class="modal-overlay" style="display:none;">
@@ -161,6 +180,7 @@
     </div>
   </div>
 
-  <script src="common.js?v=0781_3"></script>
+  <!-- 스크립트 (버전 쿼리로 캐시 방지) -->
+  <script src="common.js?v=2026.04-C"></script>
 </body>
 </html>
