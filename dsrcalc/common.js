@@ -1,5 +1,5 @@
 /* =============================================================================
-   DSR CORE SYSTEM — KB 브랜드 VER 2026.05
+   DSR CORE SYSTEM — KB 브랜드 VER 2026.05-B
    파일명: common.js
    ============================================================================= */
 
@@ -8,8 +8,8 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 const APP_CONFIG = {
 
-  APP_VERSION:    '2026.05',
-  NOTICE_VERSION: '0781_5',        // 변경 시 공지 팝업 재표시
+  APP_VERSION:    '2026.05-B',
+  NOTICE_VERSION: '0781_6',
 
   // ── DSR 구간 기준 (%) ───────────────────────────────────────────────────────
   DSR_LIMIT_PCT:   40,
@@ -51,11 +51,11 @@ const APP_CONFIG = {
 
   // ── 이모티콘 ──────────────────────────────────────────────────────────────
   CAT_EMOJIS: {
-    mortgage_level: '🏠', mortgage_prin: '🏠',
-    jeonse: '🔑', officetel: '🏢', credit: '💳', cardloan: '💰',
+    mortgage_level:'🏠', mortgage_prin:'🏠',
+    jeonse:'🔑', officetel:'🏢', credit:'💳', cardloan:'💰',
   },
 
-  // ── 오피스텔 구입자금 분류 최소 기간 (개월) ────────────────────────────────
+  // ── 오피스텔 구입자금 분류 최소 기간 ──────────────────────────────────────
   OFFICETEL_PURCHASE_MIN_MONTHS: 180,
 
   // ── 주담대 기본 스트레스 금리 ─────────────────────────────────────────────
@@ -65,34 +65,32 @@ const APP_CONFIG = {
   SCHEDULE_MAX_HEIGHT_PX: 480,
 
   // ═══════════════════════════════════════════════════════════════════════════
-  //  🔗 임시 링크 (리포트 공유) 설정
+  //  🔗 임시 리포트 링크 설정
   // ═══════════════════════════════════════════════════════════════════════════
-  REPORT_LINK_EXPIRY_DAYS: 7,     // 링크 유효 기간 (일) — 변경 가능
-  REPORT_COPY_DAILY_LIMIT: 5,     // 하루 최대 복사 횟수 — 변경 가능 (ex. 10으로 변경 시 10회)
+  REPORT_LINK_EXPIRY_DAYS:  7,     // 링크 유효 기간 (일)
+  REPORT_COPY_DAILY_LIMIT:  5,     // 하루 최대 복사 횟수 — 변경 가능
   REPORT_PAGE_PATH: 'report.html', // 리포트 뷰어 페이지 경로
+  SHORTENER_API: 'https://is.gd/create.php?format=simple&url=', // URL 단축 API
 
-  // ── KB 담보대출 유형별 금리 (단위: %) — 주기적으로 업데이트 ────────────────
-  // 형식: { 대출유형: { 금리유형: 금리값 } }
+  // ── KB 담보대출 유형별 금리 % (폴백값 — kb_rates.js 에서 자동 갱신) ─────────
   KB_MORTGAGE_RATES: {
     mortgage_level: {
-      '5년변동':   4.94,    // ← 여기 숫자만 변경하면 즉시 반영
-      '5년혼합':   4.94,
-      '6_12변동':  4.41,
-      '직접입력':  null,
+      '5년변동':  3.82,   // ← 이 숫자만 변경하면 즉시 반영 (자동 갱신되면 덮어씀)
+      '5년혼합':  3.65,
+      '6_12변동': 4.02,
+      '직접입력': null,
     },
     mortgage_prin: {
-      '5년변동':   3.72,
-      '5년혼합':   3.58,
-      '6_12변동':  3.92,
-      '직접입력':  null,
+      '5년변동':  3.72,
+      '5년혼합':  3.58,
+      '6_12변동': 3.92,
+      '직접입력': null,
     },
   },
 };
 // ═══════════════════════════════════════════════════════════════════════════════
-//  설정 끝
-// ═══════════════════════════════════════════════════════════════════════════════
 
-const _C = APP_CONFIG;
+const _C     = APP_CONFIG;
 const _RATE  = _C.DEFAULT_RATES;
 const _LABEL = _C.CAT_LABELS;
 const _EMOJI = _C.CAT_EMOJIS;
@@ -101,7 +99,6 @@ let loanCount           = 0;
 let currentScheduleType = 'P';
 let lastFocusId         = null;
 let proceedOnConfirm    = false;
-let _scheduleWasOpen    = false;
 
 // 모달 큐
 let _modalQueue  = [];
@@ -109,13 +106,19 @@ let _onQueueDone = null;
 let _inQueueMode = false;
 
 // ─── [1] 초기화 ──────────────────────────────────────────────────────────────
-window.onload = function () {
+window.onload = async function () {
   applySystemTheme();
   initNotice();
   addLoan();
   document.getElementById('modalConfirm').onclick = handleModalConfirm;
   document.documentElement.style.setProperty('--schedule-max-height', _C.SCHEDULE_MAX_HEIGHT_PX + 'px');
   initCopyBtn();
+
+  // KB 금리 자동 로드 (kb_rates.js 가 로드되어 있으면)
+  if (typeof applyKBRatesToConfig === 'function') {
+    await applyKBRatesToConfig();
+    _syncRateTypeLabels(); // 셀렉트 옵션 텍스트 갱신
+  }
 };
 
 // ─── [1-1] 테마 엔진 ──────────────────────────────────────────────────────────
@@ -126,6 +129,22 @@ function applySystemTheme() {
 }
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applySystemTheme);
 
+/** 금리유형 셀렉트 옵션 텍스트를 현재 KB_MORTGAGE_RATES 값으로 동기화 */
+function _syncRateTypeLabels() {
+  const baseRates = _C.KB_MORTGAGE_RATES.mortgage_level;
+  document.querySelectorAll('.l-rate-type').forEach(sel => {
+    [...sel.options].forEach(opt => {
+      const v = opt.value;
+      if (v === '직접입력') return;
+      const rate = baseRates[v];
+      if (rate != null) {
+        const map = { '5년변동': '5년변동', '5년혼합': '5년혼합', '6_12변동': '6,12개월변동' };
+        opt.textContent = `${map[v] || v} (${rate}%)`;
+      }
+    });
+  });
+}
+
 // ─── [2] 유효성 검증 & 금리 경고 ─────────────────────────────────────────────
 function getDefaultRate(cat) { return _RATE[cat] ?? 4.5; }
 
@@ -135,9 +154,9 @@ function markRateWarning(rInput) {
   if (!card) return;
   card.classList.add('rate-warning-card');
   if (!card.querySelector('.rate-missing-banner')) {
-    const cat   = card.querySelector('.l-category').value;
-    const rate  = getDefaultRate(cat);
-    const label = _LABEL[cat] || '해당 대출';
+    const cat    = card.querySelector('.l-category').value;
+    const rate   = getDefaultRate(cat);
+    const label  = _LABEL[cat] || '해당 대출';
     const banner = document.createElement('div');
     banner.className = 'rate-missing-banner';
     banner.innerHTML =
@@ -166,17 +185,17 @@ function onRateInput(input) {
 
 // ─── [2-1] 금리 미입력 순차 모달 큐 ─────────────────────────────────────────
 function showRateMissingQueue(missingItems, onAllConfirmed) {
-  const total  = missingItems.length;
-  _modalQueue  = missingItems.map((item, i) => {
-    const rate   = getDefaultRate(item.cat);
-    const label  = _LABEL[item.cat] || '해당 대출';
-    const emoji  = _EMOJI[item.cat]  || '📌';
-    const ctr    = total > 1 ? `<span class="modal-queue-counter">${i + 1} / ${total}개 항목</span>` : '';
+  const total = missingItems.length;
+  _modalQueue = missingItems.map((item, i) => {
+    const rate  = getDefaultRate(item.cat);
+    const label = _LABEL[item.cat] || '해당 대출';
+    const emoji = _EMOJI[item.cat]  || '📌';
+    const ctr   = total > 1 ? `<span class="modal-queue-counter">${i + 1} / ${total}개 항목</span>` : '';
     return {
       icon: '⚠️',
-      msg: `${ctr}<b class="modal-rate-title">${emoji} ${item.loanIdx}번째 대출 — ${label}</b>` +
-           `<span class="modal-rate-body">금리가 입력되지 않았습니다.<br>` +
-           `<span class="modal-rate-default">기본 금리 <b>${rate}%</b> 자동 적용됩니다.</span></span>`,
+      msg:  `${ctr}<b class="modal-rate-title">${emoji} ${item.loanIdx}번째 대출 — ${label}</b>` +
+            `<span class="modal-rate-body">금리가 입력되지 않았습니다.<br>` +
+            `<span class="modal-rate-default">기본 금리 <b>${rate}%</b> 자동 적용됩니다.</span></span>`,
     };
   });
   _onQueueDone = onAllConfirmed;
@@ -191,10 +210,9 @@ function _dequeueModal() {
     return;
   }
   const { msg, icon } = _modalQueue.shift();
-  const modal = document.getElementById('customModal');
   document.getElementById('modalMsg').innerHTML  = msg.replace(/\n/g, '<br>');
   document.getElementById('modalIcon').innerText = icon;
-  modal.style.display = 'flex';
+  document.getElementById('customModal').style.display = 'flex';
 }
 
 // ─── [2-2] 메인 검증 흐름 ────────────────────────────────────────────────────
@@ -210,18 +228,25 @@ function calculateTotalDSR() {
   if (!items.length) { showAlert("부채 항목을 최소 하나 이상 추가해주세요."); return; }
 
   for (let item of items) {
-    const pEl = item.querySelector('.l-p'), mEl = item.querySelector('.l-m');
+    const pEl  = item.querySelector('.l-p');
+    const mEl  = item.querySelector('.l-m');
+    const cat  = item.querySelector('.l-category').value;
+    const rType = item.querySelector('.l-rate-type')?.value;
+
     if (getNum(pEl.value) <= 0) { setWarning(pEl.id, true); showAlert("대출 금액을 입력해주세요.", pEl.id); return; }
     if (getNum(mEl.value) < 1)  { setWarning(mEl.id, true); showAlert("대출 기간을 입력해주세요.", mEl.id); return; }
-  }
 
-  // 스케줄 열림 여부 기록
-  const sec = document.getElementById('scheduleSection');
-  _scheduleWasOpen = sec && !sec.classList.contains('schedule-section-hidden');
+    // 오피스텔(보유분) + 담보 금리유형 선택 시 경고
+    if (cat === 'officetel' && rType && rType !== '직접입력') {
+      showAlert("오피스텔 구입자금은 주택담보로 설정 후 다시 입력해주세요.", null, "⚠️");
+      return;
+    }
+  }
 
   const missingRates = [];
   items.forEach((item, idx) => {
-    const rInput = item.querySelector('.l-r'), cat = item.querySelector('.l-category').value;
+    const rInput = item.querySelector('.l-r');
+    const cat    = item.querySelector('.l-category').value;
     if (!rInput.value.trim()) { markRateWarning(rInput); missingRates.push({ loanIdx: idx + 1, cat }); }
   });
 
@@ -234,10 +259,30 @@ function addLoan() {
   loanCount++;
   const loanList = document.getElementById('loanList');
   if (!loanList) return;
+
+  // 금리유형 옵션 텍스트 (현재 KB 금리 반영)
+  const rateMap = _C.KB_MORTGAGE_RATES.mortgage_level;
+  const r5v  = rateMap['5년변동']  != null ? ` (${rateMap['5년변동']}%)`  : '';
+  const r5h  = rateMap['5년혼합']  != null ? ` (${rateMap['5년혼합']}%)`  : '';
+  const r612 = rateMap['6_12변동'] != null ? ` (${rateMap['6_12변동']}%)` : '';
+
   loanList.insertAdjacentHTML('beforeend', `
   <div class="input-card" id="loan_${loanCount}">
     <button class="btn-remove" onclick="removeLoan(${loanCount})">×</button>
     <div class="grid-row">
+
+      <!-- ① 금리유형(담보) — 항상 노출, 비담보일 때 disabled -->
+      <div>
+        <label>금리 유형 (담보)</label>
+        <select class="l-rate-type" id="lrt_${loanCount}" onchange="applyKbRate(${loanCount})">
+          <option value="직접입력">직접 입력</option>
+          <option value="5년변동">5년변동${r5v}</option>
+          <option value="5년혼합">5년혼합${r5h}</option>
+          <option value="6_12변동">6,12개월변동${r612}</option>
+        </select>
+      </div>
+
+      <!-- ② 대출 종류 -->
       <div>
         <label>대출 종류</label>
         <select class="l-category" onchange="applyPolicy(${loanCount})">
@@ -249,23 +294,22 @@ function addLoan() {
           <option value="cardloan">카드론 (원리금)</option>
         </select>
       </div>
-      <div>
-        <label>원금/잔액 (원)</label>
-        <input type="text" id="lp_${loanCount}" class="l-p" inputmode="numeric" onkeyup="formatComma(this)" placeholder="0">
-      </div>
-      <div id="rate-type-wrap_${loanCount}" class="rate-type-wrap">
-        <label>금리 유형 (담보)</label>
-        <select class="l-rate-type" onchange="applyKbRate(${loanCount})">
-          <option value="직접입력">직접 입력</option>
-          <option value="5년변동">5년변동</option>
-          <option value="5년혼합">5년혼합</option>
-          <option value="6_12변동">6,12개월변동</option>
-        </select>
-      </div>
+
+      <!-- ③ 금리(%) -->
       <div>
         <label>금리 (%)</label>
-        <input type="text" id="lr_${loanCount}" class="l-r" inputmode="decimal" placeholder="4.5" oninput="onRateInput(this)">
+        <input type="text" id="lr_${loanCount}" class="l-r" inputmode="decimal"
+               placeholder="4.5" oninput="onRateInput(this)">
       </div>
+
+      <!-- ④ 원금/잔액 -->
+      <div>
+        <label>원금/잔액 (원)</label>
+        <input type="text" id="lp_${loanCount}" class="l-p" inputmode="numeric"
+               onkeyup="formatComma(this)" placeholder="0">
+      </div>
+
+      <!-- ⑤ 스트레스 금리 -->
       <div>
         <label>스트레스 금리</label>
         <select class="l-sr-select">
@@ -274,10 +318,13 @@ function addLoan() {
           <option value="0.0">해당없음 (0.0%)</option>
         </select>
       </div>
+
+      <!-- ⑥ 기간(개월) -->
       <div>
         <label>기간 (개월)</label>
         <input type="text" id="lm_${loanCount}" class="l-m" inputmode="numeric" value="360">
       </div>
+
     </div>
     <div class="dynamic-guide" id="guide_${loanCount}" style="display:none;"></div>
   </div>`);
@@ -285,13 +332,13 @@ function addLoan() {
 
 // ─── [3-1] KB 담보대출 금리 자동 적용 ────────────────────────────────────────
 function applyKbRate(id) {
-  const card     = document.getElementById(`loan_${id}`);
+  const card      = document.getElementById(`loan_${id}`);
   if (!card) return;
-  const cat      = card.querySelector('.l-category').value;
-  const typeEl   = card.querySelector('.l-rate-type');
-  const rInput   = card.querySelector('.l-r');
-  const srSelect = card.querySelector('.l-sr-select');
-  if (!typeEl) return;
+  const cat       = card.querySelector('.l-category').value;
+  const typeEl    = card.querySelector('.l-rate-type');
+  const rInput    = card.querySelector('.l-r');
+  const srSelect  = card.querySelector('.l-sr-select');
+  if (!typeEl || !rInput) return;
 
   const rateType = typeEl.value;
   const rateMap  = _C.KB_MORTGAGE_RATES[cat];
@@ -303,56 +350,68 @@ function applyKbRate(id) {
     onRateInput(rInput);
   } else {
     rInput.value = '';
-    rInput.placeholder = _RATE[cat] ?? '4.5';
+    rInput.placeholder = String(_RATE[cat] ?? '4.5');
   }
 
   // 스트레스 금리 연동
-  if (rateType === '6_12변동') {
-    srSelect.value = '2.87';
-  } else if (rateType === '직접입력') {
-    srSelect.value = String(_C.DEFAULT_STRESS_RATE_MORTGAGE);
-  } else {
-    srSelect.value = String(_C.DEFAULT_STRESS_RATE_MORTGAGE);
-  }
+  srSelect.value = rateType === '6_12변동'
+    ? '2.87'
+    : String(_C.DEFAULT_STRESS_RATE_MORTGAGE);
 }
 
 function applyPolicy(id) {
   const card = document.getElementById(`loan_${id}`);
   if (!card) return;
-  const cat      = card.querySelector('.l-category').value;
-  const m        = card.querySelector('.l-m');
-  const r        = card.querySelector('.l-r');
-  const srSelect = card.querySelector('.l-sr-select');
-  const guide    = card.querySelector('.dynamic-guide');
-  const rateWrap = document.getElementById(`rate-type-wrap_${id}`);
+  const cat       = card.querySelector('.l-category').value;
+  const m         = card.querySelector('.l-m');
+  const r         = card.querySelector('.l-r');
+  const srSelect  = card.querySelector('.l-sr-select');
+  const guide     = card.querySelector('.dynamic-guide');
+  const rateType  = card.querySelector('.l-rate-type');
 
-  guide.className = 'dynamic-guide';
-  guide.style.display = 'none'; guide.innerHTML = '';
+  guide.className     = 'dynamic-guide';
+  guide.style.display = 'none';
+  guide.innerHTML     = '';
 
-  // 담보대출이면 금리 유형 셀렉트 표시
+  // 담보 여부
   const isMortgage = cat === 'mortgage_level' || cat === 'mortgage_prin';
-  if (rateWrap) rateWrap.style.display = isMortgage ? '' : 'none';
+
+  // 금리유형 활성/비활성 (display:none 대신 disabled + 시각적 비활성화)
+  if (rateType) {
+    rateType.disabled = !isMortgage;
+    rateType.classList.toggle('rate-type--disabled', !isMortgage);
+    if (!isMortgage) {
+      rateType.value = '직접입력'; // 비담보이면 직접입력으로 초기화
+    }
+  }
 
   switch (cat) {
     case 'officetel':
-      guide.classList.add('dynamic-guide--warn'); guide.style.display = 'block';
-      guide.innerHTML = `🏢 <b>오피스텔 체크포인트</b><br>· 구입 자금인 경우 <b>'주택담보'</b> 선택이 정확합니다.<br>· 보유분은 <b>8년(96개월) 상환 규정</b>이 적용됩니다.`;
-      m.value = "96"; r.placeholder = "5.5"; srSelect.value = "0.0"; break;
+      guide.classList.add('dynamic-guide--warn');
+      guide.style.display = 'block';
+      guide.innerHTML =
+        `🏢 <b>오피스텔 체크포인트</b><br>` +
+        `· 구입 자금인 경우 <b>'주택담보'</b> 선택이 정확합니다.<br>` +
+        `· 보유분은 <b>8년(96개월) 상환 규정</b>이 적용됩니다.`;
+      m.value = "96"; r.placeholder = "5.5"; srSelect.value = "0.0";
+      break;
     case 'cardloan':
-      guide.classList.add('dynamic-guide--danger'); guide.style.display = 'block';
-      guide.innerHTML = `⛔ <b>카드론 DSR 주의</b><br>· DSR 산정 시 가상 만기 <b>3년(36개월)</b> 고정 적용<br>· 실제 만기와 무관, DSR에 강한 부담을 줍니다.`;
-      m.value = "36"; r.placeholder = "14.0"; srSelect.value = "0.0"; break;
+      guide.classList.add('dynamic-guide--danger');
+      guide.style.display = 'block';
+      guide.innerHTML =
+        `⛔ <b>카드론 DSR 주의</b><br>` +
+        `· DSR 산정 시 가상 만기 <b>3년(36개월)</b> 고정 적용<br>` +
+        `· 실제 만기와 무관, DSR에 강한 부담을 줍니다.`;
+      m.value = "36"; r.placeholder = "14.0"; srSelect.value = "0.0";
+      break;
     case 'credit':
       m.value = "60"; r.placeholder = "6.0"; srSelect.value = "0.0"; break;
     case 'jeonse':
       m.value = "24"; r.placeholder = "4.2"; srSelect.value = "0.0"; break;
     default:
-      m.value = "360"; r.placeholder = "4.5"; srSelect.value = String(_C.DEFAULT_STRESS_RATE_MORTGAGE);
-      // 담보대출 유형 선택 시 기본 금리 자동 세팅
-      if (isMortgage) {
-        const typeEl = card.querySelector('.l-rate-type');
-        if (typeEl && typeEl.value !== '직접입력') applyKbRate(id);
-      }
+      m.value = "360"; r.placeholder = "4.5";
+      srSelect.value = String(_C.DEFAULT_STRESS_RATE_MORTGAGE);
+      if (isMortgage && rateType && rateType.value !== '직접입력') applyKbRate(id);
       break;
   }
 }
@@ -387,8 +446,7 @@ function calculateLogic() {
         totalAnnPayment += (P / n) * 12 + (P * r_dsr * (n + 1) / 2) / (n / 12);
       } else { totalAnnPayment += calcPMT(P, r_dsr, n) * 12; }
     } else {
-      const tN = _C.DSR_VIRTUAL_MONTHS[cat] ?? n;
-      totalAnnPayment += calcPMT(P, r_dsr, tN) * 12;
+      totalAnnPayment += calcPMT(P, r_dsr, _C.DSR_VIRTUAL_MONTHS[cat] ?? n) * 12;
     }
   });
 
@@ -404,11 +462,11 @@ function calculateLogic() {
   const barView = document.getElementById('dsrBar');
   if (barView) {
     barView.style.width           = Math.min(dsr, 100) + "%";
-    barView.style.backgroundColor = isOver ? "var(--danger)" : dsr > _C.DSR_WARN_PCT ? "var(--warn)" : "var(--safe)";
+    barView.style.backgroundColor = dsrView.style.color;
   }
 
   const targetAnnPay = income * (_C.DSR_LIMIT_PCT / 100);
-  const r_lim = (bR + bSR) / 1200;
+  const r_lim   = (bR + bSR) / 1200;
   const maxPrin  = calcMaxPrincipal(targetAnnPay, r_lim, bM);
   const maxLevel = calcMaxLevel(targetAnnPay, r_lim, bM);
   const f = v => (Math.floor(Math.max(0, v) / 10000) * 10000).toLocaleString() + " 원";
@@ -437,16 +495,12 @@ function calculateLogic() {
   const recDesc = document.getElementById('recDesc');
   if (recDesc) recDesc.innerHTML = buildRecommendText(dsr, isOver, remainLimit, maxPrin, maxLevel, f);
 
-  // ── 스케줄 처리 ───────────────────────────────────────────────────────────
-  const schedSec = document.getElementById('scheduleSection');
-  const schedBtn = document.getElementById('btnShowSchedule');
+  // 스케줄 닫기 + 버튼 초기화
+  document.getElementById('scheduleSection').classList.remove('schedule-visible');
+  document.getElementById('scheduleSection').classList.add('schedule-section-hidden');
+  document.getElementById('btnShowSchedule').innerText = "📊 전체 상환 스케줄 상세 보기";
 
-  // 재계산 시 항상 스케줄을 닫고 버튼 초기화 → 사용자가 명시적으로 다시 열도록
-  schedSec.classList.remove('schedule-visible');
-  schedSec.classList.add('schedule-section-hidden');
-  schedBtn.innerText = "📊 전체 상환 스케줄 상세 보기";
-
-  // resultArea 상단을 헤더 바로 아래로 스크롤
+  // 스크롤
   requestAnimationFrame(() => requestAnimationFrame(() => {
     const header  = document.querySelector('.header');
     const headerH = header ? header.getBoundingClientRect().height : 0;
@@ -459,8 +513,7 @@ function calculateLogic() {
 function buildRecommendText(dsr, isOver, remainLimit, maxPrin, maxLevel, f) {
   const d = dsr.toFixed(1);
   if (isOver) {
-    const ex = (dsr - _C.DSR_LIMIT_PCT).toFixed(1);
-    return `<b style="color:var(--danger)">⛔ DSR 규제선(${_C.DSR_LIMIT_PCT}%) 초과 — 현재 ${d}% (초과 ${ex}%p)</b>
+    return `<b style="color:var(--danger)">⛔ DSR 규제선(${_C.DSR_LIMIT_PCT}%) 초과 — 현재 ${d}% (초과 ${(dsr-_C.DSR_LIMIT_PCT).toFixed(1)}%p)</b>
     <br><span style="font-size:12px;line-height:1.8;">신규 주택담보대출 실행이 제한됩니다. 고금리 부채 우선 상환 또는 만기 연장으로 월 상환부담을 줄이세요.
     권장 목표 원금: <b style="color:var(--kb-yellow-deep)">${f(maxPrin)} 이하</b></span>`;
   }
@@ -561,14 +614,17 @@ function generateSchedule() {
     card.className = 'sch-summary-card';
     const rows = allLoans.map(l =>
       `<div class="sch-summary-row">
-        <span class="sch-summary-emoji">${_EMOJI[l.cat] || '📌'}</span>
-        <span class="sch-summary-label">${_LABEL[l.cat] || l.cat}</span>
-        <span class="sch-summary-sep">—</span>
-        <span class="sch-summary-amount">${Math.round(l.P).toLocaleString()}원</span>
-        <span class="sch-summary-divider">|</span>
-        <span class="sch-summary-rate">${l.R.toFixed(2)}%</span>
-        <span class="sch-summary-divider">|</span>
-        <span class="sch-summary-term">${l.n}개월</span>
+        <div class="sch-summary-top">
+          <span class="sch-summary-emoji">${_EMOJI[l.cat] || '📌'}</span>
+          <span class="sch-summary-label">${_LABEL[l.cat] || l.cat}</span>
+        </div>
+        <div class="sch-summary-bottom">
+          <span class="sch-summary-amount">${Math.round(l.P).toLocaleString()}원</span>
+          <span class="sch-summary-divider">|</span>
+          <span class="sch-summary-rate">${l.R.toFixed(2)}%</span>
+          <span class="sch-summary-divider">|</span>
+          <span class="sch-summary-term">${l.n}개월</span>
+        </div>
       </div>`
     ).join('');
     card.innerHTML = `<div class="sch-summary-title">📋 대출 항목 현황</div>${rows}`;
@@ -598,23 +654,19 @@ function renderLoanSchedule(listEl, loan) {
 
   const schedHeader = document.createElement('div');
   schedHeader.className = 'sch-calc-header';
-  if (merged) {
-    schedHeader.innerHTML =
-      `<span class="sch-calc-title">🏠 통합 구입자금 상환 스케줄</span>` +
-      `<span class="sch-calc-meta">합산 ${Math.round(P).toLocaleString()}원 | 가중평균 ${R.toFixed(2)}% | ${n}개월</span>`;
-  } else {
-    schedHeader.innerHTML =
-      `<span class="sch-calc-title">${_EMOJI[loan.cat] || '🏠'} ${label} 상환 스케줄</span>` +
-      `<span class="sch-calc-meta">${Math.round(P).toLocaleString()}원 | ${R.toFixed(2)}% | ${n}개월</span>`;
-  }
+  schedHeader.innerHTML = merged
+    ? `<span class="sch-calc-title">🏠 통합 구입자금 상환 스케줄</span>
+       <span class="sch-calc-meta">합산 ${Math.round(P).toLocaleString()}원 | 가중평균 ${R.toFixed(2)}% | ${n}개월</span>`
+    : `<span class="sch-calc-title">${_EMOJI[loan.cat] || '🏠'} ${label} 상환 스케줄</span>
+       <span class="sch-calc-meta">${Math.round(P).toLocaleString()}원 | ${R.toFixed(2)}% | ${n}개월</span>`;
   listEl.appendChild(schedHeader);
 
+  // 서브론 마일스톤 맵
   const milestoneMap = {};
   if (merged && parts) {
     parts.forEach(part => {
       if (part.n < n) {
-        if (!milestoneMap[part.n]) milestoneMap[part.n] = [];
-        milestoneMap[part.n].push(part);
+        (milestoneMap[part.n] = milestoneMap[part.n] || []).push(part);
       }
     });
   }
@@ -622,7 +674,6 @@ function renderLoanSchedule(listEl, loan) {
   const isLevel  = currentScheduleType === 'L';
   const mP_prin  = P / n;
   const mPMT_lvl = calcPMT(P, r, n);
-
   let balance = P, yearCumP = 0, yearCumI = 0, totalCumP = 0, totalInterest = 0;
 
   for (let i = 1; i <= n; i++) {
@@ -631,7 +682,8 @@ function renderLoanSchedule(listEl, loan) {
     else         { curI = balance * r; curP = mP_prin; }
     if (i === n) { curP = balance; curI = balance * r; }
 
-    balance -= curP; yearCumP += curP; yearCumI += curI; totalCumP += curP; totalInterest += curI;
+    balance -= curP; yearCumP += curP; yearCumI += curI;
+    totalCumP += curP; totalInterest += curI;
 
     const row = document.createElement('div');
     row.className = 'schedule-item';
@@ -663,15 +715,13 @@ function renderLoanSchedule(listEl, loan) {
       yearCumP = 0; yearCumI = 0;
     }
 
-    // 서브론 종료 마일스톤
     if (milestoneMap[i]) {
       milestoneMap[i].forEach(part => {
-        const mc       = document.createElement('div');
-        mc.className   = 'year-summary-card loan-milestone-card';
-        const partRatio  = part.P / P;
-        const estCumPrin = Math.round(totalCumP * partRatio);
-        const estCumInt  = Math.round(totalInterest * partRatio);
-        const estTotal   = estCumPrin + estCumInt;
+        const mc      = document.createElement('div');
+        mc.className  = 'year-summary-card loan-milestone-card';
+        const pRatio  = part.P / P;
+        const eCumP   = Math.round(totalCumP * pRatio);
+        const eCumI   = Math.round(totalInterest * pRatio);
         mc.innerHTML =
           `<div class="card-title-row">
             <span class="card-title">${_EMOJI[part.cat] || '📌'} ${_LABEL[part.cat]} 잔금 상환 완료</span>
@@ -679,10 +729,10 @@ function renderLoanSchedule(listEl, loan) {
           </div>
           <div class="milestone-body">
             <div class="milestone-row"><span class="milestone-key">대출 원금</span><span class="milestone-val">${Math.round(part.P).toLocaleString()}원</span></div>
-            <div class="milestone-row"><span class="milestone-key">상환 기간</span><span class="milestone-val">${part.n}개월 (${Math.round(part.n / 12)}년)</span></div>
-            <div class="milestone-row"><span class="milestone-key">누적 상환원금 (추정)</span><span class="milestone-val stat-prin">${estCumPrin.toLocaleString()}원</span></div>
-            <div class="milestone-row"><span class="milestone-key">누적 이자 (추정)</span><span class="milestone-val stat-int">${estCumInt.toLocaleString()}원</span></div>
-            <div class="milestone-row milestone-row--total"><span class="milestone-key">원금+이자 합계</span><span class="milestone-val">${estTotal.toLocaleString()}원</span></div>
+            <div class="milestone-row"><span class="milestone-key">상환 기간</span><span class="milestone-val">${part.n}개월 (${Math.round(part.n/12)}년)</span></div>
+            <div class="milestone-row"><span class="milestone-key">누적 상환원금 (추정)</span><span class="milestone-val stat-prin">${eCumP.toLocaleString()}원</span></div>
+            <div class="milestone-row"><span class="milestone-key">누적 이자 (추정)</span><span class="milestone-val stat-int">${eCumI.toLocaleString()}원</span></div>
+            <div class="milestone-row milestone-row--total"><span class="milestone-key">원금+이자 합계</span><span class="milestone-val">${(eCumP + eCumI).toLocaleString()}원</span></div>
           </div>
           <div class="card-balance-row">
             <span class="balance-label">전체 잔액 (통합 기준)</span>
@@ -693,7 +743,6 @@ function renderLoanSchedule(listEl, loan) {
     }
   }
 
-  // 총계 카드
   const total = document.createElement('div');
   total.className = 'year-summary-card total-card';
   total.innerHTML =
@@ -750,51 +799,45 @@ function formatComma(obj) {
   obj.value = val.length > 0 ? Number(val).toLocaleString() : "";
   obj.classList.remove('input-warning');
 }
-function getNum(val) { return Number(String(val).replace(/,/g, "")) || 0; }
+function getNum(val)  { return Number(String(val).replace(/,/g, "")) || 0; }
 function removeLoan(id) { document.getElementById(`loan_${id}`)?.remove(); }
 
 // ─── [8] 임시 리포트 링크 시스템 ─────────────────────────────────────────────
 /*
- * 📋 운영 설정:
- *   APP_CONFIG.REPORT_COPY_DAILY_LIMIT  → 하루 최대 복사 횟수 (기본 5)
- *   APP_CONFIG.REPORT_LINK_EXPIRY_DAYS  → 링크 유효 기간 일수 (기본 7)
- *
- * 동작 방식:
- *   1. 리포트 데이터를 JSON → base64url 인코딩하여 URL hash에 포함
- *   2. report.html#{data} 형태의 링크를 클립보드에 복사
- *   3. localStorage에 날짜별 사용 횟수 카운트
- *   4. 최초 복사 성공 시 모달 안내 + 버튼 숨김
+ * ── 운영 설정 (APP_CONFIG 에서 변경) ──────────────────────────────────────────
+ *   REPORT_COPY_DAILY_LIMIT  : 하루 최대 복사 횟수 (기본 5)
+ *   REPORT_LINK_EXPIRY_DAYS  : 링크 유효 기간 일수 (기본 7)
+ *   SHORTENER_API            : URL 단축 API 주소
+ * ── 동작 방식 ─────────────────────────────────────────────────────────────────
+ *   1. 리포트 데이터 (입력값 전체) → JSON → base64url → URL hash
+ *   2. is.gd API 로 단축 → 클립보드 복사
+ *   3. localStorage 날짜별 카운트 관리
  */
 
-const COPY_STORAGE_KEY = 'dsr_copy_count';
+const _COPY_KEY = 'dsr_copy_count';
 
-function getTodayKey() {
-  return new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-}
-
-function getCopyCount() {
+function _getTodayKey()  { return new Date().toISOString().slice(0, 10); }
+function _getCopyCount() {
   try {
-    const raw = JSON.parse(localStorage.getItem(COPY_STORAGE_KEY) || '{}');
-    const today = getTodayKey();
-    return raw[today] || 0;
+    return JSON.parse(localStorage.getItem(_COPY_KEY) || '{}')[_getTodayKey()] || 0;
   } catch { return 0; }
 }
-
-function incrementCopyCount() {
+function _incCopyCount() {
   try {
-    const today = getTodayKey();
-    const raw   = JSON.parse(localStorage.getItem(COPY_STORAGE_KEY) || '{}');
+    const today = _getTodayKey();
+    const raw   = JSON.parse(localStorage.getItem(_COPY_KEY) || '{}');
     raw[today]  = (raw[today] || 0) + 1;
-    // 오래된 날짜 정리 (7일 초과)
-    Object.keys(raw).forEach(k => { if (k < new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10)) delete raw[k]; });
-    localStorage.setItem(COPY_STORAGE_KEY, JSON.stringify(raw));
+    Object.keys(raw).forEach(k => {
+      if (k < new Date(Date.now() - 8 * 86400000).toISOString().slice(0, 10)) delete raw[k];
+    });
+    localStorage.setItem(_COPY_KEY, JSON.stringify(raw));
     return raw[today];
   } catch { return 1; }
 }
 
 function initCopyBtn() {
   const btn   = document.getElementById('btnCopyReport');
-  const count = getCopyCount();
+  const count = _getCopyCount();
   const limit = _C.REPORT_COPY_DAILY_LIMIT;
   if (!btn) return;
   if (count >= limit) {
@@ -806,7 +849,8 @@ function initCopyBtn() {
   }
 }
 
-function buildReportData() {
+/** 리포트 데이터 빌드 (입력값 전체 포함 — 단, 스케줄은 리포트 페이지에서 재계산) */
+function _buildReportData() {
   const items = document.querySelectorAll('[id^="loan_"]');
   const loans = [];
   items.forEach(item => {
@@ -815,7 +859,8 @@ function buildReportData() {
     const R   = Number(item.querySelector('.l-r').value) || getDefaultRate(cat);
     const SR  = Number(item.querySelector('.l-sr-select')?.value || 0);
     const n   = getNum(item.querySelector('.l-m').value) || 360;
-    if (P > 0) loans.push({ cat, P, R, SR, n });
+    const rt  = item.querySelector('.l-rate-type')?.value || '직접입력';
+    if (P > 0) loans.push({ cat, P, R, SR, n, rt });
   });
 
   const income    = getNum(document.getElementById('income').value);
@@ -824,66 +869,91 @@ function buildReportData() {
   const maxPTxt   = document.getElementById('absMaxPrin')?.innerText || '-';
   const maxLTxt   = document.getElementById('absMaxLevel')?.innerText || '-';
   const recHtml   = document.getElementById('recDesc')?.innerHTML || '';
+  const expiry    = Date.now() + _C.REPORT_LINK_EXPIRY_DAYS * 86400000;
+  const createdAt = new Date().toISOString();
 
-  const expiry = Date.now() + _C.REPORT_LINK_EXPIRY_DAYS * 86400000;
-
-  return { income, loans, dsrText, remainTxt, maxPTxt, maxLTxt, recHtml, expiry, version: _C.APP_VERSION };
+  return { v: _C.APP_VERSION, income, loans, dsrText, remainTxt, maxPTxt, maxLTxt, recHtml, expiry, createdAt };
 }
 
-function copyResultText() {
+/** is.gd로 URL 단축 */
+async function _shortenUrl(longUrl) {
+  try {
+    const apiUrl = _C.SHORTENER_API + encodeURIComponent(longUrl);
+    const resp   = await fetch(apiUrl);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const short  = (await resp.text()).trim();
+    if (short.startsWith('http')) return short;
+    throw new Error('Invalid response: ' + short);
+  } catch (e) {
+    console.warn('[URL단축] 실패, 원본 사용:', e.message);
+    return longUrl;
+  }
+}
+
+async function copyResultText() {
   const limit = _C.REPORT_COPY_DAILY_LIMIT;
-  const count = getCopyCount();
+  const count = _getCopyCount();
 
   if (count >= limit) {
-    showAlert(`금일 임시 링크 복사를 모두 사용하셨습니다.<br><span style="font-size:12px;">(${count}/${limit}회 사용 완료 — 내일 초기화됩니다)</span>`, null, "🚫");
+    showAlert(
+      `금일 임시 링크 복사를 모두 사용하셨습니다.<br>` +
+      `<span style="font-size:12px;">(${count}/${limit}회 사용 완료 — 내일 초기화됩니다)</span>`,
+      null, "🚫"
+    );
     return;
   }
 
-  // DSR 결과가 있는지 확인
-  const resultArea = document.getElementById('resultArea');
-  if (!resultArea || resultArea.style.display === 'none') {
+  if (document.getElementById('resultArea')?.style.display === 'none') {
     showAlert("먼저 DSR 분석을 실행해주세요.", null, "ℹ️"); return;
   }
 
-  const data    = buildReportData();
+  const btn       = document.getElementById('btnCopyReport');
+  const origHtml  = btn?.innerHTML;
+  if (btn) { btn.innerHTML = '🔗 링크 생성 중...'; btn.disabled = true; }
+
+  const data    = _buildReportData();
   const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
-  const baseUrl = window.location.href.replace(/\/[^/]*$/, '/');
-  const link    = `${baseUrl}${_C.REPORT_PAGE_PATH}#${encoded}`;
+  const base    = window.location.href.replace(/[^/]*(\?.*)?$/, '');
+  const longUrl = `${base}${_C.REPORT_PAGE_PATH}#${encoded}`;
+  const shortUrl = await _shortenUrl(longUrl);
 
-  const newCount = incrementCopyCount();
+  if (btn) { btn.innerHTML = origHtml; btn.disabled = false; }
+
+  const newCount  = _incCopyCount();
   const remaining = limit - newCount;
+  const expDate   = new Date(data.expiry).toLocaleDateString('ko-KR', { month:'long', day:'numeric' });
 
-  const copyAndNotify = () => {
-    // 복사 성공 시 처리
-    const btn = document.getElementById('btnCopyReport');
-    if (btn) {
-      if (remaining <= 0) {
-        btn.disabled = true;
-        btn.innerHTML = `📋 DSR 진단 리포트 복사 <span class="copy-count-badge">${newCount}/${limit} 사용 완료</span>`;
-        btn.classList.add('btn-copy--exhausted');
-      } else {
-        btn.innerHTML = `📋 DSR 진단 리포트 복사 <span class="copy-count-badge">${newCount}/${limit} 사용중</span>`;
-      }
+  // 배지 업데이트
+  if (btn) {
+    if (remaining <= 0) {
+      btn.disabled = true;
+      btn.innerHTML = `📋 DSR 진단 리포트 복사 <span class="copy-count-badge">${newCount}/${limit} 사용 완료</span>`;
+      btn.classList.add('btn-copy--exhausted');
+    } else {
+      btn.innerHTML = `📋 DSR 진단 리포트 복사 <span class="copy-count-badge">${newCount}/${limit} 사용중</span>`;
     }
+  }
 
-    const expDate = new Date(data.expiry).toLocaleDateString('ko-KR', { month:'long', day:'numeric' });
-    const msg = remaining > 0
-      ? `🔗 임시 링크가 복사되었습니다!<br><span style="font-size:12px;line-height:1.7;display:block;margin-top:8px;">• 링크는 <b>${expDate}</b>까지 유효합니다<br>• 오늘 남은 복사 횟수: <b>${remaining}회</b><br>• 링크 만료 전 미리 확인하세요</span>`
-      : `🔗 임시 링크가 복사되었습니다!<br><span style="font-size:12px;line-height:1.7;display:block;margin-top:8px;">• 링크는 <b>${expDate}</b>까지 유효합니다<br>• 오늘 복사 횟수를 모두 사용하셨습니다</span>`;
+  const msg = `🔗 임시 링크가 복사되었습니다!<br>` +
+    `<span style="font-size:12px;line-height:1.8;display:block;margin-top:8px;">` +
+    `• 링크는 <b>${expDate}</b>까지 유효합니다<br>` +
+    `• ${remaining > 0 ? `오늘 남은 복사 횟수: <b>${remaining}회</b>` : '오늘 복사 횟수를 모두 사용하셨습니다'}<br>` +
+    `• 링크 만료 전 미리 확인하세요</span>`;
 
-    showAlert(msg, null, "✅");
+  const copyFn = () => {
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(shortUrl).then(() => showAlert(msg, null, "✅")).catch(() => _fallbackCopy(shortUrl, msg));
+    } else { _fallbackCopy(shortUrl, msg); }
   };
-
-  if (navigator.clipboard?.writeText) {
-    navigator.clipboard.writeText(link).then(copyAndNotify).catch(() => { fallbackCopy(link); copyAndNotify(); });
-  } else { fallbackCopy(link); copyAndNotify(); }
+  copyFn();
 }
 
-function fallbackCopy(text) {
+function _fallbackCopy(text, msg) {
   const t = document.createElement("textarea");
   t.style.cssText = "position:fixed;top:-9999px;opacity:0;";
   document.body.appendChild(t);
   t.value = text; t.focus(); t.select();
   try { document.execCommand("copy"); } catch {}
   document.body.removeChild(t);
+  showAlert(msg, null, "✅");
 }

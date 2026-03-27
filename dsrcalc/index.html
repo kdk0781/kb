@@ -12,10 +12,9 @@
   <meta name="application-name" content="DSR계산기">
   <meta name="description" content="KB DSR 계산기 — 스트레스금리 반영 DSR 진단 및 대출 한도 분석">
 
-  <!-- 파비콘 (ico 폴더 경로 변경 가능) -->
+  <!-- 파비콘 (../ico/파일명.png 으로 변경) -->
   <link rel="apple-touch-icon" sizes="180x180" href="../ico/dsrcalc.png">
-  <link rel="icon" type="image/png" sizes="192x192" href="../ico/dsrcalc.png">
-  <link rel="icon" type="image/png" sizes="32x32"   href="../ico/dsrcalc.png">
+  <link rel="icon" type="image/png" href="../ico/dsrcalc.png">
   <link rel="shortcut icon" href="../ico/dsrcalc.png">
   <link rel="manifest" href="dsr.json">
   <link rel="stylesheet" href="style.css" media="all">
@@ -30,8 +29,8 @@
     <div class="notice-box">
       <div class="notice-header">📢 업데이트 안내</div>
       <div class="notice-body">
-        <span class="main-text">KB 금리 자동 적용 · 임시 링크 공유 추가</span>
-        <span class="sub-text">담보대출 금리유형 자동 적용 및 리포트 임시 링크 기능이 추가되었습니다.</span>
+        <span class="main-text">KB 금리 자동 연동 · 금리유형 UI 개선</span>
+        <span class="sub-text">KB 금리가 자동으로 불러와집니다. 담보대출 금리유형을 선택하면 금리가 자동 적용됩니다.</span>
       </div>
       <div class="notice-footer">
         <button onclick="closeNoticeForever()">다시 보지 않기</button>
@@ -133,7 +132,7 @@
         금융 의사결정 전 반드시 담당 금융기관에 확인하시기 바랍니다.
       </div>
 
-      <!-- 리포트 복사 (id 추가 — JS에서 카운트 배지 업데이트) -->
+      <!-- 리포트 복사 -->
       <button id="btnCopyReport" class="btn-copy" onclick="copyResultText()">
         📋 DSR 진단 리포트 복사
       </button>
@@ -142,9 +141,7 @@
       <div class="section-title">부동산 위키 부채 산정 가이드</div>
       <div class="wiki-table-wrapper">
         <table class="wiki-table">
-          <thead>
-            <tr><th>대출 종류</th><th>원금 산정 방식</th><th>비고</th></tr>
-          </thead>
+          <thead><tr><th>대출 종류</th><th>원금 산정 방식</th><th>비고</th></tr></thead>
           <tbody>
             <tr><td><b>주택담보대출</b></td><td>실제 상환액 (총 기간 반영)</td><td>일시상환 시 가상 10년</td></tr>
             <tr><td><b>오피스텔(비주거)</b></td><td>실제 상환액 또는 가상 8년</td><td>금융위 비주담대 가이드</td></tr>
@@ -158,7 +155,7 @@
     </div><!-- /resultArea -->
   </div><!-- /container -->
 
-  <!-- FAB 새로고침 -->
+  <!-- FAB -->
   <div class="refresh-btn" onclick="location.reload();" title="새로고침">↻</div>
 
   <!-- 커스텀 모달 -->
@@ -170,6 +167,8 @@
     </div>
   </div>
 
-  <script src="common.js?v=2026.05"></script>
+  <!-- kb_rates.js 를 먼저 로드 → common.js 에서 applyKBRatesToConfig() 호출 -->
+  <script src="kb_rates.js?v=2026.05-B"></script>
+  <script src="common.js?v=2026.05-B"></script>
 </body>
 </html>

@@ -371,6 +371,8 @@ select {
   grid-template-columns: 1fr 1fr;
   gap: 9px;
 }
+/* 전체 너비 칸 (금리유형, 대출종류) */
+.grid-row > .grid-full { grid-column: 1 / -1; }
 @media (max-width: 380px) { .grid-row { grid-template-columns: 1fr; } }
 
 /* ── 삭제 버튼 ───────────────────────────────────────────────────────────── */
@@ -609,21 +611,49 @@ body.dark .rec-badge { color: var(--kb-yellow); background: rgba(255,184,28,.12)
   color: var(--text-muted); letter-spacing: .06em;
   text-transform: uppercase; margin-bottom: 8px;
 }
+/* ── 스케줄 요약 행 — 2줄 레이아웃 (모바일 가독성 강화) ─────────────────── */
 .sch-summary-row {
-  display: flex; align-items: center; flex-wrap: wrap; gap: 4px;
-  padding: 5px 0;
+  display: flex; flex-direction: column; gap: 3px;
+  padding: 8px 0;
   border-bottom: 1px solid var(--border);
-  font-size: 12.5px;
 }
 .sch-summary-row:last-child { border-bottom: none; }
-.sch-summary-emoji  { font-size: 14px; width: 20px; flex-shrink: 0; }
-.sch-summary-label  { font-weight: 700; color: var(--text-primary); min-width: 120px; }
+.sch-summary-top    { display: flex; align-items: center; gap: 5px; }
+.sch-summary-bottom {
+  display: flex; align-items: center; gap: 4px;
+  padding-left: 22px; flex-wrap: wrap;
+  font-size: 12px;
+}
+.sch-summary-emoji  { font-size: 14px; width: 18px; flex-shrink: 0; }
+.sch-summary-label  { font-weight: 700; color: var(--text-primary); font-size: 13px; }
 .sch-summary-sep    { color: var(--text-muted); }
 .sch-summary-amount { font-family: var(--font-num); font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; }
-.sch-summary-divider{ color: var(--border-strong); margin: 0 2px; }
+.sch-summary-divider{ color: var(--border-strong); }
 .sch-summary-rate   { font-family: var(--font-num); font-weight: 600; color: var(--kb-navy-mid); }
 body.dark .sch-summary-rate { color: var(--accent-blue); }
-.sch-summary-term   { font-family: var(--font-num); font-size: 12px; color: var(--text-muted); }
+.sch-summary-term   { font-family: var(--font-num); font-size: 11.5px; color: var(--text-muted); }
+
+/* ── 금리 유형 disabled 상태 ──────────────────────────────────────────────── */
+.rate-type--disabled label::after {
+  content: ' — 담보대출 전용';
+  font-size: 10px; color: var(--text-muted); font-weight: 400;
+}
+.rate-type--disabled select {
+  opacity: 0.4; cursor: not-allowed;
+  background: var(--bg-surface-3) !important;
+  color: var(--text-muted) !important;
+  pointer-events: none;
+}
+
+/* ── KB 금리 로드 상태 표시 ───────────────────────────────────────────────── */
+#rateLoadStatus {
+  font-size: 11px; font-weight: 600;
+  padding: 5px 10px; border-radius: var(--radius-sm);
+  margin: 4px 0 0; text-align: center; transition: all .2s;
+}
+.rate-load-ok      { background: var(--safe-bg); color: var(--safe); border: 1px solid var(--safe-border); }
+.rate-load-warn    { background: var(--warn-bg); color: var(--warn); border: 1px solid var(--warn-border); }
+.rate-load-loading { background: var(--info-bg); color: var(--info); border: 1px solid var(--info-border); }
 
 /* ── 스케줄 계산 헤더 ────────────────────────────────────────────────────── */
 .sch-calc-header {
@@ -1076,3 +1106,82 @@ body.dark .modal-rate-default  { background: rgba(251,176,36,.1); border-color: 
 ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 ::selection { background: rgba(255,184,28,.25); color: var(--text-primary); }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   추가 스타일 — VER 2026.06
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── 금리유형 셀렉트 disabled 상태 ───────────────────────────────────────── */
+.l-rate-type.select-disabled,
+select.select-disabled {
+  opacity: .42;
+  cursor: not-allowed;
+  pointer-events: none;
+  background-color: var(--bg-surface-3) !important;
+}
+/* readOnly 금리 인풋 */
+input.l-r[readonly] {
+  background: var(--kb-yellow-pale) !important;
+  border-color: var(--kb-yellow) !important;
+  color: var(--kb-yellow-deep) !important;
+  font-weight: 700;
+  cursor: default;
+}
+body.dark input.l-r[readonly] {
+  background: rgba(255,184,28,.1) !important;
+  color: var(--kb-yellow) !important;
+}
+
+/* ── 스케줄 요약 행 — 모바일 2줄 레이아웃 ───────────────────────────────── */
+.sch-summary-row {
+  display: flex; flex-direction: column; gap: 3px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+.sch-summary-row:last-child { border-bottom: none; }
+
+.sch-summary-cat-row {
+  display: flex; align-items: center; gap: 6px;
+}
+.sch-summary-emoji  { font-size: 14px; flex-shrink: 0; }
+.sch-summary-label  { font-weight: 700; color: var(--text-primary); font-size: 13px; }
+
+.sch-summary-detail-row {
+  display: flex; align-items: center; gap: 5px; padding-left: 20px;
+  flex-wrap: wrap;
+}
+.sch-summary-amount  { font-family: var(--font-num); font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; font-size: 13px; }
+.sch-summary-divider { color: var(--border-strong); font-size: 11px; }
+.sch-summary-rate    { font-family: var(--font-num); color: var(--kb-navy-mid); font-weight: 600; font-size: 12.5px; }
+body.dark .sch-summary-rate { color: var(--accent-blue); }
+.sch-summary-term    { font-size: 12px; color: var(--text-muted); }
+
+/* ── 복사 버튼 ────────────────────────────────────────────────────────────── */
+.copy-count-badge {
+  display: inline-block; font-size: 10px; font-weight: 700;
+  background: rgba(0,0,0,.12); color: inherit;
+  padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle;
+}
+.btn-copy--exhausted {
+  opacity: .45; cursor: not-allowed !important;
+  border-color: var(--border) !important; color: var(--text-muted) !important;
+}
+
+/* ── 결과 면책 고지 ──────────────────────────────────────────────────────── */
+.result-disclaimer {
+  font-size: 11.5px; color: var(--text-muted); line-height: 1.65; word-break: keep-all;
+  padding: 10px 13px; margin: 8px 0;
+  background: var(--bg-surface-2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  transition: background var(--dur-base) var(--ease), border-color var(--dur-base) var(--ease);
+}
+@media (min-width: 640px) { .result-disclaimer { font-size: 12px; } }
+
+/* ── 마일스톤 카드 총계 행 ────────────────────────────────────────────────── */
+.milestone-row--total {
+  margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--border-strong);
+  font-weight: 700;
+}
+.milestone-row--total .milestone-key { color: var(--text-primary); }
+.milestone-row--total .milestone-val  { font-size: 13.5px; color: var(--text-primary); }
+
