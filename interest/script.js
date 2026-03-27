@@ -37,12 +37,12 @@ function renderSummary() {
         {l:'신잔액', v:r.base.scofix},
 
         // [2. 스트레스 가산금리 규제 수치 - 노란색 테마]
-        {l:'ST가산(5Y주기)', v:r. stress m5 cycle, stBase: true}, 
+        {l:'ST가산(5Y주기)', v:r.stress.m5_cycle, stBase: true}, 
         {l:'ST가산(5Y혼합)', v:r.stress.m5_mix, stBase: true}, 
         {l:'ST가산(변동형)', v: r.stress.v_6_12, stBase: true},
 
         // [3. 스트레스 최종 실행 금리 - 빨간색 테마]
-        {l:'ST 주기형(5Y)', v: calc(r.base.mor5, ga.m5 + r. stress m5 cycle, r.base.primeOn), s: true},
+        {l:'ST 주기형(5Y)', v: calc(r.base.mor5, ga.m5 + r.stress.m5_cycle, r.base.primeOn), s: true},
         {l:'ST 혼합형(5Y)', v: calc(r.base.mor5, ga.m5 + r.stress.m5_mix, r.base.primeOn), s: true},
         {l:'ST 변동형(최저)', v: parseFloat((minVarRate + r.stress.v_6_12).toFixed(2)), s: true}
     ];
