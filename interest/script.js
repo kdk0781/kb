@@ -16,30 +16,46 @@ const r = {
 const calc = (b, a, p) => parseFloat((b + a - p).toFixed(2));
 
 /* ======================================================
-   2. 상단 서머리 렌더링 (최저 변동형 스트레스 금리 반영)
+   2. 상단 서머리 렌더링 (스트레스 수치 + 신잔액 통합 고도화)
    ====================================================== */
 function renderSummary() {
-	const ga = r.add.mort;
+    const ga = r.add.mort;
 
-	// 6, 12개월 변동형 모든 조합 중 최저 금리 찾기 (신규/신잔액 포함)
+    // 변동형(신규/신잔액 6,12M) 4개 조합 중 최저 실행 금리 산출
     const varRates = [
         calc(r.base.ncofix, ga.n6, r.base.primeOn),  // 신규 6M
         calc(r.base.ncofix, ga.n12, r.base.primeOn), // 신규 12M
         calc(r.base.scofix, ga.s6, r.base.primeOn),  // 신잔액 6M
         calc(r.base.scofix, ga.s12, r.base.primeOn)  // 신잔액 12M
     ];
+    const minVarRate = Math.min(...varRates);
 
-    const minVarRate = Math.min(...varRates); // 가장 낮은 변동 금리값
     const items = [
-        {l:'금융채5Y', v:r.base.mor5}, {l:'금융채2Y', v:r.base.mor2},
-        {l:'신규COFIX', v:r.base.ncofix}, {l:'신잔액', v:r.base.scofix},
-        {l:'ST 주기형(5Y)', v: calc(r.base.mor5, r.add.mort.m5 + r.stress.m5_cycle, r.base.primeOn), s: true},
-        {l:'ST 혼합형(5Y)', v: calc(r.base.mor5, r.add.mort.m5 + r.stress.m5_mix, r.base.primeOn), s: true},
-        {l:'ST 변동형(최저)', v: parseFloat((minVarRate + r.stress.v_6_12).toFixed(2)), s: true}
+        // [1. 시장 지표 기준금리]
+        {l:'금융채5Y', v:r.base.mor5}, 
+        {l:'신규COFIX', v:r.base.ncofix},
+        {l:'신잔액', v:r.base.scofix},
+
+        // [2. 스트레스 가산금리 규제 수치 - 노란색 테마]
+        {l:'ST가산(5Y주기)', v: 1.15, stBase: true}, 
+        {l:'ST가산(5Y혼합)', v: 1.50, stBase: true}, 
+        {l:'ST가산(변동형)', v: 2.87, stBase: true},
+
+        // [3. 스트레스 최종 실행 금리 - 빨간색 테마]
+        {l:'ST 주기형(5Y)', v: calc(r.base.mor5, ga.m5 + 1.15, r.base.primeOn), s: true},
+        {l:'ST 혼합형(5Y)', v: calc(r.base.mor5, ga.m5 + 1.50, r.base.primeOn), s: true},
+        {l:'ST 변동형(최저)', v: parseFloat((minVarRate + 2.87).toFixed(2)), s: true}
     ];
-    document.getElementById('top-summary').innerHTML = items.map(i => `
-        <div class="summary-item ${i.s ? 'stress-item' : ''}">${i.l}<span>${i.v.toFixed(2)}%</span></div>
-    `).join('');
+
+    document.getElementById('top-summary').innerHTML = items.map(i => {
+        let typeClass = '';
+        if (i.s) typeClass = 'stress-item';
+        else if (i.stBase) typeClass = 'st-base-item';
+
+        // 가산금리(stBase)는 %p 단위로 표시하여 구분
+        const unit = i.stBase ? '%p' : '%';
+        return `<div class="summary-item ${typeClass}">${i.l}<span>${i.v.toFixed(2)}${unit}</span></div>`;
+    }).join('');
 }
 
 function renderContent() {
