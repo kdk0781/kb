@@ -1,39 +1,30 @@
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#121212">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#121212">
 	<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="KB금리표">
-<title>KB 담보,전세 금리</title>
-<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
-<link rel="stylesheet" href="style.css">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="KB금리표">
+    <title>KB 담보,전세 금리</title>
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+    <link rel="stylesheet" href="style.css">
 	<link rel="icon" type="image/png" sizes="32x32" href="https://raw.githubusercontent.com/kdk0781/kb/main/ico/interest.png">
-<link rel="icon" type="image/png" sizes="192x192" href="/kb/interest/favicon-192.png">
-<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/kdk0781/kb/main/ico/interest.png">
-<link rel="icon" type="image/png" sizes="512x512" href="https://raw.githubusercontent.com/kdk0781/kb/main/ico/interest.png">
-<link rel="manifest" href="interest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="/kb/interest/favicon-192.png">
+    <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/kdk0781/kb/main/ico/interest.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="https://raw.githubusercontent.com/kdk0781/kb/main/ico/interest.png">
+    <link rel="manifest" href="interest.json">
 </head>
 <body>
+
 <div id="loading-overlay" class="loading-overlay" style="display: none;">
     <div class="loading-content">
         <div class="loading-spinner"></div>
         <p class="loading-text">최신 금리 데이터 로딩중<span class="dots"></span></p>
+   </div>
 </div>
-</div>
- <div id="loading-overlay" class="loading-overlay" style="display: none;">
-        <div class="loading-content">
-            <div class="loading-spinner"></div>
-            <p class="loading-text">최신 금리 데이터 로딩중<span class="dots"></span></p>
-        </div>
-    </div>
 
-    <div id="top-summary" class="top-summary"></div>
-    
-    <div id="loanList"></div>
 
     <div class="sticky-top-container">
         <header class="main-nav">
@@ -57,8 +48,6 @@
 				<h3>KB 금리표 공지사항</h3>
 				<button onclick="closeNoticeTemporarily()" class="close-top-btn" title="이번 주 닫기">×</button>
 			</div>
-</div>
-
 			
 			<div class="notice-body">
 				<p><strong>[시스템 업데이트 안내]</strong></p>
@@ -72,7 +61,9 @@
 					다음 주 월요일까지 보지 않기 (닫기)
 				</button>
 			</div>
-</div>
+		</div>
+	</div>
+
 
     <footer class="footer-info">
         <p>시스템 설정에 따라 테마가 자동 적용됩니다.</p>
