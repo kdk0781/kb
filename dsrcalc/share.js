@@ -1,26 +1,31 @@
 let deferredPrompt;
-let targetUrl = 'index.html';
+let targetUrl = 'index.html'; // 기본값
 
 window.onload = function() {
+  // 1. 인앱 브라우저(카카오톡 등) 감지 및 외부 브라우저(사파리/크롬) 유도
   if (checkInAppBrowser()) return;
 
+  // 2. 토큰 유효성 검증 및 주소창 URL 마스킹
   validateToken();
   
+  // 3. PWA 설치 프롬프트 인터셉트
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
   });
 
-  // ── [설치 버튼 클릭 로직] ──
+  // 4. 설치 버튼 이벤트
   document.getElementById('btnInstall').addEventListener('click', async () => {
     if (deferredPrompt) {
+      // 안드로이드 (설치 후 자동 이동을 막아 원본 주소 노출 방지)
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
       if (outcome === 'accepted') {
         deferredPrompt = null;
-        showInstallSuccess(); // ★ 원본 주소 노출/만료 에러 방지용 성공 화면 호출
+        alert('설치가 진행됩니다.\n설치가 완료되면 기기 홈 화면(바탕화면)에 생성된 앱 아이콘을 통해 접속해주세요!');
       }
     } else {
+      // iOS (아이폰)
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
       if (isIOS) {
         alert("아이폰 하단의 [공유(네모에 화살표)] 버튼을 누른 후\n[홈 화면에 추가]를 선택하여 설치해주세요.");
@@ -30,38 +35,29 @@ window.onload = function() {
     }
   });
 
+  // 5. 1회성 접속 버튼 이벤트
   document.getElementById('btnOneTime').addEventListener('click', () => {
-    window.location.href = targetUrl;
+    window.location.href = targetUrl; // 이때 비로소 진짜 원본 주소로 이동합니다.
   });
 };
 
-// ── [설치 성공 완료 화면 UI] (만료 에러 방지 & 주소 숨김) ──
-function showInstallSuccess() {
-  document.body.innerHTML = `
-    <div style="min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px; background:var(--bg-page); text-align:center;">
-      <div style="font-size:60px; margin-bottom:20px;">✅</div>
-      <h2 style="font-size:22px; font-weight:800; color:var(--text-primary); margin-bottom:12px;">앱 설치가 시작되었습니다!</h2>
-      <p style="font-size:15px; color:var(--text-secondary); line-height:1.6; word-break:keep-all;">
-        이제 현재 브라우저 창을 닫으셔도 됩니다.<br><br>
-        기기 홈 화면(바탕화면)에 생성된<br><b>'DSR 계산기'</b> 아이콘을 통해 접속해주세요.
-      </p>
-    </div>
-  `;
-}
-
-// ── [이하 기존과 동일 (인앱 감지 & 마스킹)] ──
+// ─── 인앱 브라우저 탈출 로직 ───
 function checkInAppBrowser() {
   const ua = navigator.userAgent.toLowerCase();
   const isKakao = ua.indexOf('kakaotalk') > -1;
-  const isInApp = isKakao || ua.indexOf('line') > -1 || ua.indexOf('inapp') > -1 || ua.indexOf('instagram') > -1 || ua.indexOf('facebook') > -1;
+  const isLine = ua.indexOf('line') > -1;
+  const isInApp = isKakao || isLine || ua.indexOf('inapp') > -1 || ua.indexOf('instagram') > -1 || ua.indexOf('facebook') > -1;
 
   if (isInApp) {
     const currentUrl = location.href;
+    
+    // 안드로이드 카카오톡/라인의 경우 크롬 브라우저로 강제 이동 (Intent 스킴)
     if (ua.indexOf('android') > -1 && isKakao) {
       location.href = 'intent://' + currentUrl.replace(/https?:\/\//i, '') + '#Intent;scheme=https;package=com.android.chrome;end';
       return true;
     }
     
+    // iOS(아이폰) 또는 강제 이동 실패 시 보여줄 '외부 브라우저 유도 화면'
     document.body.innerHTML = `
       <div style="min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px; background:#F4F6FB; text-align:center;">
         <div style="font-size:50px; margin-bottom:20px;">🧭</div>
@@ -76,33 +72,53 @@ function checkInAppBrowser() {
     `;
     
     window.copyAndAlert = function(url) {
-      const t = document.createElement("textarea"); document.body.appendChild(t); t.value = url; t.select(); document.execCommand("copy"); document.body.removeChild(t);
+      const t = document.createElement("textarea");
+      document.body.appendChild(t);
+      t.value = url;
+      t.select();
+      document.execCommand("copy");
+      document.body.removeChild(t);
       alert("링크가 복사되었습니다.\n사파리(Safari)나 크롬(Chrome) 주소창에 붙여넣기 해주세요.");
     };
+    
     return true;
   }
   return false;
 }
 
+// ─── 토큰 검증 및 URL 마스킹 로직 ───
 function validateToken() {
   const urlParams = new URLSearchParams(window.location.search);
   const token = urlParams.get('t');
   const mainCard = document.getElementById('mainCard');
   const errorCard = document.getElementById('errorCard');
 
-  if (!token) { showError(); return; }
+  if (!token) {
+    showError(); return;
+  }
 
   try {
     const payload = JSON.parse(decodeURIComponent(atob(token)));
+    
     if (Date.now() > payload.exp) {
       showError();
     } else {
       targetUrl = payload.url;
+      
+      // ★ 수정된 부분: 원본 주소(index.html) 노출을 막기 위해 
+      // 뒤의 지저분한 암호화 코드를 떼어내고 깔끔하게 share.html로만 주소창을 덮어씌웁니다.
       const baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
-      window.history.replaceState(null, '', baseUrl + 'share.html'); // 원본 주소 완벽 마스킹
-      mainCard.classList.remove('hidden'); errorCard.classList.remove('active');
-    }
-  } catch (e) { showError(); }
+      window.history.replaceState(null, '', baseUrl + 'share.html');
 
-  function showError() { mainCard.classList.add('hidden'); errorCard.classList.add('active'); }
+      mainCard.classList.remove('hidden');
+      errorCard.classList.remove('active');
+    }
+  } catch (e) {
+    showError();
+  }
+
+  function showError() {
+    mainCard.classList.add('hidden');
+    errorCard.classList.add('active');
+  }
 }
