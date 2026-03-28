@@ -1,4 +1,5 @@
 {
+  "id": "kb-dsr-admin",
   "name": "DSR 관리자 시스템",
   "short_name": "DSR 관리자",
   "start_url": "admin.html",
@@ -10,13 +11,13 @@
     {
       "src": "../ico/admin_ico.svg",
       "sizes": "192x192",
-      "type": "image/png",
+      "type": "image/svg+xml",
       "purpose": "any maskable"
     },
     {
       "src": "../ico/admin_ico.svg",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/svg+xml"
     }
   ]
 }
