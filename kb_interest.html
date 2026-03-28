@@ -6,11 +6,54 @@
     <script type="text/javascript">
         window.location.href = "https://kdk0781.github.io/kb/interest/index.html";
     </script>
-    <title>Redirecting...</title>
+    <title>페이지 이동 중...</title>
+    <style>
+        /* 로딩 화면 스타일 (선택 사항) */
+        body { font-family: sans-serif; text-align: center; padding-top: 50px; }
+        .hidden { display: none; }
+    </style>
 </head>
 <body>
-    페이지를 이동 중입니다. 잠시만 기다려 주세요.
-    <br>
-    <a href="https://kdk0781.github.io/kb/interest/index.html">자동으로 이동하지 않으면 여기를 클릭하세요.</a>
+  <div id="status-message">
+        <p>새로운 페이지로 이동 중입니다...</p>
+    </div>
+
+    <script type="text/javascript">
+        const targetUrl = "https://kdk0781.github.io/kb/interest/index.html";
+
+        async function safeRedirect() {
+            try {
+                // 1. 대상 페이지가 정상적으로 응답하는지 먼저 확인 (Head 요청)
+                const response = await fetch(targetUrl, { method: 'HEAD', mode: 'no-cors' });
+                
+                // no-cors 모드에서는 status 확인이 제한적일 수 있으므로 
+                // 일정 시간 후에도 페이지가 이동되지 않으면 오류로 간주하는 타이머 병행
+                const timeout = setTimeout(() => {
+                    handleError();
+                }, 3000); // 3초 동안 응답 없으면 오류 처리
+
+                window.location.href = targetUrl;
+
+            } catch (error) {
+                handleError();
+            }
+        }
+
+        function handleError() {
+            // 팝업 메시지 띄우기
+            alert("현재 페이지 고도화 작업 중입니다. 이용에 불편을 드려 죄송합니다.");
+            
+            // 기존 상태로 복구 (메시지 변경)
+            document.getElementById('status-message').innerHTML = `
+                <h2 style="color: #d32f2f;">시스템 점검 중</h2>
+                <p>현재 <b>kb_interest</b> 페이지 작업이 진행 중입니다.</p>
+                <p>잠시 후 다시 시도해 주세요.</p>
+            `;
+        }
+
+        // 실행
+        safeRedirect();
+    </script>
+    <!-- <a href="https://kdk0781.github.io/kb/interest/index.html">자동으로 이동하지 않으면 여기를 클릭하세요.</a> -->
 </body>
 </html>
