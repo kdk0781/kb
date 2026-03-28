@@ -1,3 +1,25 @@
+// ─── [0] 접속 초기 설정 (주소창 세탁 및 테스트용 권한 차단) ───────────
+document.addEventListener('DOMContentLoaded', () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const isGuest = urlParams.get('guest') === 'true';
+  const isAppMode = urlParams.get('app') === 'main';
+
+  // 1. 주소창 세탁: index.html 이나 꼬리표들을 싹 지우고 깔끔한 폴더 주소만 노출시킴
+  if (window.location.href.includes('index.html')) {
+      const cleanUrl = window.location.href.split('index.html')[0];
+      window.history.replaceState(null, '', cleanUrl);
+  }
+
+  // 2. 1회성 접속이나 고객용 앱으로 들어온 경우, 관리자 본인의 폰이어도 관리자 UI 렌더링을 차단!
+  if (!isGuest && !isAppMode) {
+      // 기존에 실행되던 관리자 체크 함수 (맨 하단에 있는 함수 호출)
+      if (typeof checkAdminAuth === 'function') checkAdminAuth();
+  }
+});
+// ────────────────────────────────────────────────────────────────
+
+
+
 /* =============================================================================
    DSR CORE SYSTEM — KB 브랜드 VER 2026.05-C
    파일명: common.js
