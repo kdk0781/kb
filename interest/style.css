@@ -58,6 +58,7 @@
 html {
     scroll-behavior: smooth;
     -webkit-text-size-adjust: 100%;
+    height: -webkit-fill-available;
 }
 
 body {
@@ -68,14 +69,18 @@ body {
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     min-height: 100vh;
-    /* iOS safe area */
-    padding-bottom: env(safe-area-inset-bottom);
+    min-height: -webkit-fill-available;
+    /* iOS safe area (홈바·노치 대응) */
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    /* iOS 터치 파란 하이라이트 전역 제거 */
+    -webkit-tap-highlight-color: transparent;
 }
 
 /* ======================================================
    3. 상단 고정 헤더 (Sticky)
    ====================================================== */
 .sticky-top-container {
+    position: -webkit-sticky; /* iOS Safari 필수 */
     position: sticky;
     top: 0;
     z-index: 1000;
@@ -140,7 +145,7 @@ body {
 
 /* 헤더 새로고침 버튼 (PC 전용) */
 .nav-refresh-btn {
-    display: none; /* 모바일에선 FAB 사용 */
+    display: none;
     width: 38px;
     height: 38px;
     border-radius: 10px;
@@ -151,6 +156,11 @@ body {
     align-items: center;
     justify-content: center;
     transition: background 0.2s, color 0.2s, transform 0.2s;
+    /* iOS 버튼 기본 스타일 제거 */
+    -webkit-appearance: none;
+    appearance: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
 }
 .nav-refresh-btn svg { width: 18px; height: 18px; }
 .nav-refresh-btn:hover { background: var(--kb-yellow); color: #000; }
@@ -166,12 +176,12 @@ body {
     height: var(--summary-h);
     display: flex;
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch; /* iOS 모멘텀 스크롤 */
     padding: 0 16px;
     gap: 7px;
     align-items: center;
     scrollbar-width: none;
     border-top: 1px solid var(--border);
-    /* 데스크탑 가운데 정렬 */
     max-width: var(--max-w);
     margin: 0 auto;
     width: 100%;
@@ -249,6 +259,7 @@ body {
 }
 
 .section-header {
+    position: -webkit-sticky; /* iOS Safari 필수 */
     position: sticky;
     top: calc(var(--nav-h) + var(--summary-h));
     z-index: 900;
@@ -258,7 +269,6 @@ body {
     padding: 16px 20px;
     border-left: 5px solid var(--kb-yellow);
     border-bottom: 1px solid var(--border);
-    /* 섹션 헤더 상단 모서리만 둥글게 */
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
 
@@ -421,7 +431,7 @@ body {
 .refresh-fab {
     position: fixed;
     right: 20px;
-    bottom: calc(28px + env(safe-area-inset-bottom));
+    bottom: calc(28px + env(safe-area-inset-bottom, 0px));
     width: 54px;
     height: 54px;
     background: var(--kb-yellow);
@@ -435,6 +445,11 @@ body {
     z-index: 1100;
     cursor: pointer;
     transition: transform 0.2s, box-shadow 0.2s;
+    /* iOS 버튼 기본 스타일 제거 */
+    -webkit-appearance: none;
+    appearance: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
 }
 .refresh-fab svg { width: 26px; height: 26px; }
 .refresh-fab:hover  { box-shadow: 0 6px 24px rgba(255, 188, 0, 0.45); }
@@ -451,7 +466,11 @@ body {
    ====================================================== */
 .loading-overlay {
     position: fixed;
-    inset: 0;
+    /* inset 미지원 iOS 대응 — 개별 선언 */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     background: rgba(10, 10, 10, 0.88);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
@@ -459,7 +478,6 @@ body {
     justify-content: center;
     align-items: center;
     z-index: 9999;
-    /* opacity 트랜지션으로 제어 — display:none 대신 */
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.25s ease;
@@ -552,12 +570,16 @@ body {
 /* 오버레이 — opacity 트랜지션으로 처리 (display:none 애니메이션 불가 문제 해결) */
 .notice-overlay {
     position: fixed;
-    inset: 0;
+    /* inset 미지원 iOS 대응 */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     background: rgba(0, 0, 0, 0.65);
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
     z-index: 2000;
-    display: flex;          /* 항상 flex — opacity+pointer-events로 제어 */
+    display: flex;
     justify-content: center;
     align-items: flex-end;
     opacity: 0;
@@ -582,7 +604,7 @@ body {
     /* 아래서 위로 슬라이드 */
     transform: translateY(100%);
     transition: transform 0.45s cubic-bezier(0.32, 1, 0.67, 1);
-    padding-bottom: env(safe-area-inset-bottom);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 .notice-overlay.active .notice-content {
@@ -640,6 +662,11 @@ body {
     justify-content: center;
     transition: opacity 0.15s, transform 0.15s;
     flex-shrink: 0;
+    /* iOS */
+    -webkit-appearance: none;
+    appearance: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
 }
 .close-top-btn:active { transform: scale(0.9); opacity: 0.85; }
 
@@ -674,6 +701,11 @@ body {
     cursor: pointer;
     transition: background 0.15s, transform 0.15s;
     font-family: inherit;
+    /* iOS */
+    -webkit-appearance: none;
+    appearance: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
 }
 .close-until-btn:hover { background: rgba(255, 188, 0, 0.08); }
 .close-until-btn:active { transform: scale(0.98); }
@@ -683,7 +715,7 @@ body {
    ====================================================== */
 .footer-info {
     border-top: 1px solid var(--border);
-    padding: 40px 20px calc(40px + env(safe-area-inset-bottom));
+    padding: 40px 20px calc(40px + env(safe-area-inset-bottom, 0px));
     text-align: center;
     color: var(--text-muted);
     font-size: 0.78rem;
