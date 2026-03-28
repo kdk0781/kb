@@ -533,8 +533,6 @@ body.white .loading-sub { color: var(--text-muted); }
 .rmb-text b { color: var(--text-primary); }
 .rmb-rate  { color: var(--warn); font-size: 13px; }
 
-#loanList .input-card {padding-top:30px;}
-
 /* ── 레이블 ──────────────────────────────────────────────────────────────── */
 label {
   display: block;

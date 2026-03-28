@@ -117,20 +117,27 @@ function applySystemTheme() {
 }
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applySystemTheme);
 
-/** 금리유형 + 스트레스금리 셀렉트 옵션 텍스트 전체 동기화 */
+/** 금리유형 + 스트레스금리 셀렉트 옵션 텍스트 전체 동기화
+ *  ★ 스트레스 셀렉트는 value=식별자 방식이므로 textContent만 갱신하면 됨 */
 function _syncAllRateSelects() {
   const rm = _C.KB_MORTGAGE_RATES.mortgage_level;
   const sm = _C.STRESS_RATES;
-  const rMap = { '5년변동': `5년변동 (${rm['5년변동']}%)`, '5년혼합': `5년혼합 (${rm['5년혼합']}%)`, '6_12변동': `6,12개월변동 (${rm['6_12변동']}%)` };
+  const rMap = {
+    '5년변동':  `5년변동 (${rm['5년변동']}%)`,
+    '5년혼합':  `5년혼합 (${rm['5년혼합']}%)`,
+    '6_12변동': `6,12개월변동 (${rm['6_12변동']}%)`
+  };
   document.querySelectorAll('.l-rate-type').forEach(sel => {
     [...sel.options].forEach(opt => { if (rMap[opt.value]) opt.textContent = rMap[opt.value]; });
   });
+  // 스트레스 셀렉트: value=식별자, textContent만 업데이트
+  const sMap = {
+    'm5_cycle': `60개월변동-주기형 (${sm.m5_cycle}%)`,
+    'm5_mix':   `60개월혼합 (${sm.m5_mix}%)`,
+    'v_6_12':   `6,12개월변동 (${sm.v_6_12}%)`,
+  };
   document.querySelectorAll('.l-sr-select').forEach(sel => {
-    [...sel.options].forEach(opt => {
-      if (opt.value === String(sm.m5_cycle)) opt.textContent = `60개월변동 (${sm.m5_cycle}%)`;
-      if (opt.value === String(sm.m5_mix))   opt.textContent = `60개월혼합 (${sm.m5_mix}%)`;
-      if (opt.value === String(sm.v_6_12))   opt.textContent = `6,12개월변동 (${sm.v_6_12}%)`;
-    });
+    [...sel.options].forEach(opt => { if (sMap[opt.value]) opt.textContent = sMap[opt.value]; });
   });
 }
 
@@ -295,14 +302,15 @@ function addLoan() {
                placeholder="4.5" oninput="onRateInput(this)">
       </div>
 
-      <!-- ④ 스트레스 금리 -->
+      <!-- ④ 스트레스 금리
+           ★ value = 식별자 문자열 (숫자 아님) — STRESS_RATES 변경과 무관하게 항상 매핑됨 -->
       <div>
         <label>스트레스 금리</label>
         <select class="l-sr-select">
-          <option value="${sm.m5_cycle}" selected>60개월변동 (${sm.m5_cycle}%)</option>
-          <option value="${sm.m5_mix}">60개월혼합 (${sm.m5_mix}%)</option>
-          <option value="${sm.v_6_12}">6,12개월변동 (${sm.v_6_12}%)</option>
-          <option value="0.0">해당없음 (0.0%)</option>
+          <option value="m5_cycle" selected>60개월변동-주기형 (${sm.m5_cycle}%)</option>
+          <option value="m5_mix">60개월혼합 (${sm.m5_mix}%)</option>
+          <option value="v_6_12">6,12개월변동 (${sm.v_6_12}%)</option>
+          <option value="0">해당없음 (0.0%)</option>
         </select>
       </div>
 
@@ -342,12 +350,11 @@ function applyKbRate(id) {
   if (rate !== null && rate !== undefined) { rInput.value = String(rate); onRateInput(rInput); }
   else { rInput.value = ''; rInput.placeholder = String(_RATE[cat] ?? '4.5'); }
 
-  const sm = _C.STRESS_RATES;
-  // 스트레스 금리 자동 연동
-  if (rateType === '5년변동')  srSelect.value = String(sm.m5_cycle);
-  else if (rateType === '5년혼합')  srSelect.value = String(sm.m5_mix);
-  else if (rateType === '6_12변동') srSelect.value = String(sm.v_6_12);
-  else srSelect.value = String(sm.m5_cycle);
+  // ★ 스트레스 금리: 숫자가 아닌 식별자로 설정 — 금리 변경과 무관하게 항상 매핑됨
+  if      (rateType === '5년변동')  srSelect.value = 'm5_cycle';
+  else if (rateType === '5년혼합')  srSelect.value = 'm5_mix';
+  else if (rateType === '6_12변동') srSelect.value = 'v_6_12';
+  else                              srSelect.value = 'm5_cycle'; // 직접입력: 기본 주기형
 }
 
 function applyPolicy(id) {
@@ -375,24 +382,34 @@ function applyPolicy(id) {
     case 'officetel':
       guide.classList.add('dynamic-guide--warn'); guide.style.display = 'block';
       guide.innerHTML = `🏢 <b>오피스텔 체크포인트</b><br>· 구입 자금인 경우 <b>'주택담보'</b> 선택이 정확합니다.<br>· 보유분은 <b>8년(96개월) 상환 규정</b>이 적용됩니다.`;
-      m.value = "96"; r.placeholder = "5.5"; srSelect.value = "0.0"; break;
+      m.value = "96"; r.placeholder = "5.5"; srSelect.value = "0"; break;
     case 'cardloan':
       guide.classList.add('dynamic-guide--danger'); guide.style.display = 'block';
       guide.innerHTML = `⛔ <b>카드론 DSR 주의</b><br>· DSR 산정 시 가상 만기 <b>3년(36개월)</b> 고정 적용<br>· 실제 만기와 무관, DSR에 강한 부담을 줍니다.`;
-      m.value = "36"; r.placeholder = "14.0"; srSelect.value = "0.0"; break;
+      m.value = "36"; r.placeholder = "14.0"; srSelect.value = "0"; break;
     case 'credit':
-      m.value = "60"; r.placeholder = "6.0"; srSelect.value = "0.0"; break;
+      m.value = "60"; r.placeholder = "6.0"; srSelect.value = "0"; break;
     case 'jeonse':
-      m.value = "24"; r.placeholder = "4.2"; srSelect.value = "0.0"; break;
+      m.value = "24"; r.placeholder = "4.2"; srSelect.value = "0"; break;
     default:
       m.value = "360"; r.placeholder = "4.5";
-      srSelect.value = String(_C.STRESS_RATES.m5_cycle);
+      srSelect.value = 'm5_cycle'; // ★ 식별자로 설정
       if (isMortgage && rateType && rateType.value !== '직접입력') applyKbRate(id);
       break;
   }
 }
 
 // ─── [4] DSR 핵심 연산 엔진 ──────────────────────────────────────────────────
+
+/**
+ * 스트레스 금리 식별자 → 실제 % 값 반환
+ * ★ 핵심 함수: select value 가 식별자(m5_cycle 등)이므로 STRESS_RATES 변경 시 자동 반영
+ */
+function getStressRate(key) {
+  if (!key || key === '0') return 0;
+  return _C.STRESS_RATES[key] ?? 1.15;
+}
+
 function isPurchaseLoan(cat, n) {
   return cat === 'mortgage_level' || cat === 'mortgage_prin' ||
          (cat === 'officetel' && n >= _C.OFFICETEL_PURCHASE_MIN_MONTHS);
@@ -410,7 +427,8 @@ function calculateLogic() {
     const cat = item.querySelector('.l-category').value;
     const P   = getNum(item.querySelector('.l-p').value);
     const R   = Number(item.querySelector('.l-r').value) || getDefaultRate(cat);
-    const SR  = Number(item.querySelector('.l-sr-select')?.value || 0);
+    // ★ SR: 식별자 → 실제 값 변환 (금리 변경 자동 반영)
+    const SR  = getStressRate(item.querySelector('.l-sr-select')?.value);
     const n   = getNum(item.querySelector('.l-m').value) || 360;
     if (idx === 0) { bR = R; bSR = SR; bM = n; }
     if (P <= 0) return;
@@ -760,7 +778,7 @@ function _buildReportData() {
   items.forEach(item=>{
     const cat=item.querySelector('.l-category').value, P=getNum(item.querySelector('.l-p').value);
     const R=Number(item.querySelector('.l-r').value)||getDefaultRate(cat);
-    const SR=Number(item.querySelector('.l-sr-select')?.value||0);
+    const SR = item.querySelector('.l-sr-select')?.value || '0'; // ★ 식별자 그대로 저장
     const n=getNum(item.querySelector('.l-m').value)||360;
     const rt=item.querySelector('.l-rate-type')?.value||'직접입력';
     if(P>0) loans.push({cat,P,R,SR,n,rt});

@@ -1,4 +1,2 @@
-/* DSR 계산기 — 메인 CSS 진입점
-   reset + layout + components + theme 전부 style.css 한 파일로 통합
-   schedule_theme.css 별도 파일 불필요 (style.css에 완전 포함) */
+/* DSR 계산기 — CSS 진입점 (KB 국민은행 테마 통합) */
 @import "./style.css";
