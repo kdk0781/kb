@@ -1,5 +1,5 @@
 /* ======================================================
-   KB 금리표 · sw.js  v0781_2
+   KB 금리표 · sw.js  v0781_3
    
    ⚠️ 이 파일은 반드시 navigator.serviceWorker.register()로만 등록할 것
       <script src="sw.js"> 로 로드하면 self.skipWaiting() 에서 TypeError 크래시 발생
@@ -7,7 +7,7 @@
 
 // ── 버전 문자열: 배포 시 수동으로 올릴 것
 //    Date.now() 사용 금지 — SW가 설치될 때마다 새 캐시 생성 → 용량 무한 증가 버그
-const VERSION    = '0781_2';
+const VERSION    = '0781_3';
 const CACHE_NAME = VERSION;
 
 // 캐싱할 정적 파일 목록
