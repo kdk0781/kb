@@ -15,7 +15,7 @@ const r = {
         primeOff:0.90
     },
     stress: {
-        m5_cycle: 1.25,
+        m5_cycle: 1.15,
         m5_mix:   1.50,
         v_6_12:   2.87
     },
