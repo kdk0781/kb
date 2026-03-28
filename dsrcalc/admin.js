@@ -2,7 +2,7 @@
 const DEFAULT_CONFIG = {
   id: 'admin',
   pw: 'admin1234',
-  mainUrl: './index.html' // 절대경로에서 상대경로로 유지
+  mainUrl: 'index.html' // 절대경로에서 상대경로로 유지
 };
 
 function getAdminConfig() {
