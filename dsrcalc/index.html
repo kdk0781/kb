@@ -12,25 +12,153 @@
   <meta name="application-name" content="DSR계산기">
   <meta name="description" content="KB DSR 계산기 — 스트레스금리 반영 DSR 진단 및 대출 한도 분석">
 
-  <!-- 파비콘 (../ico/파일명.png 으로 변경) -->
   <link rel="apple-touch-icon" sizes="180x180" href="../ico/dsrcalc.png">
   <link rel="icon" type="image/png" href="../ico/dsrcalc.png">
   <link rel="shortcut icon" href="../ico/dsrcalc.png">
   <link rel="manifest" href="dsr.json">
-  <link rel="stylesheet" href="style.css" media="all">
+  <link rel="stylesheet" href="common.css" media="all">
 
   <title>DSR 계산기</title>
 </head>
 
 <body>
 
-  <!-- 공지 팝업 -->
+  <!-- ── 로딩 오버레이 (하드 새로고침 시 표시) ────────────────────────────── -->
+  <div id="loadingOverlay" class="loading-overlay" style="display:none;" aria-live="polite" role="status">
+    <div class="loading-spinner-wrap">
+      <div class="loading-emoji">📊</div>
+    </div>
+    <div class="loading-text">
+      로딩 중
+      <span class="loading-dots">
+        <span>.</span><span>.</span><span>.</span>
+        <span>.</span><span>.</span><span>.</span>
+      </span>
+    </div>
+    <div class="loading-sub">KB 금리 정보를 불러오는 중입니다<br>잠시만 기다려 주세요</div>
+  </div>
+
+  <!-- ── 사용 가이드 모달 ──────────────────────────────────────────────────── -->
+  <div id="guideModal" class="guide-overlay" style="display:none;" onclick="closeGuideOnBackdrop(event)">
+    <div class="guide-box">
+      <div class="guide-header">
+        <div class="guide-header-title">📖 DSR 계산기 사용 가이드</div>
+        <button class="guide-close-btn" onclick="closeGuide()" aria-label="닫기">×</button>
+      </div>
+
+      <div class="guide-body">
+
+        <!-- STEP 1 -->
+        <div class="guide-step">
+          <div class="guide-step-num">1</div>
+          <div class="guide-step-content">
+            <div class="guide-step-title">연간 세전 소득 입력</div>
+            <div class="guide-step-desc">
+              근로소득, 사업소득 등 <b>세전(공제 전) 연간 소득</b>을 입력합니다.<br>
+              건강보험료 납부 확인서 또는 근로소득 원천징수영수증을 참고하세요.
+              <br><span class="guide-tip">💡 최소 100만 원 이상 입력해야 계산됩니다</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 2 -->
+        <div class="guide-step">
+          <div class="guide-step-num">2</div>
+          <div class="guide-step-content">
+            <div class="guide-step-title">대출 종류 선택</div>
+            <div class="guide-step-desc">
+              보유 또는 신청 예정인 대출 종류를 선택합니다.<br>
+              · <b>주택담보 (원리금)</b> — 매월 원금+이자를 함께 상환<br>
+              · <b>주택담보 (원금)</b> — 원금균등 상환 방식<br>
+              · <b>전세대출 (만기)</b> — 만기 일시 상환, <b>이자만 DSR 산정</b><br>
+              · <b>오피스텔</b> — 구입자금이면 '주택담보'로 설정 권장<br>
+              · <b>신용대출</b> — 가상 5년 만기로 DSR 산정<br>
+              · <b>카드론</b> — 가상 3년 만기 고정 (DSR 부담 큼)
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 3 -->
+        <div class="guide-step">
+          <div class="guide-step-num">3</div>
+          <div class="guide-step-content">
+            <div class="guide-step-title">금리 유형 선택 (주택담보만 해당)</div>
+            <div class="guide-step-desc">
+              주택담보대출 선택 시 <b>금리 유형(담보)</b>에서 자동 금리 적용이 가능합니다.<br>
+              · <b>5년변동 / 5년혼합</b> — 5년 주기 변동 (스트레스 금리 다름)<br>
+              · <b>6,12개월변동</b> — 코픽스 연동 단기 변동형<br>
+              · <b>직접 입력</b> — 금융기관에서 받은 실제 금리를 직접 입력<br>
+              <span class="guide-tip">💡 금리 유형 선택 시 스트레스 금리가 자동 연동됩니다</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 4 -->
+        <div class="guide-step">
+          <div class="guide-step-num">4</div>
+          <div class="guide-step-content">
+            <div class="guide-step-title">원금/잔액 및 기간 입력</div>
+            <div class="guide-step-desc">
+              · <b>원금/잔액</b> — 신청 예정 대출금 또는 현재 남은 잔액<br>
+              · <b>기간(개월)</b> — 대출 상환 기간 (예: 30년 → 360개월)<br>
+              · 스트레스 금리는 상품 유형에 따라 자동 설정되며 수동 변경도 가능합니다.
+              <br><span class="guide-tip">💡 부채 항목 추가 버튼으로 여러 부채를 함께 분석할 수 있습니다</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 5 -->
+        <div class="guide-step">
+          <div class="guide-step-num">5</div>
+          <div class="guide-step-content">
+            <div class="guide-step-title">DSR 분석 및 한도 확인</div>
+            <div class="guide-step-desc">
+              모든 정보를 입력한 뒤 <b>DSR 분석 및 한도 확인</b> 버튼을 누르면<br>
+              · 종합 DSR 지수 (규제선 40% 기준)<br>
+              · 원금균등 / 원리금균등 방식별 최대 대출 한도<br>
+              · 현재 추가 가능한 대출 여력<br>
+              을 확인할 수 있습니다.
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 6 -->
+        <div class="guide-step">
+          <div class="guide-step-num">6</div>
+          <div class="guide-step-content">
+            <div class="guide-step-title">상환 스케줄 확인 및 리포트 공유</div>
+            <div class="guide-step-desc">
+              · <b>전체 상환 스케줄</b> — 회차별 원금·이자·합계를 N년차 누적 요약과 함께 확인<br>
+              · <b>DSR 진단 리포트 복사</b> — 임시 링크(7일 유효)를 생성하여 공유<br>
+              <span class="guide-tip">💡 리포트 링크는 읽기 전용 페이지로 제3자와 공유 가능합니다</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="guide-divider"></div>
+
+        <!-- 주의사항 -->
+        <div class="guide-warn-box">
+          ⚠️ <b>주의</b> — 본 계산기는 참고용 예상 수치입니다.<br>
+          실제 DSR 산정은 금융기관의 심사 기준에 따라 달라질 수 있으며,<br>
+          대출 실행 전 반드시 담당 금융기관에 확인하시기 바랍니다.
+        </div>
+
+      </div><!-- /guide-body -->
+
+      <div class="guide-footer">
+        <button class="guide-start-btn" onclick="closeGuide()">✅ 확인했습니다 — 시작하기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 공지 팝업 ─────────────────────────────────────────────────────────── -->
   <div id="noticePopup" class="notice-overlay" style="display:none;">
     <div class="notice-box">
       <div class="notice-header">📢 업데이트 안내</div>
       <div class="notice-body">
-        <span class="main-text">KB 금리 자동 연동 · 금리유형 UI 개선</span>
-        <span class="sub-text">KB 금리가 자동으로 불러와집니다. 담보대출 금리유형을 선택하면 금리가 자동 적용됩니다.</span>
+        <span class="main-text">KB 금리 자동 연동 · 사용 가이드 추가</span>
+        <span class="sub-text">담보대출 금리가 자동 적용되며, 상단 가이드 버튼에서 사용법을 확인할 수 있습니다.</span>
       </div>
       <div class="notice-footer">
         <button onclick="closeNoticeForever()">다시 보지 않기</button>
@@ -39,10 +167,18 @@
     </div>
   </div>
 
+  <!-- ── 메인 컨테이너 ─────────────────────────────────────────────────────── -->
   <div class="container">
 
+    <!-- 헤더 -->
     <div class="header">
-      <h2>📊 DSR 계산기</h2>
+      <div class="header-inner">
+        <h2>📊 DSR 계산기</h2>
+        <button class="btn-guide" onclick="openGuide()" aria-label="사용 가이드 열기">
+          <span class="btn-guide-icon">❓</span>
+          <span class="btn-guide-text">사용 가이드</span>
+        </button>
+      </div>
     </div>
 
     <!-- 1. 연소득 -->
@@ -62,13 +198,11 @@
     <!-- 결과 영역 -->
     <div id="resultArea" class="result-box" style="display:none;">
 
-      <!-- 추천 박스 -->
       <div class="recommendation-box">
         <h4 class="rec-box-title">🎯 KB 전문 DSR 진단</h4>
         <p id="recDesc" class="rec-box-desc">분석 데이터 대기 중...</p>
       </div>
 
-      <!-- DSR 게이지 -->
       <div class="dsr-result-header">
         <label>종합 DSR 지수 (스트레스 반영)</label>
         <div id="dsrVal" class="dsr-main-val">0%</div>
@@ -79,7 +213,6 @@
         </div>
       </div>
 
-      <!-- 방식별 최대 한도 -->
       <div class="section-title">방식별 최대 한도 분석</div>
       <div class="max-grid">
         <div class="max-item" id="prinCard">
@@ -94,12 +227,10 @@
         </div>
       </div>
 
-      <!-- 스케줄 토글 버튼 -->
       <button id="btnShowSchedule" class="btn-more-schedule" onclick="toggleSchedule()">
         📊 전체 상환 스케줄 상세 보기
       </button>
 
-      <!-- 상환 스케줄 -->
       <div id="scheduleSection" class="schedule-section-hidden">
         <div class="section-title">📅 회차별 상세 상환 스케줄</div>
         <div class="schedule-wrapper">
@@ -109,35 +240,28 @@
           </div>
           <div class="schedule-container">
             <div class="schedule-header">
-              <div>회차</div>
-              <div>원금</div>
-              <div>이자</div>
-              <div>합계</div>
+              <div>회차</div><div>원금</div><div>이자</div><div>합계</div>
             </div>
             <div id="scheduleList" class="schedule-list"></div>
           </div>
         </div>
       </div>
 
-      <!-- 추가 가능 대출액 -->
       <div class="limit-card">
         <label class="limit-label-blue">현재 추가 가능 대출액</label>
         <div id="remainingLimit" class="limit-val">0원</div>
         <span class="limit-info-text">* 원금균등 방식 · 주담대 30년 기준 자동 산출</span>
       </div>
 
-      <!-- 면책 고지 -->
       <div class="result-disclaimer">
         ⚠️ 본 결과는 입력값 기준 예상 수치이며, 실제 심사 결과와 상이할 수 있습니다.
         금융 의사결정 전 반드시 담당 금융기관에 확인하시기 바랍니다.
       </div>
 
-      <!-- 리포트 복사 -->
       <button id="btnCopyReport" class="btn-copy" onclick="copyResultText()">
         📋 DSR 진단 리포트 복사
       </button>
 
-      <!-- 위키 가이드 -->
       <div class="section-title">부동산 위키 부채 산정 가이드</div>
       <div class="wiki-table-wrapper">
         <table class="wiki-table">
@@ -155,8 +279,8 @@
     </div><!-- /resultArea -->
   </div><!-- /container -->
 
-  <!-- FAB -->
-  <div class="refresh-btn" onclick="location.reload();" title="새로고침">↻</div>
+  <!-- FAB 새로고침 (하드 새로고침) -->
+  <div class="refresh-btn" onclick="hardRefresh()" title="금리 새로고침 (캐시 초기화)">↻</div>
 
   <!-- 커스텀 모달 -->
   <div id="customModal" class="modal-overlay" style="display:none;">
@@ -167,8 +291,72 @@
     </div>
   </div>
 
-  <!-- kb_rates.js 를 먼저 로드 → common.js 에서 applyKBRatesToConfig() 호출 -->
-  <script src="kb_rates.js?v=2026.05-B"></script>
-  <script src="common.js?v=2026.05-B"></script>
+  <script src="kb_rates.js?v=2026.05-C"></script>
+  <script src="common.js?v=2026.05-C"></script>
+  <script>
+    /* ── 사용 가이드 모달 ──────────────────────────────────────────────── */
+    function openGuide() {
+      document.getElementById('guideModal').style.display = 'flex';
+      // body 스크롤 방지
+      document.body.style.overflow = 'hidden';
+    }
+    function closeGuide() {
+      document.getElementById('guideModal').style.display = 'none';
+      document.body.style.overflow = '';
+    }
+    function closeGuideOnBackdrop(e) {
+      if (e.target === document.getElementById('guideModal')) closeGuide();
+    }
+    // ESC 키로 가이드 닫기
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeGuide();
+    });
+
+    /* ── 하드 새로고침 (캐시 초기화 포함) ─────────────────────────────── */
+    async function hardRefresh() {
+      const overlay = document.getElementById('loadingOverlay');
+      overlay.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+
+      try {
+        // ① localStorage KB 금리 캐시 삭제
+        localStorage.removeItem('kb_rates_v2');
+
+        // ② Service Worker / Cache API 캐시 삭제 (가능한 경우)
+        if ('caches' in window) {
+          const cacheNames = await caches.keys();
+          await Promise.all(cacheNames.map(name => caches.delete(name)));
+        }
+
+        // ③ 현재 페이지 리소스(CSS, JS)의 캐시를 무효화하여 재fetch
+        if ('serviceWorker' in navigator) {
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          await Promise.all(registrations.map(r => r.unregister()));
+        }
+
+        // ④ 잠시 대기 후 cache-busting 쿼리 파라미터로 강제 이동
+        await new Promise(r => setTimeout(r, 800));
+        const ts = Date.now();
+        const url = new URL(window.location.href);
+        url.searchParams.set('_r', ts);
+        // history.replaceState 후 fetch를 통한 no-cache 리로드
+        window.location.replace(url.toString());
+
+      } catch (e) {
+        console.warn('[hardRefresh] 일부 캐시 삭제 실패:', e);
+        await new Promise(r => setTimeout(r, 600));
+        window.location.reload();
+      }
+    }
+
+    /* ── URL에 _r 파라미터가 있으면 정리 ──────────────────────────────── */
+    (function() {
+      const url = new URL(window.location.href);
+      if (url.searchParams.has('_r')) {
+        url.searchParams.delete('_r');
+        history.replaceState(null, '', url.pathname + (url.search !== '?' ? url.search : ''));
+      }
+    })();
+  </script>
 </body>
 </html>
