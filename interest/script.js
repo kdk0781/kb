@@ -1,140 +1,155 @@
-
-/* ======================================================
-1. 데이터 설정
-====================================================== */
+/
+* ======================================================
+   1. 데이터 설정
+   ====================================================== */
 const r = {
-base: { mor5: 4.06, mor2: 3.68, ncofix: 2.82, scofix: 2.47,
+    base: { mor5: 4.06, mor2: 3.68, ncofix: 2.82, scofix: 2.47,
 			primeOn: 1.10, primeOff: 0.90 },
-stress: { m5_cycle: 1.15, m5_mix: 1.50, v_6_12: 2.87 },
-add: {
-mort: { m5: 2.18, n6: 2.73, n12: 2.69, s6: 3.07, s12: 3.20 },
-hf: { m2: 2.20, n6: 2.43, n12: 2.54, s6: 2.68, s12: 3.07 },
-hug: { m2: 2.26, n6: 2.46, n12: 2.44, s6: 2.71, s12: 2.97 },
-sgi: { m2: 2.56, n6: 2.55, n12: 2.67, s6: 3.00, s12: 3.13 }
-}
+    stress: { m5_cycle: 1.15, m5_mix: 1.50, v_6_12: 2.87 },
+    add: {
+        mort: { m5: 2.18, n6: 2.73, n12: 2.69, s6: 3.07, s12: 3.20 },
+        hf:   { m2: 2.20, n6: 2.43, n12: 2.54, s6: 2.68, s12: 3.07 },
+        hug:  { m2: 2.26, n6: 2.46, n12: 2.44, s6: 2.71, s12: 2.97 },
+        sgi:  { m2: 2.56, n6: 2.55, n12: 2.67, s6: 3.00, s12: 3.13 }
+    }
 };
-const calc = (b, a, p) => parseFloat((b + a - p).toFixed(2));
-/* ======================================================
-2. 상단 서머리 렌더링 (스트레스 수치 + 신잔액 통합 고도화)
-====================================================== */
-function renderSummary() {
-const ga = r.add.mort;
-// 변동형(신규/신잔액 6,12M) 4개 조합 중 최저 실행 금리 산출
-const varRates = [
-calc(r.base.ncofix, ga.n6, r.base.primeOn), // 신규 6M
-calc(r.base.ncofix, ga.n12, r.base.primeOn), // 신규 12M
-calc(r.base.scofix, ga.s6, r.base.primeOn), // 신잔액 6M
-calc(r.base.scofix, ga.s12, r.base.primeOn) // 신잔액 12M
-];
-const minVarRate = Math.min(...varRates);
-const items = [
-// [1. 시장 지표 기준금리]
-{l:'금융채5Y', v:r.base.mor5}, 
-{l:'신규COFIX', v:r.base.ncofix},
-{l:'신잔액', v:r.base.scofix},
-// [2. 스트레스 가산금리 규제 수치 - 노란색 테마]
-{l:'ST가산(5Y주기)', v:r.stress.m5_cycle, stBase: true}, 
-{l:'ST가산(5Y혼합)', v:r.stress.m5_mix, stBase: true}, 
-{l:'ST가산(변동형)', v: r.stress.v_6_12, stBase: true},
-// [3. 스트레스 최종 실행 금리 - 빨간색 테마]
-{l:'ST 주기형(5Y)', v: calc(r.base.mor5, ga.m5 + r.stress.m5_cycle, r.base.primeOn), s: true},
-{l:'ST 혼합형(5Y)', v: calc(r.base.mor5, ga.m5 + r.stress.m5_mix, r.base.primeOn), s: true},
-{l:'ST 변동형(최저)', v: parseFloat((minVarRate + r.stress.v_6_12).toFixed(2)), s: true}
-];
-document.getElementById('top-summary').innerHTML = items.map(i => {
-let typeClass = '';
-if (i.s) typeClass = 'stress-item';
-else if (i.stBase) typeClass = 'st-base-item';
-// 가산금리(stBase)는 %p 단위로 표시하여 구분
-const unit = i.stBase ? '%p' : '%';
-return `<div class="summary-item ${typeClass}">${i.l}<span>${i.v.toFixed(2)}${unit}</span></div>`;
-}).join('');
-}
-function renderContent() {
-const groups = [
-{ title: "주택담보대출", desc: "부동산 담보 대출 금리 리포트 <br/> <b style='color:var(--red);'>접속시 이전 금리가 표시되는 경우 브라우저 캐시삭제</b>", id: 'mort' },
-{ title: "전세 (HF 주택금융공사)", desc: "공사 보증 전세자금대출 <br/> 접수 가능 기간 : 잔금일 기준(포함) 50일 전부터 <br/> <b style='color:var(--red);'>접속시 이전 금리가 표시되는 경우 브라우저 캐시삭제</b>", id: 'hf' },
-{ title: "전세 (HUG 주택도시보증)", desc: "안심전세 보증금 반환보증 <br/> 접수 가능 기간 : 잔금일 기준(포함) 30일 전부터 <br/><b style='color:var(--red);'>접속시 이전 금리가 표시되는 경우 브라우저 캐시삭제</b>", id: 'hug' },
-{ title: "전세 (SGI 서울보증보험)", desc: "고액 전세자금 SGI 보증 <br/> 접수 가능 기간 : 잔금일 기준(포함) 45일 전부터 <br/><b style='color:var(--red);'>접속시 이전 금리가 표시되는 경우 브라우저 캐시삭제</b>", id: 'sgi' }
-];
-let finalHtml = "";
-groups.forEach(g => {
-const ga = r.add[g.id];
-const items = [
-{ n: (g.id === 'mort' ? "금융채 5년 (혼합)" : "금융채 2년 (고정)"), c: (g.id === 'mort' ? "5년 고정" : "2년 고정"), b: (g.id === 'mort' ? r.base.mor5 : r.base.mor2), a: ga.m2 || ga.m5 },
-...(g.id === 'mort' ? [{ n: "금융채 5년 (변동)", c: "5년 변동", b: r.base.mor5, a: ga.m5 }] : []),
-{ n: "신규 코픽스 6개월", c: "6개월 변동", b: r.base.ncofix, a: ga.n6 },
-{ n: "신규 코픽스 12개월", c: "12개월 변동", b: r.base.ncofix, a: ga.n12 },
-{ n: "신잔액 코픽스 6개월", c: "6개월 변동", b: r.base.scofix, a: ga.s6 },
-{ n: "신잔액 코픽스 12개월", c: "12개월 변동", b: r.base.scofix, a: ga.s12 }
-].filter(i => !i.hide);
-const minVal = Math.min(...items.map(i => calc(i.b, i.a, r.base.primeOn)));
-let groupHtml = `<section class="group-wrapper"><div class="section-header"><h3>${g.title}</h3><p>${g.desc}</p></div><div class="card-list">`;
-items.forEach(i => {
-const onVal = calc(i.b, i.a, r.base.primeOn);
-const isBest = onVal === minVal;
-groupHtml += `
-<article class="rate-card ${isBest ? 'best-rate' : ''}">
-<div class="best-label">BEST</div>
-<div class="card-top">
-<span class="product-name">${i.n}</span>
-<span class="cycle-tag">${i.c}</span>
-</div>
-<div class="price-grid">
-<div class="price-box ${isBest ? 'target' : ''}">
-<span class="label">전자계약 O</span>
-<span class="value">${onVal.toFixed(2)}%</span>
-<span class="formula">${i.b}+${i.a}-1.1</span>
-</div>
-<div class="price-box">
-<span class="label">전자계약 X</span>
-<span class="value">${calc(i.b, i.a, r.base.primeOff).toFixed(2)}%</span>
-<span class="formula">${i.b}+${i.a}-0.9</span>
-</div>
-</div>
-</article>`;
-});
-groupHtml += `</div></section>`;
-finalHtml += groupHtml;
-});
-document.getElementById('main-content').innerHTML = finalHtml;
-}
-function startClock() {
-const clockEl = document.getElementById('clock');
-if (!clockEl) return;
-const tick = () => {
-const n = new Date();
-clockEl.innerText = `${n.getFullYear()}/${String(n.getMonth() + 1).padStart(2, '0')}/${String(n.getDate()).padStart(2, '0')} ${String(n.getHours()).padStart(2, '0')}:${String(n.getMinutes()).padStart(2, '0')}:${String(n.getSeconds()).padStart(2, '0')}`;
-};
-tick();
-setInterval(tick, 1000);
-}
-/* ======================================================
-4. 강력 새로고침 고도화 (로딩 애니메이션 통합 버전)
-====================================================== */
-async function refreshData() {
-const fab = document.getElementById('fab-refresh');
-const loading = document.getElementById('loading-overlay');
-// [단계 0] 로딩 화면 표시 및 버튼 회전
-if (loading) loading.style.display = 'flex';
-if (fab) {
-fab.style.transition = "transform 0.8s ease-in-out";
-fab.style.transform = "rotate(720deg)";
 
-    // [단계 1] 서비스 워커 업데이트 강제 실행
+const calc = (b, a, p) => parseFloat((b + a - p).toFixed(2));
+
+/* ======================================================
+   2. 상단 서머리 렌더링 (스트레스 수치 + 신잔액 통합 고도화)
+   ====================================================== */
+function renderSummary() {
+    const ga = r.add.mort;
+
+    // 변동형(신규/신잔액 6,12M) 4개 조합 중 최저 실행 금리 산출
+    const varRates = [
+        calc(r.base.ncofix, ga.n6, r.base.primeOn),  // 신규 6M
+        calc(r.base.ncofix, ga.n12, r.base.primeOn), // 신규 12M
+        calc(r.base.scofix, ga.s6, r.base.primeOn),  // 신잔액 6M
+        calc(r.base.scofix, ga.s12, r.base.primeOn)  // 신잔액 12M
+    ];
+    const minVarRate = Math.min(...varRates);
+
+    const items = [
+        // [1. 시장 지표 기준금리]
+        {l:'금융채5Y', v:r.base.mor5}, 
+        {l:'신규COFIX', v:r.base.ncofix},
+        {l:'신잔액', v:r.base.scofix},
+
+        // [2. 스트레스 가산금리 규제 수치 - 노란색 테마]
+        {l:'ST가산(5Y주기)', v:r.stress.m5_cycle, stBase: true}, 
+        {l:'ST가산(5Y혼합)', v:r.stress.m5_mix, stBase: true}, 
+        {l:'ST가산(변동형)', v: r.stress.v_6_12, stBase: true},
+
+        // [3. 스트레스 최종 실행 금리 - 빨간색 테마]
+        {l:'ST 주기형(5Y)', v: calc(r.base.mor5, ga.m5 + r.stress.m5_cycle, r.base.primeOn), s: true},
+        {l:'ST 혼합형(5Y)', v: calc(r.base.mor5, ga.m5 + r.stress.m5_mix, r.base.primeOn), s: true},
+        {l:'ST 변동형(최저)', v: parseFloat((minVarRate + r.stress.v_6_12).toFixed(2)), s: true}
+    ];
+
+    document.getElementById('top-summary').innerHTML = items.map(i => {
+        let typeClass = '';
+        if (i.s) typeClass = 'stress-item';
+        else if (i.stBase) typeClass = 'st-base-item';
+
+        // 가산금리(stBase)는 %p 단위로 표시하여 구분
+        const unit = i.stBase ? '%p' : '%';
+        return `<div class="summary-item ${typeClass}">${i.l}<span>${i.v.toFixed(2)}${unit}</span></div>`;
+    }).join('');
+}
+
+function renderContent() {
+    const groups = [
+        { title: "주택담보대출", desc: "부동산 담보 대출 금리 리포트 <br/> <b style='color:var(--red);'>접속시 이전 금리가 표시되는 경우 브라우저 캐시삭제</b>", id: 'mort' },
+        { title: "전세 (HF 주택금융공사)", desc: "공사 보증 전세자금대출 <br/> 접수 가능 기간 : 잔금일 기준(포함) 50일 전부터 <br/> <b style='color:var(--red);'>접속시 이전 금리가 표시되는 경우 브라우저 캐시삭제</b>", id: 'hf' },
+        { title: "전세 (HUG 주택도시보증)", desc: "안심전세 보증금 반환보증 <br/> 접수 가능 기간 : 잔금일 기준(포함) 30일 전부터 <br/><b style='color:var(--red);'>접속시 이전 금리가 표시되는 경우 브라우저 캐시삭제</b>", id: 'hug' },
+        { title: "전세 (SGI 서울보증보험)", desc: "고액 전세자금 SGI 보증 <br/> 접수 가능 기간 : 잔금일 기준(포함) 45일 전부터 <br/><b style='color:var(--red);'>접속시 이전 금리가 표시되는 경우 브라우저 캐시삭제</b>", id: 'sgi' }
+    ];
+
+    let finalHtml = "";
+    groups.forEach(g => {
+        const ga = r.add[g.id];
+        const items = [
+            { n: (g.id === 'mort' ? "금융채 5년 (혼합)" : "금융채 2년 (고정)"), c: (g.id === 'mort' ? "5년 고정" : "2년 고정"), b: (g.id === 'mort' ? r.base.mor5 : r.base.mor2), a: ga.m2 || ga.m5 },
+            ...(g.id === 'mort' ? [{ n: "금융채 5년 (변동)", c: "5년 변동", b: r.base.mor5, a: ga.m5 }] : []),
+            { n: "신규 코픽스 6개월", c: "6개월 변동", b: r.base.ncofix, a: ga.n6 },
+            { n: "신규 코픽스 12개월", c: "12개월 변동", b: r.base.ncofix, a: ga.n12 },
+            { n: "신잔액 코픽스 6개월", c: "6개월 변동", b: r.base.scofix, a: ga.s6 },
+            { n: "신잔액 코픽스 12개월", c: "12개월 변동", b: r.base.scofix, a: ga.s12 }
+        ].filter(i => !i.hide);
+
+        const minVal = Math.min(...items.map(i => calc(i.b, i.a, r.base.primeOn)));
+        let groupHtml = `<section class="group-wrapper"><div class="section-header"><h3>${g.title}</h3><p>${g.desc}</p></div><div class="card-list">`;
+        items.forEach(i => {
+            const onVal = calc(i.b, i.a, r.base.primeOn);
+            const isBest = onVal === minVal;
+            groupHtml += `
+                <article class="rate-card ${isBest ? 'best-rate' : ''}">
+                    <div class="best-label">BEST</div>
+                    <div class="card-top">
+                        <span class="product-name">${i.n}</span>
+                        <span class="cycle-tag">${i.c}</span>
+                    </div>
+                    <div class="price-grid">
+                        <div class="price-box ${isBest ? 'target' : ''}">
+                            <span class="label">전자계약 O</span>
+                            <span class="value">${onVal.toFixed(2)}%</span>
+                            <span class="formula">${i.b}+${i.a}-1.1</span>
+                        </div>
+                        <div class="price-box">
+                            <span class="label">전자계약 X</span>
+                            <span class="value">${calc(i.b, i.a, r.base.primeOff).toFixed(2)}%</span>
+                            <span class="formula">${i.b}+${i.a}-0.9</span>
+                        </div>
+                    </div>
+                </article>`;
+        });
+        groupHtml += `</div></section>`;
+        finalHtml += groupHtml;
+    });
+    document.getElementById('main-content').innerHTML = finalHtml;
+}
+
+function startClock() {
+    const clockEl = document.getElementById('clock');
+    if (!clockEl) return;
+    const tick = () => {
+        const n = new Date();
+        clockEl.innerText = `${n.getFullYear()}/${String(n.getMonth() + 1).padStart(2, '0')}/${String(n.getDate()).padStart(2, '0')} ${String(n.getHours()).padStart(2, '0')}:${String(n.getMinutes()).padStart(2, '0')}:${String(n.getSeconds()).padStart(2, '0')}`;
+    };
+    tick();
+    setInterval(tick, 1000);
+}
+
+
+ /* ======================================================
+   4. 강력 새로고침 고도화 (로딩 애니메이션 통합 버전)
+   ====================================================== */
+async function refreshData() {
+    const fab = document.getElementById('fab-refresh');
+    const loading = document.getElementById('loading-overlay');
+    
+    // [단계 0] 로딩 화면 표시 및 버튼 회전
+    if (loading) loading.style.display = 'flex';
+    if (fab) {
+        fab.style.transition = "transform 0.8s ease-in-out";
+        fab.style.transform = "rotate(720deg)";
+}
+  // [단계 1] 서비스 워커 업데이트 강제 실행
     if ('serviceWorker' in navigator) {
         try {
             const regs = await navigator.serviceWorker.getRegistrations();
             for (let r of regs) await r.update();
         } catch (e) { console.error('SW Update Error:', e); }
-
-// [단계 2] 모든 브라우저 캐시 스토리지 삭제
+}
+ // [단계 2] 모든 브라우저 캐시 스토리지 삭제
     if ('caches' in window) {
         try {
             const names = await caches.keys();
             await Promise.all(names.map(n => caches.delete(n)));
         } catch (e) { console.error('Cache Clear Error:', e); }
-
+}
 // [단계 3] 1.5초간 로딩 애니메이션을 보여준 뒤 강제 리로드
     setTimeout(() => {
         const url = window.location.origin + window.location.pathname;
@@ -257,8 +272,3 @@ window.onload = () => {
     // [추가] 공지사항 팝업 여부 확인
     showNotice();
 };
-
-
-
-
-
