@@ -1,5 +1,5 @@
 /* =============================================================================
-   KB 금리 로더 — dsrcalc/kb_rates.js  VER 2026.03.28.18.39 ver
+   KB 금리 로더 — dsrcalc/kb_rates.js  VER 2026.05-D
    ─────────────────────────────────────────────────────────────────────────────
    📋 동작 방식
    ・ https://kdk0781.github.io/kb/interest/script.js 에서 r 객체를 파싱합니다.
@@ -28,7 +28,7 @@ const FALLBACK_RATES = {
 // ── 소스 설정 ─────────────────────────────────────────────────────────────────
 const _KB_SCRIPT_URL = 'https://kdk0781.github.io/kb/interest/script.js';
 const _KB_PROXY_URL  = 'https://api.allorigins.win/raw?url=';
-const _KB_CACHE_KEY  = 'kb_rates_v2026.03.28.18.39';       // 버전 변경 시 캐시 자동 무효화  ver -v뒤에서 변경
+const _KB_CACHE_KEY  = 'kb_rates_v3';       // 버전 변경 시 캐시 자동 무효화
 const _KB_CACHE_MS   = 30 * 60 * 1000;      // 30분 캐시 (금리 변동 대응)
 
 let _ratesMem    = null;
