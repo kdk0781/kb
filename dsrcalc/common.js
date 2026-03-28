@@ -1,10 +1,12 @@
-// ─── [0] 접속 초기 설정 (common.js 최상단 추가) ─────────────────────
+// ─── [0] 접속 초기 설정 (주소창 세탁) ─────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-  // 1. 주소창 세탁: index.html 이나 지저분한 꼬리표들을 싹 지우고 깔끔한 폴더 주소만 노출시킴
+  // 주소창 세탁: index.html이나 꼬리표들을 싹 지우고 깔끔한 폴더 주소만 노출시킴
   if (window.location.href.includes('index.html')) {
       const cleanUrl = window.location.href.split('index.html')[0];
       window.history.replaceState(null, '', cleanUrl);
   }
+});
+// ────────────────────────────────────────────────────────
 
   // 2. 관리자 UI 랜더링 차단 로직 (1회성 접속이나 고객용 앱 접속 시)
   const urlParams = new URLSearchParams(window.location.search);
@@ -867,22 +869,28 @@ function _fc(text){
 
 // ─── [9] 관리자 기능 (common.js 하단 추가) ───────────────────────────────
 
+// ─── [9] 관리자 기능 ───────────────────────────────
 function checkAdminAuth() {
+  // ★ 핵심 고도화: 고객 모드 락이 걸려있다면, 관리자 티켓이 있어도 무조건 UI 차단!
+  if (localStorage.getItem('kb_guest_mode') === 'true') {
+    return;
+  }
+
   const sessionStr = localStorage.getItem('kb_admin_session');
   if (!sessionStr) return;
-
   try {
     const session = JSON.parse(sessionStr);
     if (session.isAuth && Date.now() < session.expires) {
-      // 관리자 세션이 유효하면 전용 UI 노출
       const adminUI = document.getElementById('adminShareContainer');
       if (adminUI) adminUI.style.display = 'block';
-    } else {
-      // 만료 시 세션 삭제
-      localStorage.removeItem('kb_admin_session');
+    } else { 
+      localStorage.removeItem('kb_admin_session'); 
     }
   } catch(e) {}
 }
+
+// 스크립트 로드 완료 시 관리자 권한 체크 실행
+document.addEventListener('DOMContentLoaded', checkAdminAuth);
 
 async function generateAdminShareLink() {
   const btn = document.getElementById('btnAdminShare');
