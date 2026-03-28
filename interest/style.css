@@ -1,5 +1,5 @@
   /* ======================================================
-   KB 금리표 · style.css  v0781_5
+   KB 금리표 · style.css  v0781_5 c
    iOS Safari 전면 호환 (flex gap → margin 전환, -webkit- prefix 완비)
    ====================================================== */
 
@@ -74,17 +74,15 @@ body {
 /* 화면 최상단 고정 헤더 또는 래퍼 컨테이너에 적용 */
 .header { /* 또는 .top-summary, .app-container 등 최상단 클래스 */
     /* 기존 여백이 15px 였다면, 15px + 기기별 노치 높이만큼 자동으로 밀어냅니다 */
-    padding-top: calc(15px + env(safe-area-inset-top)) !important;
-    
+	 padding-top: env(safe-area-inset-top) !important;
+	 box-sizing: border-box !important;    
     /* 가로 모드 시 양옆 노치 겹침 방지 (필요 시 추가) */
     padding-left: calc(16px + env(safe-area-inset-left));
     padding-right: calc(16px + env(safe-area-inset-right));
+	height: auto !important;
+    min-height: calc(50px + env(safe-area-inset-top));
 }
 
-/* 만약 최상단을 감싸는 래퍼(.app-container)가 있다면 거기도 찔러줍니다 */
-.app-container {
-    padding-top: env(safe-area-inset-top);
-}
 
 /* ======================================================
    3. 상단 고정 헤더
@@ -234,9 +232,6 @@ body {
     max-width: var(--max-w);
     margin-left: auto;
     margin-right: auto;
-	padding-top: calc(10px + env(safe-area-inset-top));
-	min-height: calc(var(--summary-h) + env(safe-area-inset-top));
-	padding-bottom: 10px;
 }
 .summary-bar::-webkit-scrollbar { display: none; }
 
