@@ -1,103 +1,76 @@
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="
-width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#121212"
-<meta name="
-apple-mobile-web-app-capable" content="yes">
-<meta name="
-apple-mobile-web-app-status-bar-style" content
-="black-translucent">
-<meta name="apple-mobile-web-app-title"
-E">
-content="KB
-<title>kB 담보,전세 금리</title>
-<link rel="stylesheet" as="style"
-crossorigin href="https://cdn.jsdelivr.net/gh
-/orioncactus/pretendard@v1.3.9/dist/web/static
-/pretendard.css" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#121212">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="KB금리표">
+<title>KB 담보,전세 금리</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
 <link rel="stylesheet" href="style.css">
-<link rel="icon" type="image/
-png" sizes="32x32" href="https://raw
-.githubusercontent.com/kdk0781/kb/main/ico
-/interest.png">
-<link rel="icon" type="image/png" sizes="
-192x192" href="/kb/interest/favicon-192.png">
-<link rel="apple-touch-icon" href="https:
-//raw.githubusercontent.com/kdk0781/kb/main/ico/interest.png">
-<link rel="icon" type= image/png' sizes= =
-512x512" href="https://raw.githubusercontent
-com/kdk0781/kb/main/ico/interest.png">
-<link rel="manifest" href="interest.json":
+	<link rel="icon" type="image/png" sizes="32x32" href="https://raw.githubusercontent.com/kdk0781/kb/main/ico/interest.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/kb/interest/favicon-192.png">
+<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/kdk0781/kb/main/ico/interest.png">
+<link rel="icon" type="image/png" sizes="512x512" href="https://raw.githubusercontent.com/kdk0781/kb/main/ico/interest.png">
+<link rel="manifest" href="interest.json">
 </head>
-<div id="loading-overlay" class="
-loading-overlay" style="display: none;
-<div class="loading-content">
-<div class="loading-spinner"></div>
-<p class="loading-text">
-최신 금리 데이터 로딩중<span class="dots">s/span></p>
-</div>
-<div class="sticky-top-container">
-<header class="main-nav">
-<h1>KB 담보,전세 금리< /h1>
-<div id="clock" class="
-clock-display"></div>
-</header>
-<aside class="summary-bar" id="
-top-summary"></aside>
-</div>
-<main id="main-content"></main>
-<button onclick="refreshData()" class
-="refresh-fab" id="fab-refresh">
-<svg viewBox="0 0 24 24" fill="none
-stroke="currentColor" stroke-width="2.5"
-stroke-linecap="round" stroke-linejoin="round">
-<path d="
-M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M3
-22v-6h6M21 12a9 9 0 0 1-15 6.7L3 16"/
-</sVg>
-</button>
-<div id="notice-overlay" class="
-notice-overlay"><div id="notice-content" class
-="notice-content">
-<div class="
-notice-header">
-<h3>
-KB 금리표 공지사항</h3>
-<button
-onclick="closeNoticeTemporarily()" class="
-close-top-btn" title="이번 주닫기">x</button>
-</diV>
-<div class="
-notice-body">
-<p><strong>
-[시스템 업데이트 안내]</strong> /p>
-순
-접속시 이전 금리가 노출되면 브라우저 캐시를 지워야 합니다</p>
-<D>
-각 브라우저 인터넷 사용 기록삭제</p>
-캐시된 이미지 및 파일 삭제후 새로고침</p>
-</div>
-순
-<div class="
-notice-footer">
-<button
-onclick="closeNoticeNextWeek()" class="
-close-until-btn">다음주
-월요일까지보지 않기 (닫기)
-</button>
+<body>
+<div id="loading-overlay" class="loading-overlay" style="display: none;">
+    <div class="loading-content">
+        <div class="loading-spinner"></div>
+        <p class="loading-text">최신 금리 데이터 로딩중<span class="dots"></span></p>
 </div>
 </div>
+
+    <div class="sticky-top-container">
+        <header class="main-nav">
+            <h1>KB 담보,전세 금리</h1>
+            <div id="clock" class="clock-display"></div>
+        </header>
+        <aside class="summary-bar" id="top-summary"></aside>
+    </div>
+
+    <main id="main-content"></main>
+
+	<button onclick="refreshData()" class="refresh-fab" id="fab-refresh">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M3 22v-6h6M21 12a9 9 0 0 1-15 6.7L3 16"/>
+        </svg>
+    </button>
+
+	<div id="notice-overlay" class="notice-overlay">
+		<div id="notice-content" class="notice-content">
+			<div class="notice-header">
+				<h3>KB 금리표 공지사항</h3>
+				<button onclick="closeNoticeTemporarily()" class="close-top-btn" title="이번 주 닫기">×</button>
+			</div>
 </div>
-<footer class="footer-info">
-<p>시스템 설정에 따라 테마가 자동 적용됩니다.< /p>
-<p>
-오늘 기준 금리이며 잔금일 기준 금리는 변동될수 있습니다.</p>
-</footer>
-<script src="script.js?v0781_3"></
-script>
-<script src="sw.js?v0781_3"></script>
--</body>
--</html>
+</div>
+			
+			<div class="notice-body">
+				<p><strong>[시스템 업데이트 안내]</strong></p>
+				<p>접속시 이전 금리가 노출되면 브라우저 캐시를 지워야 합니다</p>
+				<p>각 브라우저 인터넷 사용 기록삭제</p>
+				<p>캐시된 이미지 및 파일 삭제후 새로고침</p>
+			</div>
+			
+			<div class="notice-footer">
+				<button onclick="closeNoticeNextWeek()" class="close-until-btn">
+					다음 주 월요일까지 보지 않기 (닫기)
+				</button>
+			</div>
+
+
+    <footer class="footer-info">
+        <p>시스템 설정에 따라 테마가 자동 적용됩니다.</p>
+        <p>오늘 기준 금리이며 잔금일 기준 금리는 변동될수 있습니다.</p>
+    </footer>
+
+
+	<script src="script.js?v0781_3"></script>
+    <script src="sw.js?v0781_3"></script>
+</body>
+</html>
