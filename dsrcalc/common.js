@@ -90,11 +90,25 @@ window.onload = async function () {
   document.documentElement.style.setProperty('--schedule-max-height', _C.SCHEDULE_MAX_HEIGHT_PX + 'px');
   initCopyBtn();
 
+  // KB 금리 자동 로드 — 로딩 오버레이 표시 후 로드
   if (typeof applyKBRatesToConfig === 'function') {
-    await applyKBRatesToConfig();
-    _syncAllRateSelects();
+    _showLoading(true);
+    try {
+      await applyKBRatesToConfig();
+      _syncAllRateSelects();
+    } finally {
+      _showLoading(false);
+    }
   }
 };
+
+/** 로딩 오버레이 표시/숨김 */
+function _showLoading(visible) {
+  const el = document.getElementById('loadingOverlay');
+  if (!el) return;
+  el.style.display = visible ? 'flex' : 'none';
+  document.body.style.overflow = visible ? 'hidden' : '';
+}
 
 function applySystemTheme() {
   const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
