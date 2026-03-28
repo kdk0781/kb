@@ -1,10 +1,27 @@
-// ─── [0] 접속 초기 설정 (common.js 최상단 추가) ─────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-  // 1. 주소창 세탁: index.html 이나 지저분한 꼬리표들을 싹 지우고 깔끔한 폴더 주소만 노출시킴
-  if (window.location.href.includes('index.html')) {
-      const cleanUrl = window.location.href.split('index.html')[0];
-      window.history.replaceState(null, '', cleanUrl);
-  }
+	// ─── [0] 접속 초기 설정 (common.js 최상단) ─────────────────────
+	document.addEventListener('DOMContentLoaded', () => {
+	  if (window.location.href.includes('index.html')) {
+		  const cleanUrl = window.location.href.split('index.html')[0];
+		  window.history.replaceState(null, '', cleanUrl); // ★ 주소창 세탁
+	  }
+	});
+
+    // 2. 관리자 전용 UI 숨김 로직 (가장 중요한 부분)
+    //    사용자가 자신의 브라우저에서 자가 테스트를 하더라도, 
+    //    임시 링크를 통해 들어왔다면 'guest_mode' 세션이 생성되므로
+    //    기존의 관리자 로그인 세션이 있더라도 강제로 관리자 UI를 숨깁니다.
+    const isGuest = sessionStorage.getItem('guest_mode') === 'true';
+
+    if (isGuest) {
+        // 고객 모드로 접속했으므로 관리자 전용 영역을 숨깁니다.
+        const adminUI = document.getElementById('adminShareContainer'); // 관리자 UI 컨테이너 ID
+        if (adminUI) {
+            adminUI.style.display = 'none';
+        }
+    }
+    // else: 일반 접속이면 기존 common.js의 checkAdminAuth() 함수가 작동하여 관리자 세션을 확인합니다.
+});
+// ─────────────────────────────────────────────────────────────
 
   // 2. 관리자 UI 랜더링 차단 로직 (1회성 접속이나 고객용 앱 접속 시)
   const urlParams = new URLSearchParams(window.location.search);
@@ -938,9 +955,13 @@ window.onload = async function() {
 // ─── [9] 관리자 기능 (common.js 맨 하단 기존 추가 코드를 이걸로 교체) ───────────────────────────────
 
 function checkAdminAuth() {
-  const sessionStr = localStorage.getItem('kb_admin_session');
-  if (!sessionStr) return;
+  // ★ 추가해야 할 3줄 (고객이면 관리자 UI 렌더링 강제 중단)
+  if (localStorage.getItem('kb_guest_mode') === 'true') {
+    return;
+  }
 
+  // ... (이 아래로는 기존 sessionStr 체크 로직 그대로 유지) ...
+  const sessionStr = localStorage.getItem('kb_admin_session');
   try {
     const session = JSON.parse(sessionStr);
     if (session.isAuth && Date.now() < session.expires) {

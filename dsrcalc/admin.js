@@ -42,19 +42,13 @@ function attemptLogin() {
   const inputPw = document.getElementById('adminPw').value.trim();
   const config = getAdminConfig();
 
-  if (inputId === config.id && inputPw === config.pw) {
-    // 24시간 동안 유지되는 관리자 세션 발급
-    const sessionData = {
-      isAuth: true,
-      expires: Date.now() + (24 * 60 * 60 * 1000),
-      mainUrl: config.mainUrl
-    };
-    localStorage.setItem('kb_admin_session', JSON.stringify(sessionData));
+ if (inputId === config.id && inputPw === config.pw) {
+    localStorage.removeItem('kb_guest_mode'); // ★ 이 한 줄 꼭 추가!
     
-    // 모달 알림 후 페이지 이동
-    showAlert('관리자 로그인이 완료되었습니다.<br>대표 페이지로 이동합니다.', '✅', () => {
-      window.location.href = config.mainUrl;
-    });
+    const sessionData = { isAuth: true, expires: Date.now() + (24 * 60 * 60 * 1000), mainUrl: config.mainUrl };
+
+    localStorage.setItem('kb_admin_session', JSON.stringify(sessionData));
+    showAlert('관리자 로그인이 완료되었습니다.<br>대표 페이지로 이동합니다.', '✅', () => { window.location.href = config.mainUrl; });
   } else {
     showAlert('아이디 또는 비밀번호가 일치하지 않습니다.', '🚫');
   }
