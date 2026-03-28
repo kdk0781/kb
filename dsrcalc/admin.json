@@ -1,8 +1,8 @@
 {
-  "id": "kb-dsr-admin",
+  "id": "kb-dsr-admin-v2",
   "name": "DSR 관리자 시스템",
   "short_name": "DSR 관리자",
-  "start_url": "admin.html",
+  "start_url": "admin.html?mode=admin",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#1A2B5A",
