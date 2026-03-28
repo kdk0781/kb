@@ -1,264 +1,199 @@
+// 초기 실행: 부채 항목 하나 추가 및 아이폰 스크롤 대응
+window.addEventListener("load", function() {
+    setTimeout(function() { window.scrollTo(0, 1); }, 100);
+    addLoan(); 
 
-/* ======================================================
-1. 데이터 설정
-====================================================== */
-const r = {
-base: { mor5: 4.06, mor2: 3.68, ncofix: 2.82, scofix: 2.47,
-			primeOn: 1.10, primeOff: 0.90 },
-stress: { m5_cycle: 1.15, m5_mix: 1.50, v_6_12: 2.87 },
-add: {
-mort: { m5: 2.18, n6: 2.73, n12: 2.69, s6: 3.07, s12: 3.20 },
-hf: { m2: 2.20, n6: 2.43, n12: 2.54, s6: 2.68, s12: 3.07 },
-hug: { m2: 2.26, n6: 2.46, n12: 2.44, s6: 2.71, s12: 2.97 },
-sgi: { m2: 2.56, n6: 2.55, n12: 2.67, s6: 3.00, s12: 3.13 }
-}
-};
-const calc = (b, a, p) => parseFloat((b + a - p).toFixed(2));
-/* ======================================================
-2. 상단 서머리 렌더링 (스트레스 수치 + 신잔액 통합 고도화)
-====================================================== */
-function renderSummary() {
-const ga = r.add.mort;
-// 변동형(신규/신잔액 6,12M) 4개 조합 중 최저 실행 금리 산출
-const varRates = [
-calc(r.base.ncofix, ga.n6, r.base.primeOn), // 신규 6M
-calc(r.base.ncofix, ga.n12, r.base.primeOn), // 신규 12M
-calc(r.base.scofix, ga.s6, r.base.primeOn), // 신잔액 6M
-calc(r.base.scofix, ga.s12, r.base.primeOn) // 신잔액 12M
-];
-const minVarRate = Math.min(...varRates);
-const items = [
-// [1. 시장 지표 기준금리]
-{l:'금융채5Y', v:r.base.mor5}, 
-{l:'신규COFIX', v:r.base.ncofix},
-{l:'신잔액', v:r.base.scofix},
-// [2. 스트레스 가산금리 규제 수치 - 노란색 테마]
-{l:'ST가산(5Y주기)', v:r.stress.m5_cycle, stBase: true}, 
-{l:'ST가산(5Y혼합)', v:r.stress.m5_mix, stBase: true}, 
-{l:'ST가산(변동형)', v: r.stress.v_6_12, stBase: true},
-// [3. 스트레스 최종 실행 금리 - 빨간색 테마]
-{l:'ST 주기형(5Y)', v: calc(r.base.mor5, ga.m5 + r.stress.m5_cycle, r.base.primeOn), s: true},
-{l:'ST 혼합형(5Y)', v: calc(r.base.mor5, ga.m5 + r.stress.m5_mix, r.base.primeOn), s: true},
-{l:'ST 변동형(최저)', v: parseFloat((minVarRate + r.stress.v_6_12).toFixed(2)), s: true}
-];
-document.getElementById('top-summary').innerHTML = items.map(i => {
-let typeClass = '';
-if (i.s) typeClass = 'stress-item';
-else if (i.stBase) typeClass = 'st-base-item';
-// 가산금리(stBase)는 %p 단위로 표시하여 구분
-const unit = i.stBase ? '%p' : '%';
-return `<div class="summary-item ${typeClass}">${i.l}<span>${i.v.toFixed(2)}${unit}</span></div>`;
-}).join('');
-}
-function renderContent() {
-const groups = [
-{ title: "주택담보대출", desc: "부동산 담보 대출 금리 리포트 <br/> <b style='color:var(--red);'>접속시 이전 금리가 표시되는 경우 브라우저 캐시삭제</b>", id: 'mort' },
-{ title: "전세 (HF 주택금융공사)", desc: "공사 보증 전세자금대출 <br/> 접수 가능 기간 : 잔금일 기준(포함) 50일 전부터 <br/> <b style='color:var(--red);'>접속시 이전 금리가 표시되는 경우 브라우저 캐시삭제</b>", id: 'hf' },
-{ title: "전세 (HUG 주택도시보증)", desc: "안심전세 보증금 반환보증 <br/> 접수 가능 기간 : 잔금일 기준(포함) 30일 전부터 <br/><b style='color:var(--red);'>접속시 이전 금리가 표시되는 경우 브라우저 캐시삭제</b>", id: 'hug' },
-{ title: "전세 (SGI 서울보증보험)", desc: "고액 전세자금 SGI 보증 <br/> 접수 가능 기간 : 잔금일 기준(포함) 45일 전부터 <br/><b style='color:var(--red);'>접속시 이전 금리가 표시되는 경우 브라우저 캐시삭제</b>", id: 'sgi' }
-];
-let finalHtml = "";
-groups.forEach(g => {
-const ga = r.add[g.id];
-const items = [
-{ n: (g.id === 'mort' ? "금융채 5년 (혼합)" : "금융채 2년 (고정)"), c: (g.id === 'mort' ? "5년 고정" : "2년 고정"), b: (g.id === 'mort' ? r.base.mor5 : r.base.mor2), a: ga.m2 || ga.m5 },
-...(g.id === 'mort' ? [{ n: "금융채 5년 (변동)", c: "5년 변동", b: r.base.mor5, a: ga.m5 }] : []),
-{ n: "신규 코픽스 6개월", c: "6개월 변동", b: r.base.ncofix, a: ga.n6 },
-{ n: "신규 코픽스 12개월", c: "12개월 변동", b: r.base.ncofix, a: ga.n12 },
-{ n: "신잔액 코픽스 6개월", c: "6개월 변동", b: r.base.scofix, a: ga.s6 },
-{ n: "신잔액 코픽스 12개월", c: "12개월 변동", b: r.base.scofix, a: ga.s12 }
-].filter(i => !i.hide);
-const minVal = Math.min(...items.map(i => calc(i.b, i.a, r.base.primeOn)));
-let groupHtml = `<section class="group-wrapper"><div class="section-header"><h3>${g.title}</h3><p>${g.desc}</p></div><div class="card-list">`;
-items.forEach(i => {
-const onVal = calc(i.b, i.a, r.base.primeOn);
-const isBest = onVal === minVal;
-groupHtml += `
-<article class="rate-card ${isBest ? 'best-rate' : ''}">
-<div class="best-label">BEST</div>
-<div class="card-top">
-<span class="product-name">${i.n}</span>
-<span class="cycle-tag">${i.c}</span>
-</div>
-<div class="price-grid">
-<div class="price-box ${isBest ? 'target' : ''}">
-<span class="label">전자계약 O</span>
-<span class="value">${onVal.toFixed(2)}%</span>
-<span class="formula">${i.b}+${i.a}-1.1</span>
-</div>
-<div class="price-box">
-<span class="label">전자계약 X</span>
-<span class="value">${calc(i.b, i.a, r.base.primeOff).toFixed(2)}%</span>
-<span class="formula">${i.b}+${i.a}-0.9</span>
-</div>
-</div>
-</article>`;
-});
-groupHtml += `</div></section>`;
-finalHtml += groupHtml;
-});
-document.getElementById('main-content').innerHTML = finalHtml;
-}
-function startClock() {
-const clockEl = document.getElementById('clock');
-if (!clockEl) return;
-const tick = () => {
-const n = new Date();
-clockEl.innerText = `${n.getFullYear()}/${String(n.getMonth() + 1).padStart(2, '0')}/${String(n.getDate()).padStart(2, '0')} ${String(n.getHours()).padStart(2, '0')}:${String(n.getMinutes()).padStart(2, '0')}:${String(n.getSeconds()).padStart(2, '0')}`;
-};
-tick();
-setInterval(tick, 1000);
-}
-/* ======================================================
-4. 강력 새로고침 고도화 (로딩 애니메이션 통합 버전)
-====================================================== */
-async function refreshData() {
-const fab = document.getElementById('fab-refresh');
-const loading = document.getElementById('loading-overlay');
-// [단계 0] 로딩 화면 표시 및 버튼 회전
-if (loading) loading.style.display = 'flex';
-if (fab) {
-fab.style.transition = "transform 0.8s ease-in-out";
-fab.style.transform = "rotate(720deg)";
-
-    // [단계 1] 서비스 워커 업데이트 강제 실행
+    // 서비스 워커 등록 (PWA 기능)
     if ('serviceWorker' in navigator) {
-        try {
-            const regs = await navigator.serviceWorker.getRegistrations();
-            for (let r of regs) await r.update();
-        } catch (e) { console.error('SW Update Error:', e); }
-
-// [단계 2] 모든 브라우저 캐시 스토리지 삭제
-    if ('caches' in window) {
-        try {
-            const names = await caches.keys();
-            await Promise.all(names.map(n => caches.delete(n)));
-        } catch (e) { console.error('Cache Clear Error:', e); }
-
-// [단계 3] 1.5초간 로딩 애니메이션을 보여준 뒤 강제 리로드
-    setTimeout(() => {
-        const url = window.location.origin + window.location.pathname;
-        const newUrl = url.split('?')[0] + '?update=' + new Date().getTime();
-        
-        sessionStorage.clear();
-        window.location.replace(newUrl);
-    }, 1500); // 점(....)이 움직이는 것을 보여주기 위해 시간을 조금 늘렸습니다.
-}
-
-
-/* ======================================================
-   5. PWA 앱 설치 및 서비스 워커 등록
-   ====================================================== */
-if ('serviceWorker' in navigator) {
-    // 로컬호스트 환경에 대응하기 위해 ./sw.js 사용
-    navigator.serviceWorker.register('./sw.js')
-        .then(reg => console.log('서비스 워커 등록 성공:', reg.scope))
-        .catch(err => console.log('서비스 워커 등록 실패:', err));
-}
-
-// [수정] 변수 선언은 한 번만 수행해야 합니다.
-let deferredPrompt; 
-window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    console.log("'beforeinstallprompt' 이벤트 발생 - 설치 가능");
+        navigator.serviceWorker.register('data:text/javascript;base64,c2VsZi.addEventListener("fetch", function(e) { e.respondWith(fetch(e.request)); });')
+        .catch(function(err) { console.log("SW 등록 실패", err); });
+    }
 });
 
-// 앱 모드 확인
-if (window.matchMedia('(display-mode: standalone)').matches) {
-    console.log("현재 앱 모드로 실행 중입니다.");
+function showAlert(msg, icon = "⚠️") {
+    document.getElementById('modalMsg').innerHTML = msg;
+    document.getElementById('modalIcon').innerText = icon;
+    document.getElementById('customModal').style.display = 'flex';
 }
 
-/* ======================================================
-   6. 초기 로드 통합
-   ====================================================== */
-window.onload = () => {
-    console.log("페이지 로드 완료");
-    renderSummary();
-    renderContent();
-    startClock();
-};
+function closeModal() { 
+    document.getElementById('customModal').style.display = 'none'; 
+}
 
-/* ======================================================
-   7. 공지사항 팝업 고도화 (다음 주 월요일 재오픈 로직)
-   ===================================================== */
+function formatComma(obj) {
+    let val = obj.value.replace(/[^0-9]/g, ""); 
+    if (val.length > 0) obj.value = Number(val).toLocaleString();
+    else obj.value = "";
+}
 
-const NOTICE_KEY = 'kb_notice_next_monday';
+function getNum(val) { 
+    return Number(val.toString().replace(/,/g, "")) || 0; 
+}
 
-// 1. 공지사항 팝업 띄우기 함수 (아래서 위로 부드럽게)
-function showNotice() {
-    const overlay = document.getElementById('notice-overlay');
+let loanCount = 0;
+function addLoan() {
+    loanCount++;
+    const html = `
+    <div class="input-card" id="loan_${loanCount}">
+        <button class="btn-remove" onclick="document.getElementById('loan_${loanCount}').remove()">×</button>
+        <div class="grid-row">
+            <div>
+                <label>대출 종류</label>
+                <select class="l-category" onchange="applyPolicy(${loanCount})">
+                    <option value="mortgage_level">주택담보 (원리금균등)</option>
+                    <option value="mortgage_prin">주택담보 (원금균등)</option>
+                    <option value="jeonse">전세대출 (만기일시상환)</option>
+                    <option value="officetel">오피스텔 (원리금균등)</option>
+                    <option value="credit">신용대출 (원리금균등)</option>
+                    <option value="card_loan">카드론 (원리금균등)</option>
+                </select>
+            </div>
+            <div><label>원금/잔액 (원)</label><input type="text" class="l-p" inputmode="numeric" onkeyup="formatComma(this)" placeholder="0"></div>
+            <div><label>금리 (%)</label><input type="text" class="l-r" inputmode="decimal" placeholder="4.5"></div>
+            <div><label>기간 (개월)</label><input type="text" class="l-m" inputmode="numeric" value="360"></div>
+        </div>
+        <div class="dynamic-guide" id="guide_${loanCount}"></div>
+    </div>`;
+    document.getElementById('loanList').insertAdjacentHTML('beforeend', html);
+}
+
+function applyPolicy(id) {
+    const card = document.getElementById(`loan_${id}`);
+    const cat = card.querySelector('.l-category').value;
+    const m = card.querySelector('.l-m');
+    const r = card.querySelector('.l-r');
+    let guide = card.querySelector('.dynamic-guide') || document.createElement('div');
     
-    // 이전에 저장된 '닫기 시간' 확인 (없으면 공지사항 띄움)
-    const storedCloseTime = localStorage.getItem(NOTICE_KEY);
-    if (storedCloseTime) {
-        const storedDate = new Date(parseInt(storedCloseTime));
-        const today = new Date();
+    if(!card.querySelector('.dynamic-guide')) { 
+        guide.className = 'dynamic-guide'; 
+        card.appendChild(guide); 
+    }
 
-        // [중요 로직] 오늘이 저장된 날짜와 같은 주(Monday 기준)에 포함되는지 확인
-        if (isSameWeek(today, storedDate)) {
-            // 같은 주라면 공지사항을 띄우지 않음
-            console.log("공지사항: 이번 주 닫기 상태 유지");
-            return;
-        } else {
-            // 다른 주(다음 주 월요일 이후)라면 저장된 시간 삭제 후 공지사항 띄움
-            localStorage.removeItem(NOTICE_KEY);
-            console.log("공지사항: 다음 주 월요일이 되어 다시 표시");
+    if(cat === 'officetel') {
+        guide.style.display = 'block';
+        guide.innerHTML = "🏢 <b>오피스텔 체크포인트:</b><br>- 신규 구입인 경우 '주택담보대출' 항목을 선택하여 계산하는 것이 더 정확할 수 있습니다.<br>- 이미 소유 중인 오피스텔에 담보대출이 있다면 이 항목(8년 상환 가정)을 유지해주세요.";
+        m.value = "96"; r.placeholder = "5.5";
+    } else {
+        guide.style.display = 'none';
+        if(cat === 'credit') { m.value = "60"; r.placeholder = "6.0"; }
+        else if(cat === 'card_loan') { m.value = "36"; r.placeholder = "14.0"; }
+        else if(cat === 'jeonse') { m.value = "24"; r.placeholder = "4.2"; }
+        else { m.value = "360"; r.placeholder = "4.5"; }
+    }
+}
+
+function calculateTotalDSR() {
+    const income = getNum(document.getElementById('income').value);
+    if (income <= 0) { showAlert("연소득을 입력해주세요."); return; }
+
+    let totalAnnualPay = 0; 
+    let baseRate = 0; 
+    let firstMonths = 360;
+    const items = document.querySelectorAll('[id^="loan_"]');
+
+    if(items.length === 0) { showAlert("부채 항목을 추가해주세요."); return; }
+
+    for (let item of items) {
+        const pInput = item.querySelector('.l-p'); 
+        const rInput = item.querySelector('.l-r');
+        if (getNum(pInput.value) <= 0) { showAlert("원금을 입력해주세요."); return; }
+        if (!rInput.value.trim()) { 
+            showAlert(`금리를 미입력하여 기본값(${rInput.placeholder}%)으로 계산합니다.`, "ℹ️"); 
+            rInput.value = rInput.placeholder; 
         }
     }
 
-    // 팝업 표시 및 CSS 애니메이션 트리거
-    setTimeout(() => { overlay.classList.add('active'); }, 100);
-}
+    items.forEach((item, index) => {
+        const cat = item.querySelector('.l-category').value;
+        const P = getNum(item.querySelector('.l-p').value);
+        const R_raw = item.querySelector('.l-r').value;
+        const n = getNum(item.querySelector('.l-m').value);
+        
+        if (P > 0) {
+            const R = Number(R_raw) / 100; const r = R / 12;
+            if (index === 0) { baseRate = Number(R_raw); firstMonths = n; }
+            
+            if (cat === 'jeonse') totalAnnualPay += P * R;
+            else if (cat === 'mortgage_prin') totalAnnualPay += (P/n + (P*r * 0.5)) * 12; 
+            else totalAnnualPay += ((P*r*Math.pow(1+r,n))/(Math.pow(1+r,n)-1))*12;
+        }
+    });
 
-// 2. [고도화] 오늘이 저장된 날짜와 같은 주(월요일 기준)인지 확인하는 함수
-function isSameWeek(today, storedDate) {
-    // 요일을 0(일요일) ~ 6(토요일)로 가져옴
-    const todayDay = today.getDay(); 
-    const storedDay = storedDate.getDay();
+    const dsr = (totalAnnualPay / income) * 100;
+    const dsrLimit = income * 0.4;
+    const r_b = (baseRate / 100) / 12;
+    const n_b = firstMonths;
 
-    // 월요일을 기준(1)으로 각 요일의 오프셋 계산 (일요일은 7로 처리)
-    const todayMondayOffset = todayDay === 0 ? 7 : todayDay;
-    const storedMondayOffset = storedDay === 0 ? 7 : storedDay;
+    const maxP = (dsrLimit / 12) / (1/n_b + (r_b * 0.5)); 
+    const maxL = ((dsrLimit / 12) * (Math.pow(1+r_b, n_b)-1)) / (r_b * Math.pow(1+r_b, n_b));
+    const addLim = (dsrLimit - totalAnnualPay) > 0 ? (dsrLimit - totalAnnualPay) / 12 / (1/n_b + (r_b * 0.5)) : 0;
 
-    // 해당 요일을 월요일로 강제로 맞춰서 같은 주인지 비교
-    const todayMonday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - todayMondayOffset + 1);
-    const storedMonday = new Date(storedDate.getFullYear(), storedDate.getMonth(), storedDate.getDate() - storedMondayOffset + 1);
-
-    // 연도와 월요일 날짜가 같으면 같은 주
-    return todayMonday.getTime() === storedMonday.getTime();
-}
-
-// 3. 우측 상단 '×' 버튼: 이번 주 닫기 (localStorage에 현재 시간 저장)
-function closeNoticeTemporarily() {
-    localStorage.setItem(NOTICE_KEY, new Date().getTime());
-    hideNoticeWithAnimation();
-}
-
-// 4. 하단 '다음 주 월요일까지 보지 않기' 버튼: 동일한 로직 적용
-function closeNoticeNextWeek() {
-    closeNoticeTemporarily();
-}
-
-// 5. 팝업 부드럽게 숨기기 함수
-function hideNoticeWithAnimation() {
-    const overlay = document.getElementById('notice-overlay');
-    overlay.classList.remove('active');
-    setTimeout(() => { overlay.style.display = 'none'; }, 500); // 애니메이션 후 완전히 숨김
-}
-
-// 6. 페이지 로드 완료 시 공지사항 상태 확인
-window.onload = () => {
-    console.log("페이지 로드 완료");
-    renderSummary();
-    renderContent();
-    startClock();
+    document.getElementById('resultArea').style.display = 'block';
+    document.getElementById('dsrVal').innerText = dsr.toFixed(2) + "%";
+    document.getElementById('dsrVal').style.color = dsr > 40 ? "var(--danger)" : "var(--safe)";
+    document.getElementById('dsrBar').style.width = Math.min(dsr, 100) + "%";
+    document.getElementById('dsrBar').style.background = dsr > 40 ? "var(--danger)" : "var(--safe)";
     
-    // [추가] 공지사항 팝업 여부 확인
-    showNotice();
-};
+    document.getElementById('absMaxPrin').innerText = (Math.floor(maxP/10000)*10000).toLocaleString() + " 원";
+    document.getElementById('absMaxLevel').innerText = (Math.floor(maxL/10000)*10000).toLocaleString() + " 원";
+    document.getElementById('remainingLimit').innerText = (Math.floor(addLim/10000)*10000).toLocaleString() + " 원";
 
+    provideRecommendation(dsr, income, addLim);
+    window.scrollTo({ top: document.getElementById('resultArea').offsetTop - 20, behavior: 'smooth' });
+}
 
+function provideRecommendation(dsr, income, addLim) {
+    const recTitle = document.getElementById('recTitle');
+    const recDesc = document.getElementById('recDesc');
+    const prinCard = document.getElementById('prinCard');
+    const levelCard = document.getElementById('levelCard');
+    let target = ""; let strategy = "";
 
+    if (dsr > 40) { 
+        target = "원금균등 (한도 극대화 필수)"; 
+        recTitle.style.color = "var(--danger)"; 
+        strategy = `<b>🚨 DSR 한도 초과: 현재 부채가 소득 임계치를 넘었습니다.</b><br>반드시 <strong>'원금균등 상환'</strong> 방식을 고려해야 합니다. 원금균등은 원리금균등 방식보다 <b>실제 한도가 약 10% 더 높게 산정</b>되는 실무적 이점이 있어 한도 초과 상황을 타개할 유일한 전략입니다.`; 
+    } 
+    else if (dsr > 30) { 
+        target = "원금균등 (추천)"; 
+        recTitle.style.color = "#2c3e50"; 
+        strategy = `<b>⚠️ 한도 임계점 도달: 추가 한도 확보가 최우선입니다.</b><br>현재 DSR이 높은 편이므로 <strong>'원금균등 상환'</strong>이 압도적으로 유리합니다. 초기 부담은 크지만 원리금 방식보다 더 높은 대출 승인액을 확보할 수 있으며 이자까지 절감하는 실속형 선택입니다.`; 
+    } 
+    else if (income > 70000000) { 
+        target = "원금균등 (이자 절감형)"; 
+        recTitle.style.color = "#2c3e50"; 
+        strategy = `<b>✨ 자산 최적화: 고소득자에게 유리한 방식입니다.</b><br>상환 능력이 충분하시므로 <strong>'원금균등 상환'</strong>을 통해 총 지불 이자를 최소화하세요. 시간이 갈수록 부담이 급감하여 자산 증식 속도를 높여주는 가장 스마트한 방식입니다.`; 
+    } 
+    else { 
+        target = "원리금균등 (지출 안정형)"; 
+        recTitle.style.color = "#2c3e50"; 
+        strategy = `<b>✅ 정상: 안정적인 현금 흐름 관리를 권장합니다.</b><br>매월 상환액이 일정하여 지출 예측이 용이한 <strong>'원리금균등 상환'</strong>이 적합합니다. 가계 예산 운영을 안정적으로 유지하고 싶은 분들께 권장하는 표준 방식입니다.`; 
+    }
 
+    recTitle.innerHTML = `🎯 ${target} 방식을 추천합니다`;
+    recDesc.innerHTML = strategy;
 
+    [prinCard, levelCard].forEach(c => { 
+        c.classList.remove('recommended'); 
+        const oldBadge = c.querySelector('.rec-badge'); 
+        if(oldBadge) oldBadge.remove(); 
+    });
+
+    if (target.includes("원리금균등")) { 
+        levelCard.classList.add('recommended'); 
+        levelCard.insertAdjacentHTML('afterbegin', '<div class="rec-badge">지출 안정성 추천</div>'); 
+    } else { 
+        prinCard.classList.add('recommended'); 
+        prinCard.insertAdjacentHTML('afterbegin', '<div class="rec-badge">한도/이자 우위 추천</div>'); 
+    }
+}
+
+function copyResultText() {
+    const text = `[DSR 진단 리포트]\n연소득: ${document.getElementById('income').value}원\nDSR 지수: ${document.getElementById('dsrVal').innerText}\n최대 한도(원금): ${document.getElementById('absMaxPrin').innerText}\n추가여력: ${document.getElementById('remainingLimit').innerText}\n\n[추천전략]\n${document.getElementById('recTitle').innerText}\n${document.getElementById('recDesc').innerText.replace(/<[^>]*>?/gm, '')}\n\n* 본 결과는 참고용으로만 활용하시기 바랍니다.`;
+    const temp = document.createElement("textarea"); 
+    document.body.appendChild(temp);
+    temp.value = text; temp.select(); 
+    document.execCommand("copy"); 
+    document.body.removeChild(temp);
+    showAlert("분석 결과가 복사되었습니다!", "✅");
+}
