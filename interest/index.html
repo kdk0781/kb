@@ -24,6 +24,16 @@
         <p class="loading-text">최신 금리 데이터 로딩중<span class="dots"></span></p>
 </div>
 </div>
+ <div id="loading-overlay" class="loading-overlay" style="display: none;">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <p class="loading-text">최신 금리 데이터 로딩중<span class="dots"></span></p>
+        </div>
+    </div>
+
+    <div id="top-summary" class="top-summary"></div>
+    
+    <div id="loanList"></div>
 
     <div class="sticky-top-container">
         <header class="main-nav">
@@ -48,7 +58,7 @@
 				<button onclick="closeNoticeTemporarily()" class="close-top-btn" title="이번 주 닫기">×</button>
 			</div>
 </div>
-</div>
+
 			
 			<div class="notice-body">
 				<p><strong>[시스템 업데이트 안내]</strong></p>
@@ -62,7 +72,7 @@
 					다음 주 월요일까지 보지 않기 (닫기)
 				</button>
 			</div>
-
+</div>
 
     <footer class="footer-info">
         <p>시스템 설정에 따라 테마가 자동 적용됩니다.</p>
