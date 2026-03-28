@@ -676,6 +676,19 @@ body {
 /* 5. 가로 스크롤(상단 요약 바)을 아이폰 특유의 부드러운 관성 스크롤로 변경 */
 .top-summary {
     -webkit-overflow-scrolling: touch; 
+    display: flex; 
+    gap: 10px; 
+    overflow-x: auto; 
+    
+    /* [수정된 부분] 기존 위쪽 여백(15px) + 아이폰 노치 여백 자동 계산 */
+    padding-top: calc(15px + env(safe-area-inset-top)); 
+    
+    padding-bottom: 15px;
+    padding-left: 20px;
+    padding-right: 20px;
+    
+    background: #fff; 
+    border-bottom: 1px solid #eaeaea;
 }
 
 /* 6. 우측 하단 새로고침 버튼이 아이폰 홈 바에 가려지지 않게 띄우기 */
@@ -683,3 +696,7 @@ body {
     bottom: calc(25px + env(safe-area-inset-bottom));
 }
 
+/* 만약 로딩창 텍스트나 모달창이 노치에 가려진다면 여기도 추가할 수 있습니다 */
+.loading-content, .modal-content {
+    margin-top: env(safe-area-inset-top);
+}
