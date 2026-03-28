@@ -2,6 +2,8 @@ let deferredPrompt;
 
 window.onload = function() {
   if (checkInAppBrowser()) return;
+  
+  // 최초 접속 시 토큰 검증 및 세션 스토리지 저장
   validateToken();
 
   window.addEventListener('beforeinstallprompt', (e) => {
@@ -24,9 +26,9 @@ window.onload = function() {
     }
   });
 
-  // ★ 수정됨: 1회성 접속 시 'guest=true' 꼬리표를 달아 관리자 UI가 뜨는 것을 방지
-  document.getElementById('btnOneTime').addEventListener('click', () => { 
-    window.location.href = 'index.html?guest=true'; 
+  // ★ 고도화: 1회성 접속 시 'guest=true' 꼬리표를 달아 common.js에 고객 모드임을 알림
+  document.getElementById('btnOneTime').addEventListener('click', () => {
+    window.location.href = 'index.html?guest=true';
   });
 };
 
@@ -41,7 +43,7 @@ function validateToken() {
     try {
       const payload = JSON.parse(decodeURIComponent(atob(token)));
       if (Date.now() <= payload.exp) {
-        // 검증 성공! 브라우저 메모리에 "통과" 기록을 남기고 주소창 세탁
+        // 검증 성공! 브라우저 메모리에 기록하고 주소창 세탁
         sessionStorage.setItem('kb_valid_share', 'true');
         window.history.replaceState(null, '', 'share.html');
         mainCard.classList.remove('hidden'); errorCard.classList.remove('active');
@@ -50,7 +52,7 @@ function validateToken() {
     } catch (e) {}
   }
 
-  // 2. URL에 토큰은 없지만, 방금 검증을 통과한 메모리 기록이 있는 경우 (앱 설치, 새로고침 시 에러 방지)
+  // 2. URL에 토큰은 없지만, 방금 검증을 통과한 기록이 있는 경우 (앱 설치 시 에러 방지)
   if (sessionStorage.getItem('kb_valid_share') === 'true') {
     mainCard.classList.remove('hidden'); errorCard.classList.remove('active');
     return;

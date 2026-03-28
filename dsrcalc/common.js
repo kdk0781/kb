@@ -1,18 +1,21 @@
-// ─── [0] 접속 초기 설정 (주소창 세탁 및 테스트용 권한 차단) ───────────
+// ─── [0] 접속 초기 설정 (common.js 최상단 추가) ─────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-  const urlParams = new URLSearchParams(window.location.search);
-  const isGuest = urlParams.get('guest') === 'true';
-  const isAppMode = urlParams.get('app') === 'main';
-
-  // 1. 주소창 세탁: index.html 이나 꼬리표들을 싹 지우고 깔끔한 폴더 주소만 노출시킴
+  // 1. 주소창 세탁: index.html 이나 지저분한 꼬리표들을 싹 지우고 깔끔한 폴더 주소만 노출시킴
   if (window.location.href.includes('index.html')) {
       const cleanUrl = window.location.href.split('index.html')[0];
       window.history.replaceState(null, '', cleanUrl);
   }
 
-  // 2. 1회성 접속이나 고객용 앱으로 들어온 경우, 관리자 본인의 폰이어도 관리자 UI 렌더링을 차단!
-  if (!isGuest && !isAppMode) {
-      // 기존에 실행되던 관리자 체크 함수 (맨 하단에 있는 함수 호출)
+  // 2. 관리자 UI 랜더링 차단 로직 (1회성 접속이나 고객용 앱 접속 시)
+  const urlParams = new URLSearchParams(window.location.search);
+  const isGuest = urlParams.get('guest') === 'true'; // share.js에서 넘겨준 값
+  const isMainApp = window.matchMedia('(display-mode: standalone)').matches; // PWA 앱으로 실행 중인지 확인
+
+  if (isGuest || isMainApp) {
+      // 고객 모드이므로 관리자 UI 함수 실행을 막음
+      console.log("고객 모드: 관리자 기능을 차단합니다.");
+  } else {
+      // 일반 브라우저 접속이며 고객 모드가 아닌 경우에만 관리자 UI 확인 (맨 하단 함수 호출)
       if (typeof checkAdminAuth === 'function') checkAdminAuth();
   }
 });
@@ -1048,7 +1051,3 @@ function proceedAdminLogout() {
 }
 
 // (기존 DOMContentLoaded 이벤트 리스너는 그대로 유지)
-
-
-// DOM이 렌더링 된 직후 관리자 권한 체크 실행 (기존 window.onload 덮어쓰기 방지)
-document.addEventListener('DOMContentLoaded', checkAdminAuth);

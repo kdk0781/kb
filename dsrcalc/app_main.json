@@ -1,9 +1,8 @@
 {
-  "id": "/kb/dsrcalc/main",
+  "id": "/kb/dsrcalc/main-app",
   "name": "DSR 계산기",
   "short_name": "DSR 계산기",
-  "start_url": "index.html?app=main",
-  "scope": "/kb/dsrcalc/",
+  "start_url": "./",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#FFFFFF",
