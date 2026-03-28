@@ -1,404 +1,264 @@
-/* =============================================================================
-   [DSR CORE SYSTEM - PREMIMUM ENHANCED VER 2026.03.25]
-   1. 시스템 설정 및 테마 엔진 (Theme & Setup)
-   2. 정밀 유효성 검증 및 시각 피드백 (Validation & Warning)
-   3. 부채 항목 동적 관리 및 정책 바인딩 (Dynamic Management)
-   4. 고도화된 DSR 연산 엔진 (Calculation Engine)
-   5. [FIX] 데스크탑/모바일 통합 스크롤 로직 최적화 (UI & Scroll)
-   6. [NEW] 상환스케줄 순서 변경 및 N년차 잔액 디자인 고도화 (Schedule UI)
-   7. 시스템 알림 및 리포트 제어 (System Interface)
-   ============================================================================= */
 
-// [1] 시스템 설정 및 초기 상태
-const NOTICE_VERSION = "0781_0"; 
-const CONFIG = {
-    DEFAULT_RATE: 4.5,
-    DSR_LIMIT: 40,
-    MIN_INCOME: 1000000
+/* ======================================================
+1. 데이터 설정
+====================================================== */
+const r = {
+base: { mor5: 4.06, mor2: 3.68, ncofix: 2.82, scofix: 2.47,
+			primeOn: 1.10, primeOff: 0.90 },
+stress: { m5_cycle: 1.15, m5_mix: 1.50, v_6_12: 2.87 },
+add: {
+mort: { m5: 2.18, n6: 2.73, n12: 2.69, s6: 3.07, s12: 3.20 },
+hf: { m2: 2.20, n6: 2.43, n12: 2.54, s6: 2.68, s12: 3.07 },
+hug: { m2: 2.26, n6: 2.46, n12: 2.44, s6: 2.71, s12: 2.97 },
+sgi: { m2: 2.56, n6: 2.55, n12: 2.67, s6: 3.00, s12: 3.13 }
+}
 };
-let loanCount = 0; 
-let currentScheduleType = 'P'; 
-let lastFocusId = null; 
-let proceedOnConfirm = false; 
+const calc = (b, a, p) => parseFloat((b + a - p).toFixed(2));
+/* ======================================================
+2. 상단 서머리 렌더링 (스트레스 수치 + 신잔액 통합 고도화)
+====================================================== */
+function renderSummary() {
+const ga = r.add.mort;
+// 변동형(신규/신잔액 6,12M) 4개 조합 중 최저 실행 금리 산출
+const varRates = [
+calc(r.base.ncofix, ga.n6, r.base.primeOn), // 신규 6M
+calc(r.base.ncofix, ga.n12, r.base.primeOn), // 신규 12M
+calc(r.base.scofix, ga.s6, r.base.primeOn), // 신잔액 6M
+calc(r.base.scofix, ga.s12, r.base.primeOn) // 신잔액 12M
+];
+const minVarRate = Math.min(...varRates);
+const items = [
+// [1. 시장 지표 기준금리]
+{l:'금융채5Y', v:r.base.mor5}, 
+{l:'신규COFIX', v:r.base.ncofix},
+{l:'신잔액', v:r.base.scofix},
+// [2. 스트레스 가산금리 규제 수치 - 노란색 테마]
+{l:'ST가산(5Y주기)', v:r.stress.m5_cycle, stBase: true}, 
+{l:'ST가산(5Y혼합)', v:r.stress.m5_mix, stBase: true}, 
+{l:'ST가산(변동형)', v: r.stress.v_6_12, stBase: true},
+// [3. 스트레스 최종 실행 금리 - 빨간색 테마]
+{l:'ST 주기형(5Y)', v: calc(r.base.mor5, ga.m5 + r.stress.m5_cycle, r.base.primeOn), s: true},
+{l:'ST 혼합형(5Y)', v: calc(r.base.mor5, ga.m5 + r.stress.m5_mix, r.base.primeOn), s: true},
+{l:'ST 변동형(최저)', v: parseFloat((minVarRate + r.stress.v_6_12).toFixed(2)), s: true}
+];
+document.getElementById('top-summary').innerHTML = items.map(i => {
+let typeClass = '';
+if (i.s) typeClass = 'stress-item';
+else if (i.stBase) typeClass = 'st-base-item';
+// 가산금리(stBase)는 %p 단위로 표시하여 구분
+const unit = i.stBase ? '%p' : '%';
+return `<div class="summary-item ${typeClass}">${i.l}<span>${i.v.toFixed(2)}${unit}</span></div>`;
+}).join('');
+}
+function renderContent() {
+const groups = [
+{ title: "주택담보대출", desc: "부동산 담보 대출 금리 리포트 <br/> <b style='color:var(--red);'>접속시 이전 금리가 표시되는 경우 브라우저 캐시삭제</b>", id: 'mort' },
+{ title: "전세 (HF 주택금융공사)", desc: "공사 보증 전세자금대출 <br/> 접수 가능 기간 : 잔금일 기준(포함) 50일 전부터 <br/> <b style='color:var(--red);'>접속시 이전 금리가 표시되는 경우 브라우저 캐시삭제</b>", id: 'hf' },
+{ title: "전세 (HUG 주택도시보증)", desc: "안심전세 보증금 반환보증 <br/> 접수 가능 기간 : 잔금일 기준(포함) 30일 전부터 <br/><b style='color:var(--red);'>접속시 이전 금리가 표시되는 경우 브라우저 캐시삭제</b>", id: 'hug' },
+{ title: "전세 (SGI 서울보증보험)", desc: "고액 전세자금 SGI 보증 <br/> 접수 가능 기간 : 잔금일 기준(포함) 45일 전부터 <br/><b style='color:var(--red);'>접속시 이전 금리가 표시되는 경우 브라우저 캐시삭제</b>", id: 'sgi' }
+];
+let finalHtml = "";
+groups.forEach(g => {
+const ga = r.add[g.id];
+const items = [
+{ n: (g.id === 'mort' ? "금융채 5년 (혼합)" : "금융채 2년 (고정)"), c: (g.id === 'mort' ? "5년 고정" : "2년 고정"), b: (g.id === 'mort' ? r.base.mor5 : r.base.mor2), a: ga.m2 || ga.m5 },
+...(g.id === 'mort' ? [{ n: "금융채 5년 (변동)", c: "5년 변동", b: r.base.mor5, a: ga.m5 }] : []),
+{ n: "신규 코픽스 6개월", c: "6개월 변동", b: r.base.ncofix, a: ga.n6 },
+{ n: "신규 코픽스 12개월", c: "12개월 변동", b: r.base.ncofix, a: ga.n12 },
+{ n: "신잔액 코픽스 6개월", c: "6개월 변동", b: r.base.scofix, a: ga.s6 },
+{ n: "신잔액 코픽스 12개월", c: "12개월 변동", b: r.base.scofix, a: ga.s12 }
+].filter(i => !i.hide);
+const minVal = Math.min(...items.map(i => calc(i.b, i.a, r.base.primeOn)));
+let groupHtml = `<section class="group-wrapper"><div class="section-header"><h3>${g.title}</h3><p>${g.desc}</p></div><div class="card-list">`;
+items.forEach(i => {
+const onVal = calc(i.b, i.a, r.base.primeOn);
+const isBest = onVal === minVal;
+groupHtml += `
+<article class="rate-card ${isBest ? 'best-rate' : ''}">
+<div class="best-label">BEST</div>
+<div class="card-top">
+<span class="product-name">${i.n}</span>
+<span class="cycle-tag">${i.c}</span>
+</div>
+<div class="price-grid">
+<div class="price-box ${isBest ? 'target' : ''}">
+<span class="label">전자계약 O</span>
+<span class="value">${onVal.toFixed(2)}%</span>
+<span class="formula">${i.b}+${i.a}-1.1</span>
+</div>
+<div class="price-box">
+<span class="label">전자계약 X</span>
+<span class="value">${calc(i.b, i.a, r.base.primeOff).toFixed(2)}%</span>
+<span class="formula">${i.b}+${i.a}-0.9</span>
+</div>
+</div>
+</article>`;
+});
+groupHtml += `</div></section>`;
+finalHtml += groupHtml;
+});
+document.getElementById('main-content').innerHTML = finalHtml;
+}
+function startClock() {
+const clockEl = document.getElementById('clock');
+if (!clockEl) return;
+const tick = () => {
+const n = new Date();
+clockEl.innerText = `${n.getFullYear()}/${String(n.getMonth() + 1).padStart(2, '0')}/${String(n.getDate()).padStart(2, '0')} ${String(n.getHours()).padStart(2, '0')}:${String(n.getMinutes()).padStart(2, '0')}:${String(n.getSeconds()).padStart(2, '0')}`;
+};
+tick();
+setInterval(tick, 1000);
+}
+/* ======================================================
+4. 강력 새로고침 고도화 (로딩 애니메이션 통합 버전)
+====================================================== */
+async function refreshData() {
+const fab = document.getElementById('fab-refresh');
+const loading = document.getElementById('loading-overlay');
+// [단계 0] 로딩 화면 표시 및 버튼 회전
+if (loading) loading.style.display = 'flex';
+if (fab) {
+fab.style.transition = "transform 0.8s ease-in-out";
+fab.style.transform = "rotate(720deg)";
 
-window.onload = function() {
-    applySystemTheme(); 
-    initNotice(); 
-    addLoan(); 
-    const confirmBtn = document.getElementById('modalConfirm');
-    if (confirmBtn) confirmBtn.onclick = handleModalConfirm; 
+    // [단계 1] 서비스 워커 업데이트 강제 실행
+    if ('serviceWorker' in navigator) {
+        try {
+            const regs = await navigator.serviceWorker.getRegistrations();
+            for (let r of regs) await r.update();
+        } catch (e) { console.error('SW Update Error:', e); }
+
+// [단계 2] 모든 브라우저 캐시 스토리지 삭제
+    if ('caches' in window) {
+        try {
+            const names = await caches.keys();
+            await Promise.all(names.map(n => caches.delete(n)));
+        } catch (e) { console.error('Cache Clear Error:', e); }
+
+// [단계 3] 1.5초간 로딩 애니메이션을 보여준 뒤 강제 리로드
+    setTimeout(() => {
+        const url = window.location.origin + window.location.pathname;
+        const newUrl = url.split('?')[0] + '?update=' + new Date().getTime();
+        
+        sessionStorage.clear();
+        window.location.replace(newUrl);
+    }, 1500); // 점(....)이 움직이는 것을 보여주기 위해 시간을 조금 늘렸습니다.
+}
+
+
+/* ======================================================
+   5. PWA 앱 설치 및 서비스 워커 등록
+   ====================================================== */
+if ('serviceWorker' in navigator) {
+    // 로컬호스트 환경에 대응하기 위해 ./sw.js 사용
+    navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('서비스 워커 등록 성공:', reg.scope))
+        .catch(err => console.log('서비스 워커 등록 실패:', err));
+}
+
+// [수정] 변수 선언은 한 번만 수행해야 합니다.
+let deferredPrompt; 
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    console.log("'beforeinstallprompt' 이벤트 발생 - 설치 가능");
+});
+
+// 앱 모드 확인
+if (window.matchMedia('(display-mode: standalone)').matches) {
+    console.log("현재 앱 모드로 실행 중입니다.");
+}
+
+/* ======================================================
+   6. 초기 로드 통합
+   ====================================================== */
+window.onload = () => {
+    console.log("페이지 로드 완료");
+    renderSummary();
+    renderContent();
+    startClock();
 };
 
-function applySystemTheme() {
-    const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const body = document.body;
-    if (isDarkMode) {
-        body.classList.add('dark'); body.classList.remove('white');
-    } else {
-        body.classList.add('white'); body.classList.remove('dark');
-    }
-}
-window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applySystemTheme);
+/* ======================================================
+   7. 공지사항 팝업 고도화 (다음 주 월요일 재오픈 로직)
+   ===================================================== */
 
-// [2] 정밀 유효성 검증 및 시각 피드백
-function setWarning(id, isError) {
-    const el = document.getElementById(id);
-    if (el) {
-        isError ? el.classList.add('input-warning') : el.classList.remove('input-warning');
-    }
-}
+const NOTICE_KEY = 'kb_notice_next_monday';
 
-function calculateTotalDSR() {
-    document.querySelectorAll('.input-warning').forEach(el => el.classList.remove('input-warning'));
-    const incomeVal = document.getElementById('income');
-    const income = getNum(incomeVal.value);
+// 1. 공지사항 팝업 띄우기 함수 (아래서 위로 부드럽게)
+function showNotice() {
+    const overlay = document.getElementById('notice-overlay');
     
-    if (income < CONFIG.MIN_INCOME) {
-        setWarning('income', true);
-        showAlert("연간 세전 소득을 100만원 이상 입력해주세요.", "income"); 
-        return; 
-    }
+    // 이전에 저장된 '닫기 시간' 확인 (없으면 공지사항 띄움)
+    const storedCloseTime = localStorage.getItem(NOTICE_KEY);
+    if (storedCloseTime) {
+        const storedDate = new Date(parseInt(storedCloseTime));
+        const today = new Date();
 
-    const items = document.querySelectorAll('[id^="loan_"]');
-    if (items.length === 0) { showAlert("부채 항목을 최소 하나 이상 추가해주세요."); return; }
-
-    let hasFatalError = false;
-    let missingRateFields = []; 
-
-    for (let item of items) {
-        const pEl = item.querySelector('.l-p');
-        const mEl = item.querySelector('.l-m');
-        const rInput = item.querySelector('.l-r');
-
-        if (getNum(pEl.value) <= 0) {
-            setWarning(pEl.id, true);
-            showAlert("대출 금액을 입력해주세요.", pEl.id);
-            hasFatalError = true; break; 
-        }
-        if (getNum(mEl.value) < 1) {
-            setWarning(mEl.id, true);
-            showAlert("대출 기간을 입력해주세요.", mEl.id);
-            hasFatalError = true; break;
-        }
-        if (!rInput.value.trim()) {
-            missingRateFields.push(rInput);
-        }
-    }
-
-    if (hasFatalError) return;
-
-    if (missingRateFields.length > 0) {
-        missingRateFields.forEach(field => field.classList.add('input-warning'));
-        showAlert("금리 미입력 항목은 표준 금리가 적용됩니다.", null, "ℹ️", true);
-    } else {
-        calculateLogic();
-    }
-}
-
-// [3] 부채 항목 동적 관리 및 다이나믹 가이드 복구
-function addLoan() {
-    loanCount++;
-    const loanList = document.getElementById('loanList');
-    if (!loanList) return;
-    const html = `
-    <div class="input-card" id="loan_${loanCount}">
-        <button class="btn-remove" onclick="removeLoan(${loanCount})">×</button>
-        <div class="grid-row">
-            <div>
-                <label>대출 종류</label>
-                <select class="l-category" onchange="applyPolicy(${loanCount})">
-                    <option value="mortgage_level">주택담보 (원리금)</option>
-                    <option value="mortgage_prin">주택담보 (원금)</option>
-                    <option value="jeonse">전세대출 (만기)</option>
-                    <option value="officetel">오피스텔 (원리금)</option>
-                    <option value="credit">신용대출 (원리금)</option>
-                    <option value="cardloan">카드론 (원리금)</option>
-                </select>
-            </div>
-            <div><label>원금/잔액 (원)</label><input type="text" id="lp_${loanCount}" class="l-p" inputmode="numeric" onkeyup="formatComma(this)" placeholder="0"></div>
-            <div><label>금리 (%)</label><input type="text" id="lr_${loanCount}" class="l-r" inputmode="decimal" placeholder="4.5"></div>
-            <div>
-                <label>스트레스 금리</label>
-                <select class="l-sr-select">
-                    <option value="1.15" selected>60개월변동 (1.15%)</option>
-                    <option value="2.87">6,12개월변동 (2.87%)</option>
-                    <option value="0.0">해당없음 (0.0%)</option>
-                </select>
-            </div>
-            <div><label>기간 (개월)</label><input type="text" id="lm_${loanCount}" class="l-m" inputmode="numeric" value="360"></div>
-        </div>
-        <div class="dynamic-guide" id="guide_${loanCount}"></div>
-    </div>`;
-    loanList.insertAdjacentHTML('beforeend', html);
-}
-
-function applyPolicy(id) {
-    const card = document.getElementById(`loan_${id}`);
-    const cat = card.querySelector('.l-category').value;
-    const m = card.querySelector('.l-m'); 
-    const r = card.querySelector('.l-r');
-    const srSelect = card.querySelector('.l-sr-select');
-    const guide = card.querySelector('.dynamic-guide');
-
-    guide.style.display = 'none';
-
-    if (cat === 'officetel' || cat === 'cardloan') {
-        guide.style.display = 'block';
-        if (cat === 'officetel') {
-            guide.innerHTML = "⚠️ 오피스텔 보유분은 8년 상환 규정이 적용됩니다.";
-            m.value = "96"; r.placeholder = "5.5"; srSelect.value = "0.0";
+        // [중요 로직] 오늘이 저장된 날짜와 같은 주(Monday 기준)에 포함되는지 확인
+        if (isSameWeek(today, storedDate)) {
+            // 같은 주라면 공지사항을 띄우지 않음
+            console.log("공지사항: 이번 주 닫기 상태 유지");
+            return;
         } else {
-            guide.innerHTML = "⚠️ 카드론은 가상 만기 3년이 고정 적용됩니다.";
-            m.value = "36"; r.placeholder = "13.0"; srSelect.value = "0.0";
+            // 다른 주(다음 주 월요일 이후)라면 저장된 시간 삭제 후 공지사항 띄움
+            localStorage.removeItem(NOTICE_KEY);
+            console.log("공지사항: 다음 주 월요일이 되어 다시 표시");
         }
-    } else {
-        srSelect.value = cat.includes('mortgage') ? "1.15" : "0.0";
-        m.value = cat === 'credit' ? "60" : (cat === 'jeonse' ? "24" : "360");
     }
+
+    // 팝업 표시 및 CSS 애니메이션 트리거
+    setTimeout(() => { overlay.classList.add('active'); }, 100);
 }
 
-// [4] 핵심 연산 및 스크롤 고도화
-function calculateLogic() {
-    const income = getNum(document.getElementById('income').value);
-    const items = document.querySelectorAll('[id^="loan_"]');
-    let totalAnnPayment = 0;
-    let combinedP = 0;
-    let bR = 4.5, bSR = 1.15, bM = 360;
+// 2. [고도화] 오늘이 저장된 날짜와 같은 주(월요일 기준)인지 확인하는 함수
+function isSameWeek(today, storedDate) {
+    // 요일을 0(일요일) ~ 6(토요일)로 가져옴
+    const todayDay = today.getDay(); 
+    const storedDay = storedDate.getDay();
 
-    items.forEach((item, index) => {
-        const P = getNum(item.querySelector('.l-p').value);
-        const R = Number(item.querySelector('.l-r').value || CONFIG.DEFAULT_RATE);
-        const SR = Number(item.querySelector('.l-sr-select')?.value || 0);
-        let n = getNum(item.querySelector('.l-m').value || 360);
-        const cat = item.querySelector('.l-category').value;
+    // 월요일을 기준(1)으로 각 요일의 오프셋 계산 (일요일은 7로 처리)
+    const todayMondayOffset = todayDay === 0 ? 7 : todayDay;
+    const storedMondayOffset = storedDay === 0 ? 7 : storedDay;
 
-        if (index === 0) { bR = R; bSR = SR; bM = n; }
-        const r_dsr = (R + SR) / 1200;
+    // 해당 요일을 월요일로 강제로 맞춰서 같은 주인지 비교
+    const todayMonday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - todayMondayOffset + 1);
+    const storedMonday = new Date(storedDate.getFullYear(), storedDate.getMonth(), storedDate.getDate() - storedMondayOffset + 1);
 
-        if (P > 0) {
-            const isPurchase = cat.includes('mortgage') || (cat === 'officetel' && n >= 180);
-            if (isPurchase) {
-                combinedP += P;
-                if (cat.includes('_prin')) {
-                    totalAnnPayment += (P / n * 12) + (P * r_dsr * (n + 1) / 2) / (n / 12);
-                } else {
-                    const mPMT = (P * r_dsr * Math.pow(1 + r_dsr, n)) / (Math.pow(1 + r_dsr, n) - 1);
-                    totalAnnPayment += mPMT * 12;
-                }
-            } else {
-                const targetN = (cat === 'officetel' && n < 180) ? 96 : (cat === 'jeonse' ? 1 : n);
-                if (cat === 'jeonse') totalAnnPayment += (P * (R / 100));
-                else {
-                    const mPMT = (P * r_dsr * Math.pow(1 + r_dsr, targetN)) / (Math.pow(1 + r_dsr, targetN) - 1);
-                    totalAnnPayment += mPMT * 12;
-                }
-            }
-        }
-    });
-
-    const dsr = (totalAnnPayment / income) * 100;
-    updateResultsUI(dsr, income, combinedP, bR, bSR, bM);
+    // 연도와 월요일 날짜가 같으면 같은 주
+    return todayMonday.getTime() === storedMonday.getTime();
 }
 
-// [5] Desktop/Mobile 통합 스크롤 버그 수정
-function updateResultsUI(dsr, income, combinedP, bR, bSR, bM) {
-    const isOver = dsr > CONFIG.DSR_LIMIT;
-    const resultArea = document.getElementById('resultArea');
+// 3. 우측 상단 '×' 버튼: 이번 주 닫기 (localStorage에 현재 시간 저장)
+function closeNoticeTemporarily() {
+    localStorage.setItem(NOTICE_KEY, new Date().getTime());
+    hideNoticeWithAnimation();
+}
+
+// 4. 하단 '다음 주 월요일까지 보지 않기' 버튼: 동일한 로직 적용
+function closeNoticeNextWeek() {
+    closeNoticeTemporarily();
+}
+
+// 5. 팝업 부드럽게 숨기기 함수
+function hideNoticeWithAnimation() {
+    const overlay = document.getElementById('notice-overlay');
+    overlay.classList.remove('active');
+    setTimeout(() => { overlay.style.display = 'none'; }, 500); // 애니메이션 후 완전히 숨김
+}
+
+// 6. 페이지 로드 완료 시 공지사항 상태 확인
+window.onload = () => {
+    console.log("페이지 로드 완료");
+    renderSummary();
+    renderContent();
+    startClock();
     
-    // 결과창 노출
-    resultArea.style.display = 'block';
-    
-    const dsrView = document.getElementById('dsrVal');
-    dsrView.innerText = dsr.toFixed(2) + "%";
-    dsrView.style.color = isOver ? "#e74c3c" : "#2ecc71";
-    
-    const dsrBar = document.getElementById('dsrBar');
-    dsrBar.style.width = Math.min(dsr, 100) + "%";
-    dsrBar.style.backgroundColor = isOver ? "#e74c3c" : "#2ecc71";
+    // [추가] 공지사항 팝업 여부 확인
+    showNotice();
+};
 
-    const targetAnnPay = income * 0.4;
-    const r_lim = (bR + bSR) / 1200;
-    const maxPrin = targetAnnPay / ((12 / bM) + (r_lim * (bM + 1) * 6 / bM));
-    const maxLevel = (targetAnnPay / 12) * (Math.pow(1 + r_lim, bM) - 1) / (r_lim * Math.pow(1 + r_lim, bM));
-    const f = (v) => (Math.floor(v / 10000) * 10000).toLocaleString() + " 원";
 
-    const prinCard = document.getElementById('prinCard');
-    const levelCard = document.getElementById('levelCard');
-    const absMaxLevel = document.getElementById('absMaxLevel');
 
-    document.getElementById('absMaxPrin').innerText = f(maxPrin);
-    if (isOver) {
-        absMaxLevel.innerText = "한도초과";
-        absMaxLevel.style.color = "#e74c3c";
-        levelCard.classList.remove('recommended');
-        prinCard.classList.add('recommended'); 
-    } else {
-        absMaxLevel.innerText = f(maxLevel);
-        absMaxLevel.style.color = "#e67e22"; 
-        levelCard.classList.add('recommended'); 
-        prinCard.classList.remove('recommended');
-    }
 
-    document.getElementById('remainingLimit').innerText = f(isOver ? 0 : Math.max(0, maxPrin - combinedP));
 
-    updateDetailVisualization(combinedP, bR, bM);
-
-    // [중요] 스크롤 미작동 해결: requestAnimationFrame과 정확한 좌표 계산 조합
-    requestAnimationFrame(() => {
-        setTimeout(() => {
-            const rect = resultArea.getBoundingClientRect();
-            const winTop = window.pageYOffset || document.documentElement.scrollTop;
-            const targetPos = rect.top + winTop - 30; // 상단 30px 여유
-            
-            window.scrollTo({
-                top: targetPos,
-                behavior: 'smooth'
-            });
-        }, 100);
-    });
-}
-
-// [6] 상환 스케줄 고도화 (요청 순서: 회차 | 원금 | 이자 | 합계)
-function generateSchedule() {
-    const items = document.querySelectorAll('[id^="loan_"]');
-    const target = items[0];
-    const P = getNum(target.querySelector('.l-p').value);
-    const R = Number(target.querySelector('.l-r').value || CONFIG.DEFAULT_RATE);
-    const n = getNum(target.querySelector('.l-m').value);
-    const r = R / 1200;
-
-    const listEl = document.getElementById('scheduleList');
-    listEl.innerHTML = ""; 
-
-    let balance = P;
-    const mP = P / n; 
-    const mPMT = (P * r * Math.pow(1+r, n)) / (Math.pow(1+r, n)-1);
-
-    let yearCumP = 0; let yearCumI = 0;
-
-    for (let i = 1; i <= n; i++) {
-        let curP, curI;
-        if (currentScheduleType === 'P') {
-            curI = balance * r; curP = mP; balance -= curP;
-        } else {
-            curI = balance * r; curP = mPMT - curI; balance -= curP;
-        }
-
-        yearCumP += curP; yearCumI += curI;
-        const totalPay = Math.floor(curP + curI); 
-
-        const itemDiv = document.createElement('div');
-        itemDiv.className = 'schedule-item';
-        // 요청하신 순서: 회차 | 원금 | 이자 | 합계
-        itemDiv.innerHTML = `
-            <div class="sch-idx">${i}회</div>
-            <div class="sch-val">${Math.floor(curP).toLocaleString()}</div>
-            <div class="sch-val">${Math.floor(curI).toLocaleString()}</div>
-            <div class="sch-total" style="font-weight:700; color:#2c3e50;">${totalPay.toLocaleString()}</div>
-        `;
-        listEl.appendChild(itemDiv);
-
-        // [N년차 스타일 고도화 - 잔액 정보 포함]
-        if (i % 12 === 0 || i === n) {
-            const yearNum = Math.ceil(i / 12);
-            const summaryDiv = document.createElement('div');
-            summaryDiv.className = 'year-summary-card';
-            summaryDiv.style.cssText = `
-                background: linear-gradient(135deg, #f8f9fa 0%, #f1f3f5 100%);
-                padding: 15px; margin: 12px 0 25px 0; border-radius: 12px;
-                border-left: 6px solid #3498db; box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-            `;
-            summaryDiv.innerHTML = `
-                <div style="font-weight:800; font-size:14px; color:#2c3e50; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
-                    <span>📅 ${yearNum}년차 누적 상환 요약</span>
-                    <span style="font-size:11px; background:#3498db; color:#fff; padding:2px 8px; border-radius:10px;">${(i/12).toFixed(0)}년 경과</span>
-                </div>
-                <div style="display:flex; justify-content:space-between; font-size:13px; color:#495057;">
-                    <div>누적원금: <b style="color:#2ecc71;">${Math.floor(yearCumP).toLocaleString()}</b></div>
-                    <div>누적이자: <b style="color:#e74c3c;">${Math.floor(yearCumI).toLocaleString()}</b></div>
-                </div>
-                <div style="margin-top:8px; padding-top:8px; border-top:1px dashed #ced4da; text-align:right; font-size:14px;">
-                    현재 대출 잔액: <b style="color:#34495e; font-size:16px;">${Math.max(0, Math.floor(balance)).toLocaleString()}원</b>
-                </div>
-            `;
-            listEl.appendChild(summaryDiv);
-            yearCumP = 0; yearCumI = 0; 
-        }
-    }
-}
-
-// [7] 시스템 알림 및 공통 기능
-function handleModalConfirm() {
-    const modal = document.getElementById('customModal');
-    if (modal) modal.style.display = 'none';
-
-    if (proceedOnConfirm) {
-        proceedOnConfirm = false;
-        calculateLogic(); 
-    } else if (lastFocusId) {
-        const el = document.getElementById(lastFocusId);
-        if (el) {
-            el.focus();
-            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-    }
-}
-
-function showAlert(msg, focusId = null, icon = "⚠️", allowProceed = false) {
-    const modal = document.getElementById('customModal');
-    if (!modal) return;
-    document.getElementById('modalMsg').innerHTML = msg;
-    document.getElementById('modalIcon').innerText = icon;
-    lastFocusId = focusId; proceedOnConfirm = allowProceed;
-    modal.style.display = 'flex';
-}
-
-function formatComma(obj) {
-    let val = obj.value.replace(/[^0-9]/g, "");
-    obj.value = val.length > 0 ? Number(val).toLocaleString() : "";
-    obj.classList.remove('input-warning');
-}
-
-function getNum(val) { return Number(val.toString().replace(/,/g, "")) || 0; }
-function removeLoan(id) { document.getElementById(`loan_${id}`)?.remove(); }
-function toggleSchedule() {
-    const sec = document.getElementById('scheduleSection');
-    const btn = document.getElementById('btnShowSchedule');
-    const isShow = (sec.style.display === 'none' || sec.style.display === '');
-    sec.style.display = isShow ? 'block' : 'none';
-    btn.innerText = isShow ? "🔼 스케줄 접기" : "📊 전체 상환 스케줄 상세 보기";
-    if (isShow) generateSchedule();
-}
-function switchSchedule(type) {
-    currentScheduleType = type;
-    document.getElementById('tabPrin').classList.toggle('active', type === 'P');
-    document.getElementById('tabLevel').classList.toggle('active', type === 'L');
-    generateSchedule();
-}
-function initNotice() { if (localStorage.getItem('hideStressNotice') !== 'true') document.getElementById('noticePopup').style.display = 'flex'; }
-function closeNotice() { document.getElementById('noticePopup').style.display = 'none'; }
-function closeNoticeForever() { localStorage.setItem('hideStressNotice', 'true'); closeNotice(); }
-
-function updateDetailVisualization(P, R, n) {
-    const r = R / 1200;
-    const f = (v) => Math.floor(v).toLocaleString() + "원";
-    const totalInt_p = P * r * (n + 1) / 2;
-    const mPMT_l = (P * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
-    document.getElementById('vis_m_p_p').innerText = f(P / n);
-    document.getElementById('vis_m_i_p').innerText = f(totalInt_p / n);
-    document.getElementById('vis_m_t_p').innerText = f((P / n) + (totalInt_p / n)); 
-    document.getElementById('vis_total_full_p').innerText = f(P + totalInt_p);
-    document.getElementById('vis_m_t_l').innerText = f(mPMT_l);
-    document.getElementById('vis_total_full_l').innerText = f(mPMT_l * n);
-}
-
-function copyResultText() {
-    const dsr = document.getElementById('dsrVal').innerText;
-    const limit = document.getElementById('remainingLimit').innerText;
-    const reportText = `[📊 DSR 진단 리포트] \n● 종합 DSR: ${dsr} \n● 추가 대출 여력: ${limit}`;
-    const temp = document.createElement("textarea");
-    document.body.appendChild(temp);
-    temp.value = reportText; temp.select(); document.execCommand("copy");
-    document.body.removeChild(temp);
-    showAlert("리포트가 복사되었습니다!", null, "✅");
-}
