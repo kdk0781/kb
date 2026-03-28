@@ -28,11 +28,7 @@ window.onload = function() {
 
   // ★ 고도화: 1회성 접속 시 'guest=true' 꼬리표를 달아 common.js에 고객 모드임을 알림
   document.getElementById('btnOneTime').addEventListener('click', () => {
-	// ★ 고도화: 1회성 접속 시 브라우저에 '고객 모드' 강력한 락(Lock)을 걸어버림
-	  document.getElementById('btnOneTime').addEventListener('click', () => {
-		localStorage.setItem('kb_guest_mode', 'true'); // 고객 낙인!
-		window.location.href = 'index.html'; // 꼬리표 없이 깔끔하게 원주소로 이동
-	  });
+    window.location.href = 'index.html?guest=true';
   });
 };
 
