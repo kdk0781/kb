@@ -1,44 +1,11 @@
-	// ─── [0] 접속 초기 설정 (common.js 최상단) ─────────────────────
-	document.addEventListener('DOMContentLoaded', () => {
-	  if (window.location.href.includes('index.html')) {
-		  const cleanUrl = window.location.href.split('index.html')[0];
-		  window.history.replaceState(null, '', cleanUrl); // ★ 주소창 세탁
-	  }
-	});
-
-    // 2. 관리자 전용 UI 숨김 로직 (가장 중요한 부분)
-    //    사용자가 자신의 브라우저에서 자가 테스트를 하더라도, 
-    //    임시 링크를 통해 들어왔다면 'guest_mode' 세션이 생성되므로
-    //    기존의 관리자 로그인 세션이 있더라도 강제로 관리자 UI를 숨깁니다.
-    const isGuest = sessionStorage.getItem('guest_mode') === 'true';
-
-    if (isGuest) {
-        // 고객 모드로 접속했으므로 관리자 전용 영역을 숨깁니다.
-        const adminUI = document.getElementById('adminShareContainer'); // 관리자 UI 컨테이너 ID
-        if (adminUI) {
-            adminUI.style.display = 'none';
-        }
-    }
-    // else: 일반 접속이면 기존 common.js의 checkAdminAuth() 함수가 작동하여 관리자 세션을 확인합니다.
-});
-// ─────────────────────────────────────────────────────────────
-
-  // 2. 관리자 UI 랜더링 차단 로직 (1회성 접속이나 고객용 앱 접속 시)
-  const urlParams = new URLSearchParams(window.location.search);
-  const isGuest = urlParams.get('guest') === 'true'; // share.js에서 넘겨준 값
-  const isMainApp = window.matchMedia('(display-mode: standalone)').matches; // PWA 앱으로 실행 중인지 확인
-
-  if (isGuest || isMainApp) {
-      // 고객 모드이므로 관리자 UI 함수 실행을 막음
-      console.log("고객 모드: 관리자 기능을 차단합니다.");
-  } else {
-      // 일반 브라우저 접속이며 고객 모드가 아닌 경우에만 관리자 UI 확인 (맨 하단 함수 호출)
-      if (typeof checkAdminAuth === 'function') checkAdminAuth();
+// ─── [0] 접속 초기 설정 (common.js 최상단) ─────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  if (window.location.href.includes('index.html')) {
+      const cleanUrl = window.location.href.split('index.html')[0];
+      window.history.replaceState(null, '', cleanUrl); // ★ 주소창 세탁
   }
 });
-// ────────────────────────────────────────────────────────────────
-
-
+// ─────────────────────────────────────────────────────────────
 
 /* =============================================================================
    DSR CORE SYSTEM — KB 브랜드 VER 2026.05-C
@@ -881,95 +848,22 @@ function _fc(text){
   try{document.execCommand("copy");}catch{}
   document.body.removeChild(t);
 }
-
-// ─── [9] 관리자 기능 (common.js 하단 추가) ───────────────────────────────
-
-function checkAdminAuth() {
-  const sessionStr = localStorage.getItem('kb_admin_session');
-  if (!sessionStr) return;
-
-  try {
-    const session = JSON.parse(sessionStr);
-    if (session.isAuth && Date.now() < session.expires) {
-      // 관리자 세션이 유효하면 전용 UI 노출
-      const adminUI = document.getElementById('adminShareContainer');
-      if (adminUI) adminUI.style.display = 'block';
-    } else {
-      // 만료 시 세션 삭제
-      localStorage.removeItem('kb_admin_session');
-    }
-  } catch(e) {}
-}
-
-async function generateAdminShareLink() {
-  const btn = document.getElementById('btnAdminShare');
-  const origHtml = btn.innerHTML;
-  btn.innerHTML = '🔗 링크 생성 중...';
-  btn.disabled = true;
-
-  try {
-    const session = JSON.parse(localStorage.getItem('kb_admin_session'));
-    const mainUrl = session.mainUrl || window.location.href.split('?')[0];
-    
-    // 24시간 뒤 만료되는 페이로드 생성
-    const payload = {
-      url: mainUrl,
-      exp: Date.now() + (24 * 60 * 60 * 1000)
-    };
-    
-    // Base64 인코딩
-    const encodedPayload = btoa(encodeURIComponent(JSON.stringify(payload)));
-    
-    // share.html 의 경로 생성 (index.html 과 같은 경로에 있다고 가정)
-    const baseUrl = mainUrl.substring(0, mainUrl.lastIndexOf('/') + 1);
-    const longShareUrl = `${baseUrl}share.html?t=${encodedPayload}`;
-    
-    // URL 단축 (기존 단축 API 재사용)
-    const shortUrl = await _shortenUrl(longShareUrl);
-    
-    const msg = `🔗 <b>고객용 설치 유도 링크가 복사되었습니다.</b><br><br>` +
-                `<span style="font-size:12px; display:block; margin-top:8px;">` +
-                `• 이 링크는 발급 시간 기준 <b>24시간 동안만 유효</b>합니다.<br>` +
-                `• 고객이 접속 시 PWA 자동 설치 안내 페이지로 연결됩니다.</span>`;
-
-    if (navigator.clipboard?.writeText) {
-      navigator.clipboard.writeText(shortUrl).then(() => showAlert(msg, null, "✅"));
-    } else {
-      _fc(shortUrl); showAlert(msg, null, "✅");
-    }
-  } catch (e) {
-    showAlert("링크 생성 중 오류가 발생했습니다.", null, "⚠️");
-  } finally {
-    btn.innerHTML = origHtml;
-    btn.disabled = false;
-  }
-}
-
-// 기존 window.onload 에 checkAdminAuth() 추가 실행
-const originalOnload = window.onload;
-window.onload = async function() {
-  if (originalOnload) await originalOnload();
-  checkAdminAuth();
-};
-
-// ─── [9] 관리자 기능 (common.js 맨 하단 기존 추가 코드를 이걸로 교체) ───────────────────────────────
+// ─── [9] 관리자 기능 ───────────────────────────────
 
 function checkAdminAuth() {
-  // ★ 추가해야 할 3줄 (고객이면 관리자 UI 렌더링 강제 중단)
+  // ★ 고객 낙인이 있으면 관리자 UI 렌더링 강제 중단
   if (localStorage.getItem('kb_guest_mode') === 'true') {
     return;
   }
 
-  // ... (이 아래로는 기존 sessionStr 체크 로직 그대로 유지) ...
   const sessionStr = localStorage.getItem('kb_admin_session');
+  if (!sessionStr) return;
   try {
     const session = JSON.parse(sessionStr);
     if (session.isAuth && Date.now() < session.expires) {
-      // 관리자 세션이 유효하면 전용 UI 노출
       const adminUI = document.getElementById('adminShareContainer');
       if (adminUI) adminUI.style.display = 'block';
     } else {
-      // 만료 시 세션 삭제
       localStorage.removeItem('kb_admin_session');
     }
   } catch(e) {}
@@ -982,23 +876,11 @@ async function generateAdminShareLink() {
   btn.disabled = true;
 
   try {
-    // 로컬/깃허브 환경 상관없이 현재 브라우저의 절대 경로를 동적으로 추출
     const currentUrl = window.location.href.split('?')[0].split('#')[0];
     const baseUrl = currentUrl.substring(0, currentUrl.lastIndexOf('/') + 1);
-    
-    // 24시간 뒤 만료되는 페이로드 생성
-    const payload = {
-      url: currentUrl,
-      exp: Date.now() + (24 * 60 * 60 * 1000)
-    };
-    
-    // Base64 인코딩
+    const payload = { url: currentUrl, exp: Date.now() + (24 * 60 * 60 * 1000) };
     const encodedPayload = btoa(encodeURIComponent(JSON.stringify(payload)));
-    
-    // share.html 의 절대 경로 생성 (단축 URL API는 절대경로만 허용)
     const longShareUrl = `${baseUrl}share.html?t=${encodedPayload}`;
-    
-    // URL 단축 (기존 API 재사용)
     const shortUrl = await _shortenUrl(longShareUrl);
     
     const msg = `🔗 <b>고객용 설치 유도 링크가 복사되었습니다.</b><br><br>` +
@@ -1022,53 +904,24 @@ async function generateAdminShareLink() {
   }
 }
 
-// ─── 관리자 로그아웃 로직 ───
-function adminLogout() {
-  if (confirm('관리자 모드에서 로그아웃 하시겠습니까?')) {
-    // 1. 관리자 세션 정보 삭제
-    localStorage.removeItem('kb_admin_session');
-    
-    // 2. 현재 경로를 기반으로 admin.html 위치 계산
-    const currentUrl = window.location.href.split('?')[0].split('#')[0];
-    const baseUrl = currentUrl.substring(0, currentUrl.lastIndexOf('/') + 1);
-    
-    // 3. 로그인 페이지(admin.html)로 리다이렉트
-    window.location.href = baseUrl + 'admin.html';
-  }
-}
-
-// ─── [9] 관리자 기능 (common.js 하단 추가) ───────────────────────────────
-
-// (기존 checkAdminAuth, generateAdminShareLink 함수들은 그대로 유지)
-
 // ─── 관리자 로그아웃 모달 제어 로직 ───
-
-// 1. [로그아웃] 버튼 클릭 시: 확인 모달 띄우기
 function adminLogout() {
   const modal = document.getElementById('logoutConfirmModal');
   if (modal) modal.style.display = 'flex';
 }
 
-// 2. 모달에서 [취소] 클릭 시: 모달 닫기
 function closeLogoutModal() {
   const modal = document.getElementById('logoutConfirmModal');
   if (modal) modal.style.display = 'none';
 }
 
-// 3. 모달에서 최종 [로그아웃] 클릭 시: 실제 로그아웃 처리 및 이동
 function proceedAdminLogout() {
-  // 모달 닫기
   closeLogoutModal();
-
-  // 1. 관리자 세션 정보 삭제
   localStorage.removeItem('kb_admin_session');
-  
-  // 2. 현재 경로를 기반으로 admin.html 위치 계산
   const currentUrl = window.location.href.split('?')[0].split('#')[0];
   const baseUrl = currentUrl.substring(0, currentUrl.lastIndexOf('/') + 1);
-  
-  // 3. 로그인 페이지(admin.html)로 리다이렉트
   window.location.href = baseUrl + 'admin.html';
 }
 
-// (기존 DOMContentLoaded 이벤트 리스너는 그대로 유지)
+// 페이지 로드 시 관리자 권한 체크
+document.addEventListener('DOMContentLoaded', checkAdminAuth);
