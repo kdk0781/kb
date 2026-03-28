@@ -3,15 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
-  <link rel="icon" type="image/svg+xml" href="../ico/admin_ico.svg">
-  <link rel="apple-touch-icon" href="../ico/admin_ico.svg">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"> 
-  <meta name="apple-mobile-web-app-title" content="DSR 관리자">
-  <link rel="manifest" href="admin.json">
   <title>DSR 계산기 - 관리자 로그인</title>
+  
+  <link rel="icon" type="image/png" href="../ico/admin_ico.png?v=1.2">
+  <link rel="apple-touch-icon" href="../ico/admin_ico.png?v=1.2">
+  <link rel="manifest" href="admin.json?v=1.2">
+  
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="DSR 관리자">
+
   <link rel="stylesheet" href="common.css" media="all">
-  <link rel="stylesheet" href="admin.css" media="all"> </head>
+  <link rel="stylesheet" href="admin.css" media="all">
+</head>
 <body>
   <div class="admin-container">
     <div class="admin-card">
@@ -46,22 +50,17 @@
   <div id="settingsModal" class="modal-overlay admin-modal-overlay">
     <div class="modal-content settings-modal-content">
       <span class="modal-icon">⚙️</span>
-      <div class="modal-text settings-modal-title">
-        관리자 설정 변경
-      </div>
-      
+      <div class="modal-text settings-modal-title">관리자 설정 변경</div>
       <div class="settings-section">
         <label class="settings-label">현재 계정 확인</label>
         <input type="text" id="setCurId" placeholder="현재 아이디" class="modal-input" autocomplete="off">
         <input type="password" id="setCurPw" placeholder="현재 비밀번호" class="modal-input mt-6">
       </div>
-
       <div class="settings-section-divider">
         <label class="settings-label">변경할 정보 (미입력시 유지)</label>
         <input type="password" id="setNewPw" placeholder="새 비밀번호" class="modal-input">
         <input type="text" id="setNewUrl" placeholder="새 대표페이지 URL" class="modal-input mt-6">
       </div>
-
       <div class="modal-btn-group">
         <button class="modal-btn modal-btn-cancel" onclick="closeSettingsModal()">취소</button>
         <button class="modal-btn" onclick="saveSettingsFromModal()">저장</button>
