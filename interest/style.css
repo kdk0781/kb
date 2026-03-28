@@ -1,5 +1,5 @@
   /* ======================================================
-   KB 금리표 · style.css  v0781_4
+   KB 금리표 · style.css  v0781_5
    iOS Safari 전면 호환 (flex gap → margin 전환, -webkit- prefix 완비)
    ====================================================== */
 
@@ -81,6 +81,10 @@ body {
     padding-right: calc(16px + env(safe-area-inset-right));
 }
 
+/* 만약 최상단을 감싸는 래퍼(.app-container)가 있다면 거기도 찔러줍니다 */
+.app-container {
+    padding-top: env(safe-area-inset-top);
+}
 
 /* ======================================================
    3. 상단 고정 헤더
@@ -230,6 +234,9 @@ body {
     max-width: var(--max-w);
     margin-left: auto;
     margin-right: auto;
+	padding-top: calc(10px + env(safe-area-inset-top));
+	min-height: calc(var(--summary-h) + env(safe-area-inset-top));
+	padding-bottom: 10px;
 }
 .summary-bar::-webkit-scrollbar { display: none; }
 
