@@ -111,9 +111,16 @@ body {
     -webkit-box-align: center;
     -webkit-align-items: center;
     align-items: center;
-    height: var(--nav-h);
-    min-height: var(--nav-h);
-    padding: 0 20px;
+    
+    /* 🚨 [핵심 수정] 높이와 패딩에 아이폰 노치(env) 여백을 강제 할당 */
+    height: calc(var(--nav-h) + env(safe-area-inset-top));
+    min-height: calc(var(--nav-h) + env(safe-area-inset-top));
+    padding-top: env(safe-area-inset-top) !important; 
+    padding-bottom: 0;
+    padding-left: 20px;
+    padding-right: 20px;
+    box-sizing: border-box;
+    
     width: 100%;
     max-width: var(--max-w);
     margin-left: auto;
@@ -303,7 +310,10 @@ body {
 .section-header {
     position: -webkit-sticky;
     position: sticky;
-    top: 104px; /* 58 + 46 — CSS calc+var 대신 고정값 (iOS 오작동 방지) */
+    
+    /* 🚨 [핵심 수정] 기존 104px에 노치 높이를 더해줘야 밑으로 파고들지 않음 */
+    top: calc(104px + env(safe-area-inset-top)); 
+    
     z-index: 900;
     background-color: var(--bg-card);
     -webkit-backdrop-filter: blur(10px);
