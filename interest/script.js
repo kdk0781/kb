@@ -325,3 +325,18 @@ document.addEventListener('DOMContentLoaded', () => {
     showNotice();
     console.log('KB 금리표 로드 완료');
 });
+
+// script.js 의 강력 새로고침 내부 setTimeout 부분
+
+setTimeout(() => {
+    const currentUrl = window.location.origin + window.location.pathname;
+    
+    // [아이폰 최적화 1] URL 뒤에 타임스탬프를 붙여 사파리가 "완전 새로운 페이지"로 착각하게 속임
+    const timestampUrl = currentUrl.split('?')[0] + '?v=' + new Date().getTime();
+    
+    // [아이폰 최적화 2] 임시 데이터(세션)를 날려서 찌꺼기 방지
+    sessionStorage.clear();
+    
+    // [아이폰 최적화 3] href 대신 replace를 써서 아이폰의 악명높은 '뒤로가기 캐시' 꼬임을 방지
+    window.location.replace(timestampUrl); 
+}, 1500);
