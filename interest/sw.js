@@ -1,5 +1,5 @@
 /* ======================================================
-   KB 금리표 · sw.js  v0781_4
+   KB 금리표 · sw.js  v0781_0
    
    ⚠️ 이 파일은 반드시 navigator.serviceWorker.register()로만 등록할 것
       <script src="sw.js"> 로 로드하면 self.skipWaiting() 에서 TypeError 크래시 발생
