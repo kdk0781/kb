@@ -170,9 +170,11 @@ function markRateWarning(rInput) {
 }
 
 function clearRateWarnings() {
-  document.querySelectorAll('.rate-missing').forEach(el => el.classList.remove('rate-missing'));
-  document.querySelectorAll('.rate-warning-card').forEach(el => el.classList.remove('rate-warning-card'));
-  document.querySelectorAll('.rate-missing-banner').forEach(el => el.remove());
+  // 단일 루프로 3개 querySelectorAll 통합
+  document.querySelectorAll('.rate-missing, .rate-warning-card, .rate-missing-banner').forEach(el => {
+    if (el.classList.contains('rate-missing-banner')) el.remove();
+    else el.classList.remove('rate-missing', 'rate-warning-card');
+  });
 }
 
 function onRateInput(input) {
@@ -618,12 +620,6 @@ function generateSchedule() {
   schedLoans.forEach(loan => renderLoanSchedule(listEl, loan));
 }
 
-/**
- * 스케줄 렌더링
- * 핵심: milestoneMap 에 개별 서브론 종료 회차(part.n) 를 등록하여
- *       해당 회차에 "잔금 상환 완료" 카드를 삽입합니다.
- *       단기 서브론이 없는 경우 (merged=false) 에도 마지막 회차(i===n)에 종료 카드를 표시합니다.
- */
 function renderLoanSchedule(listEl, loan) {
   const { P, R, n, label, merged, parts } = loan;
   const r = R / 1200;
@@ -637,16 +633,14 @@ function renderLoanSchedule(listEl, loan) {
     : `<span class="sch-calc-title">${_EMOJI[loan.cat]||'🏠'} ${label} 상환 스케줄</span><span class="sch-calc-meta">${Math.round(P).toLocaleString()}원 | ${R.toFixed(2)}% | ${n}개월</span>`;
   listEl.appendChild(schedHeader);
 
-  // ★ 마일스톤 맵 구성 (단기 서브론 + 단일 대출 마지막 회차 모두 포함)
+  // ★ 마일스톤 맵 구성
   const milestoneMap = {};
   if (merged && parts) {
-    // 복수 구입자금: 각 서브론의 종료 회차 등록
     parts.forEach(part => {
       const key = part.n;
       (milestoneMap[key] = milestoneMap[key] || []).push({ ...part, isSub: true });
     });
   } else {
-    // 단일 대출: 마지막 회차에 단일 종료 카드 등록
     milestoneMap[n] = [{ ...loan, label, cat: loan.cat, isSub: false }];
   }
 
@@ -654,6 +648,9 @@ function renderLoanSchedule(listEl, loan) {
   const mP_prin  = P / n;
   const mPMT_lvl = calcPMT(P, r, n);
   let balance = P, yearCumP = 0, yearCumI = 0, totalCumP = 0, totalInterest = 0;
+
+  // ★ DocumentFragment — 회차 전체를 메모리에서 조립 후 1회 DOM 삽입
+  const frag = document.createDocumentFragment();
 
   for (let i = 1; i <= n; i++) {
     let curP, curI;
@@ -665,7 +662,7 @@ function renderLoanSchedule(listEl, loan) {
     const row = document.createElement('div');
     row.className = 'schedule-item';
     row.innerHTML = `<div class="sch-idx">${i}회</div><div class="sch-val">${Math.round(curP).toLocaleString()}</div><div class="sch-val">${Math.round(curI).toLocaleString()}</div><div class="sch-total">${Math.round(curP+curI).toLocaleString()}</div>`;
-    listEl.appendChild(row);
+    frag.appendChild(row);
 
     // N년차 요약 카드
     if (i % 12 === 0 || i === n) {
@@ -679,11 +676,11 @@ function renderLoanSchedule(listEl, loan) {
           <div>누적이자: <b class="stat-int">${Math.round(yearCumI).toLocaleString()}원</b></div>
         </div>
         <div class="card-balance-row"><span class="balance-label">잔액</span><span class="balance-value">${Math.max(0, Math.round(balance)).toLocaleString()}원</span></div>`;
-      listEl.appendChild(card);
+      frag.appendChild(card);
       yearCumP = 0; yearCumI = 0;
     }
 
-    // ★ 마일스톤 카드 삽입
+    // ★ 마일스톤 카드
     if (milestoneMap[i]) {
       milestoneMap[i].forEach(part => {
         const mc       = document.createElement('div');
@@ -710,12 +707,12 @@ function renderLoanSchedule(listEl, loan) {
             <span class="balance-label">${part.isSub ? '전체 잔액 (통합 기준)' : '잔액'}</span>
             <span class="balance-value">${Math.max(0, Math.round(balance)).toLocaleString()}원</span>
           </div>`;
-        listEl.appendChild(mc);
+        frag.appendChild(mc);
       });
     }
   }
 
-  // 통합 총계 카드 (단일 대출은 마일스톤 카드로 대체되므로 merged 시에만)
+  // 통합 총계 카드
   if (merged) {
     const total = document.createElement('div');
     total.className = 'year-summary-card total-card';
@@ -726,8 +723,11 @@ function renderLoanSchedule(listEl, loan) {
         <div>총 이자: <b class="stat-int">${Math.round(totalInterest).toLocaleString()}원</b></div>
       </div>
       <div class="card-balance-row"><span class="balance-label">총 납입액</span><span class="balance-value">${Math.round(P+totalInterest).toLocaleString()}원</span></div>`;
-    listEl.appendChild(total);
+    frag.appendChild(total);
   }
+
+  // ★ 단 1회 DOM 삽입 (30년 = 360 appendChild → 1 appendChild)
+  listEl.appendChild(frag);
 }
 
 // ─── [6] 공지 팝업 ───────────────────────────────────────────────────────────
@@ -800,40 +800,17 @@ function openGuide() {
     }
 }
 
-// 가이드 모달 닫기
+// 가이드 모달 닫기 (스크롤 복구 포함)
 function closeGuide() {
     const guideModal = document.getElementById('guideModal');
-    if (guideModal) {
-        guideModal.style.display = 'none';
-    }
-    
-    // ★ 핵심: 닫기(X), 확인, 배경 클릭 시 모두 이 로직을 타면서 스크롤 복구
+    if (guideModal) guideModal.style.display = 'none';
     document.body.classList.remove('body-no-scroll');
-    
-    // (만약 어딘가에 남아있을지 모를 기존 인라인 스타일까지 확실하게 찌꺼기 제거)
-    document.body.style.overflow = ''; 
+    document.body.style.overflow = '';
 }
 
 // 배경 클릭 시 닫기
 function closeGuideOnBackdrop(event) {
-    if (event.target === event.currentTarget) {
-        closeGuide();
-    }
-}
-
-// 가이드 모달 닫기
-function closeGuide() {
-    const guideModal = document.getElementById('guideModal');
-    if (guideModal) {
-        guideModal.style.display = 'none';
-    }
-}
-
-// 배경 클릭 시 닫기 (기존에 설정하신 onclick="closeGuideOnBackdrop(event)" 처리용)
-function closeGuideOnBackdrop(event) {
-    if (event.target === event.currentTarget) {
-        closeGuide();
-    }
+    if (event.target === event.currentTarget) closeGuide();
 }
 
 
@@ -961,14 +938,6 @@ async function copyResultText() {
   }
 }
 
-function _fc(text){
-  const t=document.createElement("textarea");
-  t.style.cssText="position:fixed;top:-9999px;opacity:0;";
-  document.body.appendChild(t);t.value=text;t.focus();t.select();
-  try{document.execCommand("copy");}catch{}
-  document.body.removeChild(t);
-}
-
 // ─── [9] 관리자 기능 ───────────────────────────────
 
 function checkAdminAuth() {
@@ -990,7 +959,7 @@ function checkAdminAuth() {
   } catch(e) {}
 }
 
-// ─── [9] 관리자 기능: 배포용 링크 생성 (iOS 이슈 해결) ───
+// ─── [10] 관리자 기능: 배포용 링크 생성 (iOS 이슈 해결) ───
 async function generateAdminShareLink() {
   const btn = document.getElementById('btnAdminShare');
   const origHtml = btn.innerHTML;
