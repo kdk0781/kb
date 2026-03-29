@@ -55,7 +55,7 @@
     
     .sched-table-wrap { display: none; margin-top: 16px; border-top: 1px dashed var(--border-strong); padding-top: 16px; overflow-x: auto; animation: fade-in 0.3s var(--ease); -webkit-overflow-scrolling: touch; }
     .sched-table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 400px; text-align: right; }
-    .sched-table th { background: var(--bg-page); color: var(--text-secondary); font-weight: 700; padding: 8px 4px; border-bottom: 1px solid var(--border-strong); text-align: center;}
+    .sched-table th { background: var(--bg-page); color: var(--text-secondary); font-weight: 700; padding: 8px 4px; border-bottom: 1px solid var(--border-strong); text-align: right;}
     .sched-table td { padding: 8px 4px; border-bottom: 1px solid var(--border-light); color: var(--text-secondary); font-family: 'Roboto', monospace; letter-spacing: -0.02em; }
     .sched-table tr:last-child td { border-bottom: none; font-weight: 700; color: var(--kb-navy); background: var(--kb-yellow-pale); }
     .sched-table th:first-child, .sched-table td:first-child { text-align: center; width: 40px; color: var(--text-muted); }
@@ -97,6 +97,35 @@
       .info-label { font-size: 12px; }
       .info-val { font-size: 14px; color: var(--text-primary); }
     }
+	.sched-table-wrap { 
+        display: none; 
+        margin-top: 16px; 
+        border-top: 1px dashed var(--border-strong); 
+        /* padding-top을 0으로 바꿔야 헤더가 딱 붙습니다 */
+        padding-top: 0; 
+        /* 내부 스크롤 생성 (테이블이 너무 길면 자체 스크롤 됨) */
+        max-height: 380px; 
+        overflow-y: auto; 
+        overflow-x: auto; 
+        animation: fade-in 0.3s var(--ease); 
+        -webkit-overflow-scrolling: touch; 
+    }
+    
+    .sched-table th { 
+        /* 헤더 배경색을 확실히 줘서 뒤에 글씨가 안 비치게 합니다 */
+        background: var(--bg-surface-2); 
+        color: var(--text-secondary); 
+        font-weight: 700; 
+        padding: 10px 4px; 
+        text-align: center;
+        /* 핵심: 스티키 헤더 적용 */
+        position: sticky; 
+        top: 0; 
+        z-index: 10;
+        /* 스티키 요소에는 border-bottom 대신 box-shadow를 써야 스크롤 시 깨지지 않습니다 */
+        box-shadow: 0 1px 0 var(--border-strong);
+    }
+
   </style>
 </head>
 <body>

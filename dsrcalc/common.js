@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
 const APP_CONFIG = {
 
   APP_VERSION:    '2026.05-C',
-  NOTICE_VERSION: '0781_7',
+  NOTICE_VERSION: '0781_0',
 
   // ── DSR 구간 기준 (%) ───────────────────────────────────────────────────────
   DSR_LIMIT_PCT:   40,
@@ -506,7 +506,8 @@ function calculateLogic() {
   if (remainView) { remainView.innerText = f(remainLimit); remainView.style.color = isOver ? "var(--danger)" : dsr > _C.DSR_WARN_PCT ? "var(--warn)" : "var(--safe)"; }
 
   const recDesc = document.getElementById('recDesc');
-  if (recDesc) recDesc.innerHTML = buildRecommendText(dsr, isOver, remainLimit, maxPrin, maxLevel, f);
+  if (recDesc) recDesc.innerHTML = buildRecommendText(dsr, isOver, remainLimit, maxPrin, maxLevel, f, income, totalAnnPayment);
+
 
   document.getElementById('scheduleSection').classList.remove('schedule-visible');
   document.getElementById('scheduleSection').classList.add('schedule-section-hidden');
@@ -563,21 +564,27 @@ function renderReverseCalc(dsr, income, list, totalPmt, totalPrin) {
         `);
     });
 
-    // 35% 타겟 계산 (여유분 5%)
+    // 🎯 35% 타겟 기준 역행 계산 로직
     const targetDSR = 35;
+    
+    // ① 필요 연소득 산출 (현재 부채를 그대로 유지할 경우)
+    const reqIncome = totalPmt / (targetDSR / 100);
+    const fReqIncome = (Math.ceil(reqIncome / 10000) * 10000).toLocaleString(); // 만원 단위 올림
+
+    // ② 필요 상환 원금 산출 (현재 소득을 그대로 유지할 경우)
     const targetPmt = income * (targetDSR / 100);
     const excessPmt = totalPmt - targetPmt; // 줄여야 할 연간 상환액
-    
-    // 원금 환산 추정 (전체 부채의 가중 평균 활용)
     const avgPmtRatio = totalPrin > 0 ? (totalPmt / totalPrin) : 0;
     const estPrin = avgPmtRatio > 0 ? (excessPmt / avgPmtRatio) : 0;
-    const fEstPrin = (Math.round(estPrin / 10000) * 10000).toLocaleString(); // 만원 단위 반올림
+    const fEstPrin = (Math.ceil(estPrin / 10000) * 10000).toLocaleString(); // 만원 단위 올림
 
+    // 화면 출력 (소득 강조)
     document.getElementById('reverseSolutionText').innerHTML = `
-        현재 DSR이 규제선(${_C.DSR_LIMIT_PCT}%)을 초과했습니다. 안전 마진을 둔 <b>DSR ${targetDSR}%</b> 수준으로 낮추려면,<br>
-        연간 원리금 상환액을 <b class="solution-highlight">${Math.round(excessPmt).toLocaleString()}원</b> 이상 줄여야 합니다.<br><br>
-        📉 <b>역행 산출 결과:</b> 기존 대출 원금을 대략 <b class="solution-highlight">${fEstPrin}원</b> 정도 상환하거나,<br>
-        위 목록에서 <b>DSR 기여도(%)가 가장 높은 대출</b>을 우선 정리하는 것이 가장 효과적입니다.
+        현재 DSR이 규제선(${_C.DSR_LIMIT_PCT}%)을 초과했습니다. 안전 마진을 둔 <b>DSR ${targetDSR}%</b> 수준을 맞추려면 아래 조건 중 하나를 충족해야 합니다.<br><br>
+        📉 <b>역행 산출 결과:</b><br>
+        · <b>연소득</b>이 <b class="solution-highlight" style="color:var(--kb-navy); background:var(--kb-yellow-light); padding:2px 6px; border-radius:4px;">${fReqIncome}원</b> 이상 증빙되거나,<br>
+        · 기존 대출 원금을 대략 <b class="solution-highlight">${fEstPrin}원</b> 정도 상환하여 연간 원리금을 <b>${Math.round(excessPmt).toLocaleString()}원</b> 이상 줄여야 합니다.<br>
+        <span style="display:block; margin-top:8px; font-size:12.5px; color:var(--text-muted);">💡 대출금 상환 시, 위 목록에서 <b>DSR 기여도(%)가 가장 높은 대출</b>을 우선 정리하는 것이 유리합니다.</span>
     `;
 }
 
@@ -598,9 +605,15 @@ function toggleReverseCalc() {
 
 
 // ─── [4-1] 추천 문구 ─────────────────────────────────────────────────────────
-function buildRecommendText(dsr, isOver, remainLimit, maxPrin, maxLevel, f) {
+function buildRecommendText(dsr, isOver, remainLimit, maxPrin, maxLevel, f, totalAnnPayment) {
   const d = dsr.toFixed(1);
-  if (isOver) return `<b style="color:var(--danger)">⛔ DSR 규제선(${_C.DSR_LIMIT_PCT}%) 초과 — 현재 ${d}% (초과 ${(dsr-_C.DSR_LIMIT_PCT).toFixed(1)}%p)</b><br><span style="font-size:12px;line-height:1.8;">신규 주택담보대출 실행이 제한됩니다. 고금리 부채 우선 상환 또는 만기 연장으로 월 상환부담을 줄이세요. 권장 목표 원금: <b style="color:var(--kb-yellow-deep)">${f(maxPrin)} 이하</b></span>`;
+  if (isOver) {
+      // 🎯 목표 연소득 계산 (35% 안정권 기준)
+      const reqIncome = totalAnnPayment / 0.35;
+      const fReqIncome = (Math.ceil(reqIncome / 10000) * 10000).toLocaleString() + "원";
+      
+      return `<b style="color:var(--danger)">⛔ DSR 규제선(${_C.DSR_LIMIT_PCT}%) 초과 — 현재 ${d}% (초과 ${(dsr-_C.DSR_LIMIT_PCT).toFixed(1)}%p)</b><br><span style="font-size:12px;line-height:1.8;">신규 대출 실행이 제한됩니다. 안정권(35%) 진입을 위해 <b>목표 연소득 <span style="color:var(--kb-yellow-deep)">${fReqIncome}</span> 이상</b> 증빙하시거나, 기존 부채 상환을 통해 <b>권장 목표 원금 <span style="color:var(--kb-yellow-deep)">${f(maxPrin)}</span> 이하</b>로 월 상환부담을 줄이셔야 합니다.</span>`;
+  }
   if (dsr >= _C.DSR_WARN_PCT) return `<b style="color:var(--warn)">⚠️ DSR 경계 구간 — 현재 ${d}%</b><br><span style="font-size:12px;line-height:1.8;">규제선까지 여유 <b>${(_C.DSR_LIMIT_PCT - dsr).toFixed(1)}%p</b>. 변동금리 상승 시 초과 위험이 있습니다. 추가 대출이 필요하다면 <b>원금균등 방식</b>으로 빠른 원금 감소를 권장합니다.<br>추가 여력: <b style="color:var(--warn)">${f(remainLimit)}</b></span>`;
   if (dsr >= _C.DSR_CAUTION_PCT) return `<b style="color:var(--kb-yellow-deep)">✅ 안정 구간 — 현재 ${d}%</b><br><span style="font-size:12px;line-height:1.8;">부채 구조 양호. 추가 대출 여력 <b style="color:var(--safe)">${f(remainLimit)}</b>. 장기 보유 목적이면 <b>원금균등</b>, 초기 현금흐름 안정이라면 <b>원리금균등</b>을 고려하세요.</span>`;
   return `<b style="color:var(--safe)">💚 우량 구간 — 현재 ${d}%</b><br><span style="font-size:12px;line-height:1.8;">부채 건전성 매우 양호. 추가 여력 <b style="color:var(--safe)">${f(remainLimit)}</b>. 중도상환 병행 및 고정금리 전환으로 장기 리스크 헤지를 권장합니다.</span>`;
