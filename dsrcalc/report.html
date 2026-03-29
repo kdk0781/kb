@@ -9,12 +9,16 @@
     body { background: var(--bg-page); padding: 20px 16px 50px; font-family: 'Pretendard', sans-serif; color: var(--text-primary); -webkit-font-smoothing: antialiased; }
     .report-container { max-width: 600px; margin: 0 auto; background: var(--bg-surface); border-radius: var(--radius-xl); padding: 24px; box-shadow: var(--shadow-lg); animation: fade-up 0.5s var(--ease) both; }
     
-    /* 헤더 */
+    /* 헤더 및 타이머 */
     .report-header { text-align: center; border-bottom: 2px solid var(--border); padding-bottom: 20px; margin-bottom: 20px; }
     .report-title { font-size: 24px; font-weight: 800; color: var(--kb-navy); margin-bottom: 8px; letter-spacing: -0.03em; }
     .report-date { font-size: 13px; color: var(--text-muted); background: var(--bg-page); padding: 4px 12px; border-radius: 20px; display: inline-block; }
     
-    /* ★ 고도화: 전문가 상담 안내 배너 */
+    /* ★ 고도화: 카운트다운 타이머 스타일 */
+    .expiry-timer { margin-top: 14px; font-size: 14px; font-weight: 600; color: var(--danger); background: rgba(220, 53, 69, 0.08); display: inline-block; padding: 6px 16px; border-radius: 20px; border: 1px solid rgba(220, 53, 69, 0.2); animation: pulse 2s infinite; letter-spacing: -0.02em; }
+    .expiry-timer b { font-weight: 800; font-family: 'Roboto', monospace; font-size: 15px; }
+
+    /* 전문가 상담 안내 배너 */
     .notice-banner { display: flex; gap: 12px; align-items: flex-start; background: rgba(26, 43, 90, 0.04); border: 1px solid rgba(26, 43, 90, 0.1); border-left: 4px solid var(--kb-navy); border-radius: var(--radius-sm); padding: 16px; margin-bottom: 24px; text-align: left; }
     .notice-icon { font-size: 20px; line-height: 1; flex-shrink: 0; }
     .notice-text { font-size: 13.5px; color: var(--text-secondary); line-height: 1.6; word-break: keep-all; }
@@ -37,12 +41,10 @@
     
     /* 대출 내역 카드 */
     .loan-card { background: var(--bg-surface); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 16px; transition: box-shadow 0.2s; }
-    .loan-card:hover { box-shadow: var(--shadow-md); }
     .loan-card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 10px; }
     .loan-cat-tag { font-size: 15px; font-weight: 800; color: var(--text-primary); display: flex; align-items: center; gap: 6px; word-break: keep-all; }
     .loan-term-tag { font-size: 12px; color: var(--text-muted); font-weight: 600; background: var(--bg-surface-3); padding: 3px 8px; border-radius: 4px; flex-shrink: 0; }
     
-    /* 대출 정보 그리드 */
     .loan-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 14px; background: var(--bg-page); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-light); }
     .info-item { display: flex; justify-content: space-between; align-items: center; }
     .info-label { color: var(--text-muted); font-weight: 500; font-size: 13px; }
@@ -51,11 +53,7 @@
     /* 스케줄 버튼 */
     .sched-btn-wrap { margin-top: 14px; text-align: center; }
     .btn-sched-toggle { background: var(--bg-surface-3); color: var(--text-secondary); border: 1px solid var(--border); padding: 8px 16px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s; width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; -webkit-tap-highlight-color: transparent; }
-    .btn-sched-toggle:hover { background: var(--border-strong); color: var(--text-primary); }
-    .btn-sched-toggle svg { transition: transform 0.2s; }
-    .btn-sched-toggle.active svg { transform: rotate(180deg); }
-
-    /* 상세 스케줄 표 */
+    
     .sched-table-wrap { display: none; margin-top: 16px; border-top: 1px dashed var(--border-strong); padding-top: 16px; overflow-x: auto; animation: fade-in 0.3s var(--ease); -webkit-overflow-scrolling: touch; }
     .sched-table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 400px; text-align: right; }
     .sched-table th { background: var(--bg-page); color: var(--text-secondary); font-weight: 700; padding: 8px 4px; border-bottom: 1px solid var(--border-strong); text-align: center;}
@@ -67,11 +65,18 @@
     #reportLoading { text-align: center; padding: 80px 20px; color: var(--text-muted); animation: pulse 1.5s infinite; }
     #reportError { display: none; text-align: center; padding: 80px 24px; color: var(--danger); flex-direction: column; align-items: center; background: var(--bg-surface); border-radius: var(--radius-xl); max-width: 500px; margin: 40px auto; box-shadow: var(--shadow-xl); border: 2px solid var(--danger-border); }
     
+    /* ★ 고도화: 진입 시 보안 안내 팝업 (모달) */
+    .security-modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.65); z-index: 9999; display: none; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px); animation: fade-in 0.3s; }
+    .security-modal-content { background: var(--bg-surface); padding: 32px 24px; border-radius: var(--radius-lg); text-align: center; max-width: 320px; width: 100%; box-shadow: var(--shadow-xl); animation: fade-up 0.4s var(--ease); }
+    .security-modal-title { font-size: 18px; font-weight: 800; color: var(--kb-navy); margin-bottom: 12px; }
+    .security-modal-desc { font-size: 14px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 24px; word-break: keep-all; }
+    .btn-modal-confirm { width: 100%; padding: 14px; background: var(--kb-navy); color: #fff; border: none; border-radius: var(--radius-md); font-size: 15px; font-weight: 700; cursor: pointer; transition: opacity 0.2s; }
+    .btn-modal-confirm:active { opacity: 0.8; }
+
     @keyframes fade-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes fade-in { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
 
-    /* 반응형 모바일 최적화 */
     @media (max-width: 500px) {
       body { padding: 12px 10px 40px; }
       .report-container { padding: 18px 14px; border-radius: var(--radius-lg); }
@@ -102,10 +107,24 @@
     <div id="errorMsg" style="font-size: 16px; font-weight: 700; line-height: 1.6; word-break: keep-all;">리포트를 불러올 수 없습니다.</div>
   </div>
 
+  <div id="securityModal" class="security-modal-overlay">
+    <div class="security-modal-content">
+      <div style="font-size: 46px; margin-bottom: 12px;">⏳</div>
+      <div class="security-modal-title">보안 링크 안내</div>
+      <div class="security-modal-desc">
+        고객님의 소중한 금융 정보 보호를 위해<br>
+        이 리포트는 <b style="color: var(--danger);" id="modalTimeLeft">0일 0시간</b> 뒤<br>
+        <strong>완전 파기</strong>됩니다.
+      </div>
+      <button class="btn-modal-confirm" onclick="closeSecurityModal()">확인했습니다</button>
+    </div>
+  </div>
+
   <div id="reportContent" class="report-container" style="display: none;">
     <div class="report-header">
       <div class="report-title">📊 DSR 진단 리포트</div>
-      <div class="report-date" id="r_date">0000년 00월 00일 기준</div>
+      <div class="report-date" id="r_date">0000년 00월 00일 기준</div><br>
+      <div class="expiry-timer" id="r_timer">⏳ 열람 가능 시간 계산 중...</div>
     </div>
 
     <div class="notice-banner">
@@ -140,8 +159,7 @@
       <div class="list-title">반영된 부채 상세 내역</div>
     </div>
     
-    <div id="r_loanList">
-      </div>
+    <div id="r_loanList"></div>
   </div>
 
   <script>
@@ -149,6 +167,7 @@
 
     const CAT_MAP = { mortgage_level: { lab: '주택담보(원리금균등)', ico: '🏠' }, mortgage_prin: { lab: '주택담보(원금균등)', ico: '🏠' }, jeonse: { lab: '전세대출(만기일시)', ico: '🔑' }, officetel: { lab: '오피스텔(원리금균등)', ico: '🏢' }, credit: { lab: '신용대출(원리금균등)', ico: '💳' }, cardloan: { lab: '카드론(원리금균등)', ico: '💰' } };
     const SR_MAP = { m5_cycle: 1.15, m5_mix: 1.50, v_6_12: 2.87, '0': 0 };
+    let countdownInterval;
 
     function initReport() {
       const hash = window.location.hash.substring(1);
@@ -158,12 +177,17 @@
         const decodedStr = decodeURIComponent(escape(atob(hash)));
         const data = JSON.parse(decodedStr);
 
+        // 최초 진입 시 만료 체크
         if (Date.now() > data.expiry) {
-          showError("이 진단 리포트 링크는 유효기간이 만료되었습니다.<br>계산기에서 다시 계산 후 발급해주세요.");
+          showError("이 진단 리포트 링크는 <b>유효기간이 만료</b>되었습니다.<br>고객님의 정보 보호를 위해 데이터가 파기되었습니다.");
           return;
         }
 
         renderReport(data);
+        startCountdown(data.expiry);
+
+        // 보안 팝업 띄우기
+        document.getElementById('securityModal').style.display = 'flex';
 
       } catch (e) {
         console.error(e);
@@ -171,20 +195,59 @@
       }
     }
 
+    // 팝업 닫기 함수
+    function closeSecurityModal() {
+      document.getElementById('securityModal').style.display = 'none';
+    }
+
+    // ★ 실시간 카운트다운 타이머 로직
+    function startCountdown(expiryTime) {
+      const timerEl = document.getElementById('r_timer');
+      const modalTimeEl = document.getElementById('modalTimeLeft');
+      
+      function updateTimer() {
+        const now = Date.now();
+        const diff = expiryTime - now;
+
+        // 시간이 다 되면 화면 파기 및 에러창 호출
+        if (diff <= 0) {
+          clearInterval(countdownInterval);
+          closeSecurityModal();
+          showError("⏳ <b>열람 가능 시간이 모두 소진되었습니다.</b><br>고객님의 정보 보호를 위해 안전하게 파기되었습니다.");
+          return;
+        }
+
+        const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
+        const m = Math.floor((diff / 1000 / 60) % 60);
+        const s = Math.floor((diff / 1000) % 60);
+
+        let timeStr = '';
+        if (d > 0) timeStr += `${d}일 `;
+        timeStr += `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+
+        timerEl.innerHTML = `⏳ 열람 기한 <b>${timeStr}</b> 남음`;
+
+        // 팝업창 텍스트 세팅 (최초 1회 렌더링 시점에만)
+        if (modalTimeEl && !countdownInterval) {
+          if(d > 0) modalTimeEl.innerText = `${d}일 ${h}시간`;
+          else modalTimeEl.innerText = `${h}시간 ${m}분`;
+        }
+      }
+
+      updateTimer(); // 1초 기다리지 않고 바로 즉시 실행
+      countdownInterval = setInterval(updateTimer, 1000); // 1초마다 반복 갱신
+    }
+
     function renderReport(data) {
-      // 헤더 정보
       const d = new Date(data.createdAt);
       document.getElementById('r_date').innerText = `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일 기준`;
 
-      // 요약 정보
       document.getElementById('r_income').innerText = Math.round(data.income).toLocaleString() + ' 원';
       document.getElementById('r_dsr').innerText = data.dsrText;
       document.getElementById('r_remain').innerText = data.remainTxt;
-
-      // 코멘트 (\n -> <br>)
       document.getElementById('r_rec').innerHTML = data.recHtml.replace(/\n/g, '<br>');
 
-      // 부채 리스트 & 스케줄 계산
       const listEl = document.getElementById('r_loanList');
       listEl.innerHTML = '';
 
@@ -217,12 +280,10 @@
         listEl.insertAdjacentHTML('beforeend', cardPageHtml);
       });
 
-      // UI 전환
       document.getElementById('reportLoading').style.display = 'none';
       document.getElementById('reportContent').style.display = 'block';
     }
 
-    // 상환 스케줄 계산
     function generateScheduleTableHtml(loan) {
       const P = loan.P;
       const n = loan.n;
@@ -309,6 +370,7 @@
 
     function showError(msg) {
       document.getElementById('errorMsg').innerHTML = msg;
+      document.getElementById('reportContent').style.display = 'none';
       document.getElementById('reportError').style.display = 'flex';
       document.getElementById('reportLoading').style.display = 'none';
     }
