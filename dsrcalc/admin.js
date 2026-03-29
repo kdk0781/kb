@@ -1,7 +1,7 @@
 // 초기 관리자 설정값 (localStorage에 없으면 기본값 사용)
 const DEFAULT_CONFIG = {
-  id: 'admin',
-  pw: 'admin1234',
+  id: 'Admin',
+  pw: '0781',
   mainUrl: 'index.html' // 절대경로에서 상대경로로 유지
 };
 

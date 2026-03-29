@@ -1119,7 +1119,7 @@ async function generateAdminShareLink() {
     // URL 단축 수행 (비동기)
     const shortUrl = await _shortenUrl(longShareUrl);
     
-    const msg = `🔗 <b>고객용 앱 설치 링크가 복사되었습니다.</b><br><br>` +
+    const msg = `🔗 <b>계산기 앱 설치 링크가 복사되었습니다.</b><br><br>` +
                 `<span style="font-size:12px; display:block; margin-top:8px;">` +
                 `• 이 링크는 발급 시간 기준 <b>24시간 동안만 유효</b>합니다.<br>` +
                 `• 접속 시 PWA 자동 설치 안내 페이지로 연결됩니다.</span>`;
@@ -1127,7 +1127,7 @@ async function generateAdminShareLink() {
     // ★ 핵심 고도화: 모바일(iOS/Android)에서는 네이티브 공유 창 띄우기
     if (navigator.share && /Mobi|Android/i.test(navigator.userAgent)) {
       navigator.share({
-        title: 'DSR 계산기 (고객용)',
+        title: 'DSR 계산기 앱웹',
         text: 'DSR 계산기 간편 접속 및 앱 설치 링크입니다. (24시간 유효)',
         url: shortUrl
       }).catch((error) => {
