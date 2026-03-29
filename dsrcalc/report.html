@@ -291,6 +291,95 @@
       document.getElementById('reportContent').style.display = 'block';
     }
 
+    function renderReportReverseCalc(data) {
+        const income = data.income;
+        let totalPmt = 0;
+        let totalPrin = 0;
+        
+        // 리포트 페이지 내부에서 N개 부채의 기여도를 자체적으로 다시 정밀 계산
+        data.loans.forEach(loan => {
+            const P = loan.P;
+            const R = loan.R;
+            const SR = SR_MAP[loan.SR] || 0;
+            const r_dsr = (R + SR) / 1200;
+            const n = loan.n;
+            const cat = loan.cat;
+
+            let annPmt = 0;
+            const VIRTUAL_M = { credit: 60, cardloan: 36 };
+            const isPurchase = cat === 'mortgage_level' || cat === 'mortgage_prin' || (cat === 'officetel' && n >= 180);
+
+            if (cat === 'jeonse') {
+                annPmt = P * (R / 1200) * 12;
+            } else if (isPurchase) {
+                if (cat === 'mortgage_prin') {
+                    annPmt = (P / n) * 12 + (P * r_dsr * (n + 1) / 2) / (n / 12);
+                } else {
+                    const denom = Math.pow(1 + r_dsr, n) - 1;
+                    annPmt = denom > 0 ? ((P * r_dsr * Math.pow(1 + r_dsr, n)) / denom) * 12 : (P / n) * 12;
+                }
+            } else {
+                const vn = VIRTUAL_M[cat] || n;
+                const denom = Math.pow(1 + r_dsr, vn) - 1;
+                annPmt = denom > 0 ? ((P * r_dsr * Math.pow(1 + r_dsr, vn)) / denom) * 12 : (P / vn) * 12;
+            }
+
+            loan.dsrCont = (annPmt / income) * 100;
+            totalPmt += annPmt;
+            totalPrin += P;
+        });
+
+        const dsr = (totalPmt / income) * 100;
+
+        // DSR이 40%를 초과할 때만 해결책 UI 생성
+        if (dsr > 40) {
+            const targetPmt = income * 0.35; // 35% 타겟
+            const excessPmt = totalPmt - targetPmt;
+            const avgPmtRatio = totalPrin > 0 ? (totalPmt / totalPrin) : 0;
+            const estPrin = avgPmtRatio > 0 ? (excessPmt / avgPmtRatio) : 0;
+            const fEstPrin = (Math.round(estPrin / 10000) * 10000).toLocaleString();
+
+            const sortedLoans = [...data.loans].sort((a, b) => b.dsrCont - a.dsrCont);
+            let listHtml = '';
+            sortedLoans.forEach(l => {
+                const catInfo = CAT_MAP[l.cat] || { lab: l.cat, ico: '📌' };
+                listHtml += `
+                    <div class="data-row" style="padding: 10px 0;">
+                        <div style="display:flex; flex-direction:column; gap:4px;">
+                            <span style="font-size:14px; font-weight:700; color:var(--text-primary);">${catInfo.ico} ${catInfo.lab}</span>
+                            <span style="font-size:12px; color:var(--text-muted);">원금 ${Math.round(l.P).toLocaleString()}원</span>
+                        </div>
+                        <div style="font-size:16px; font-weight:800; color:var(--danger); font-family:'Roboto', monospace;">
+                            ${l.dsrCont.toFixed(2)}%
+                        </div>
+                    </div>
+                `;
+            });
+
+            // 인라인 스타일 최소화, 기존 CSS 변수 활용하여 디자인
+            const revHtml = `
+                <div style="background:var(--bg-surface); border:1px solid var(--border-strong); border-radius:var(--radius-lg); padding:20px; margin-bottom:24px; animation:fade-up 0.5s var(--ease);">
+                    <div class="list-header" style="margin-bottom:12px; border-bottom:none; padding-bottom:0;">
+                        <span style="font-size: 18px;">📉</span>
+                        <div class="list-title">한도 초과 원인 및 해결책</div>
+                    </div>
+                    <div style="background:var(--bg-page); border:1px solid var(--border-light); border-radius:var(--radius-sm); padding:0 14px; margin-bottom:16px;">
+                        ${listHtml}
+                    </div>
+                    <div style="background:rgba(211,47,47,0.04); border:1px solid rgba(211,47,47,0.15); border-left:4px solid var(--danger); padding:16px; border-radius:var(--radius-md);">
+                        <div style="font-size:14px; font-weight:800; color:var(--danger); margin-bottom:8px;">🎯 안정권(DSR 35%) 진입 솔루션</div>
+                        <div style="font-size:13px; line-height:1.6; color:var(--text-secondary); word-break:keep-all;">
+                            현재 DSR이 규제선을 초과했습니다. 안전 마진을 둔 <b>DSR 35%</b> 수준으로 낮추려면, 연간 상환액을 <b style="color:var(--danger); font-family:'Roboto', monospace;">${Math.round(excessPmt).toLocaleString()}원</b> 줄여야 합니다.<br><br>
+                            대출 원금을 대략 <b style="color:var(--danger); font-family:'Roboto', monospace;">${fEstPrin}원</b> 상환하거나, 위 목록에서 기여도가 가장 높은 대출을 우선 정리하세요.
+                        </div>
+                    </div>
+                </div>
+            `;
+            // 상세내역 리스트 바로 위에 끼워넣기
+            document.getElementById('r_loanList').insertAdjacentHTML('beforebegin', revHtml);
+        }
+    }
+
     function generateScheduleTableHtml(loan) {
       const P = loan.P;
       const n = loan.n;

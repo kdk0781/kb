@@ -62,7 +62,7 @@ const APP_CONFIG = {
 
   // ── 임시 리포트 링크 ────────────────────────────────────────────────────────
   REPORT_LINK_EXPIRY_DAYS:  7,
-  REPORT_COPY_DAILY_LIMIT:  5,     // 하루 복사 횟수 제한 — 숫자만 변경
+  REPORT_COPY_DAILY_LIMIT:  10,     // 하루 복사 횟수 제한 — 숫자만 변경
   REPORT_PAGE_PATH: 'report.html',
   SHORTENER_API: 'https://is.gd/create.php?format=simple&url=',
 
@@ -412,10 +412,6 @@ function applyPolicy(id) {
 
 // ─── [4] DSR 핵심 연산 엔진 ──────────────────────────────────────────────────
 
-/**
- * 스트레스 금리 식별자 → 실제 % 값 반환
- * ★ 핵심 함수: select value 가 식별자(m5_cycle 등)이므로 STRESS_RATES 변경 시 자동 반영
- */
 function getStressRate(key) {
   if (!key || key === '0') return 0;
   return _C.STRESS_RATES[key] ?? 1.15;
@@ -434,23 +430,43 @@ function calculateLogic() {
   let totalAnnPayment = 0, combinedP = 0;
   let bR = _RATE.mortgage_level, bSR = _C.DEFAULT_STRESS_RATE_MORTGAGE, bM = 360;
 
+  // ★ 역행 계산기를 위한 데이터 수집 변수
+  const reverseDataList = [];
+  let totalPrincipalForReverse = 0;
+
   items.forEach((item, idx) => {
     const cat = item.querySelector('.l-category').value;
     const P   = getNum(item.querySelector('.l-p').value);
     const R   = Number(item.querySelector('.l-r').value) || getDefaultRate(cat);
-    // ★ SR: 식별자 → 실제 값 변환 (금리 변경 자동 반영)
     const SR  = getStressRate(item.querySelector('.l-sr-select')?.value);
     const n   = getNum(item.querySelector('.l-m').value) || 360;
     if (idx === 0) { bR = R; bSR = SR; bM = n; }
     if (P <= 0) return;
     const r_dsr = (R + SR) / 1200;
-    if (cat === 'jeonse') { totalAnnPayment += P * (R / 1200) * 12; return; }
-    if (isPurchaseLoan(cat, n)) {
+    
+    // 각 부채별 상환액 따로 계산
+    let loanAnnPmt = 0;
+    if (cat === 'jeonse') { 
+        loanAnnPmt = P * (R / 1200) * 12; 
+    } else if (isPurchaseLoan(cat, n)) {
       combinedP += P;
       if (cat === 'mortgage_prin') {
-        totalAnnPayment += (P / n) * 12 + (P * r_dsr * (n + 1) / 2) / (n / 12);
-      } else { totalAnnPayment += calcPMT(P, r_dsr, n) * 12; }
-    } else { totalAnnPayment += calcPMT(P, r_dsr, _C.DSR_VIRTUAL_MONTHS[cat] ?? n) * 12; }
+        loanAnnPmt = (P / n) * 12 + (P * r_dsr * (n + 1) / 2) / (n / 12);
+      } else { 
+        loanAnnPmt = calcPMT(P, r_dsr, n) * 12; 
+      }
+    } else { 
+        loanAnnPmt = calcPMT(P, r_dsr, _C.DSR_VIRTUAL_MONTHS[cat] ?? n) * 12; 
+    }
+
+    totalAnnPayment += loanAnnPmt;
+    totalPrincipalForReverse += P;
+
+    // 수집한 개별 데이터를 배열에 밀어넣기
+    reverseDataList.push({
+        cat: cat, P: P, R: R, SR: SR, n: n,
+        dsrCont: (loanAnnPmt / income) * 100 // 개별 DSR 기여도 %
+    });
   });
 
   const dsr = (totalAnnPayment / income) * 100;
@@ -495,7 +511,11 @@ function calculateLogic() {
   document.getElementById('scheduleSection').classList.remove('schedule-visible');
   document.getElementById('scheduleSection').classList.add('schedule-section-hidden');
   document.getElementById('btnShowSchedule').innerText = "📊 전체 상환 스케줄 상세 보기";
-
+  
+  // ★ 역행 계산기 렌더링 함수 호출
+  renderReverseCalc(dsr, income, reverseDataList, totalAnnPayment, totalPrincipalForReverse);
+  
+  // 결과 영역으로 스크롤 이동
   requestAnimationFrame(() => requestAnimationFrame(() => {
     const header  = document.querySelector('.header');
     const headerH = header ? header.getBoundingClientRect().height : 0;
@@ -503,6 +523,79 @@ function calculateLogic() {
     window.scrollTo({ top: window.pageYOffset + rect.top - headerH - 4, behavior: 'smooth' });
   }));
 }
+
+// ─── [새로운 기능] 역행 계산기 (DSR 초과 시 솔루션 제공) ───────────────
+function renderReverseCalc(dsr, income, list, totalPmt, totalPrin) {
+    const btn = document.getElementById('btnReverseCalc');
+    const sec = document.getElementById('reverseCalcSection');
+    if (!btn || !sec) return;
+
+    // DSR 40% 이하(안정권)면 버튼과 섹션을 아예 숨김
+    if (dsr <= _C.DSR_LIMIT_PCT) {
+        btn.style.display = 'none';
+        sec.classList.add('schedule-section-hidden');
+        sec.classList.remove('schedule-visible');
+        return;
+    }
+
+    // 초과 시 버튼 노출 및 내용 초기화
+    btn.style.display = 'flex';
+    sec.classList.add('schedule-section-hidden');
+    sec.classList.remove('schedule-visible');
+    btn.innerHTML = `💡 한도 초과 원인 및 해결책 보기 (역행 계산기)`;
+
+    const listEl = document.getElementById('reverseLoanList');
+    listEl.innerHTML = '';
+
+    // DSR 기여도(%)가 높은 순으로 내림차순 정렬하여 보여줌
+    const sorted = [...list].sort((a, b) => b.dsrCont - a.dsrCont);
+
+    sorted.forEach((l) => {
+        const fP = Math.round(l.P).toLocaleString();
+        listEl.insertAdjacentHTML('beforeend', `
+            <div class="reverse-loan-item">
+                <div class="reverse-loan-info">
+                    <span class="reverse-loan-name">${_EMOJI[l.cat]||'📌'} ${_LABEL[l.cat]||l.cat}</span>
+                    <span class="reverse-loan-meta">원금 ${fP}원 | 적용금리 ${(l.R + l.SR).toFixed(2)}% (스트레스 포함)</span>
+                </div>
+                <div class="reverse-loan-dsr">${l.dsrCont.toFixed(2)}%</div>
+            </div>
+        `);
+    });
+
+    // 35% 타겟 계산 (여유분 5%)
+    const targetDSR = 35;
+    const targetPmt = income * (targetDSR / 100);
+    const excessPmt = totalPmt - targetPmt; // 줄여야 할 연간 상환액
+    
+    // 원금 환산 추정 (전체 부채의 가중 평균 활용)
+    const avgPmtRatio = totalPrin > 0 ? (totalPmt / totalPrin) : 0;
+    const estPrin = avgPmtRatio > 0 ? (excessPmt / avgPmtRatio) : 0;
+    const fEstPrin = (Math.round(estPrin / 10000) * 10000).toLocaleString(); // 만원 단위 반올림
+
+    document.getElementById('reverseSolutionText').innerHTML = `
+        현재 DSR이 규제선(${_C.DSR_LIMIT_PCT}%)을 초과했습니다. 안전 마진을 둔 <b>DSR ${targetDSR}%</b> 수준으로 낮추려면,<br>
+        연간 원리금 상환액을 <b class="solution-highlight">${Math.round(excessPmt).toLocaleString()}원</b> 이상 줄여야 합니다.<br><br>
+        📉 <b>역행 산출 결과:</b> 기존 대출 원금을 대략 <b class="solution-highlight">${fEstPrin}원</b> 정도 상환하거나,<br>
+        위 목록에서 <b>DSR 기여도(%)가 가장 높은 대출</b>을 우선 정리하는 것이 가장 효과적입니다.
+    `;
+}
+
+// 역행 계산기 토글 버튼
+function toggleReverseCalc() {
+    const sec = document.getElementById('reverseCalcSection');
+    const btn = document.getElementById('btnReverseCalc');
+    if (sec.classList.contains('schedule-section-hidden')) {
+        sec.classList.remove('schedule-section-hidden');
+        sec.classList.add('schedule-visible');
+        btn.innerHTML = `🔼 해결책 닫기`;
+    } else {
+        sec.classList.add('schedule-section-hidden');
+        sec.classList.remove('schedule-visible');
+        btn.innerHTML = `💡 한도 초과 원인 및 해결책 보기 (역행 계산기)`;
+    }
+}
+
 
 // ─── [4-1] 추천 문구 ─────────────────────────────────────────────────────────
 function buildRecommendText(dsr, isOver, remainLimit, maxPrin, maxLevel, f) {

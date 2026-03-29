@@ -333,6 +333,24 @@
 				</div>
 			</div>
 		</div>
+        
+        <button id="btnReverseCalc" class="btn-more-schedule btn-reverse-toggle" onclick="toggleReverseCalc()" style="display:none;">
+            💡 한도 초과 원인 및 해결책 보기 (역행 계산기)
+        </button>
+        <div id="reverseCalcSection" class="schedule-section-hidden">
+            <div class="reverse-calc-container">
+                <div class="reverse-title-wrap">
+                    <span>📉</span>
+                    <div class="reverse-title">개별 부채 DSR 기여도 및 상환 목표</div>
+                </div>
+                <div id="reverseLoanList" class="reverse-loan-list"></div>
+                <div class="reverse-solution-card">
+                    <div class="solution-title"><span>🎯</span> 안정권(DSR 35%) 진입 솔루션</div>
+                    <div id="reverseSolutionText" class="solution-text"></div>
+                </div>
+            </div>
+        </div>
+
 		<button id="btnShowSchedule" class="btn-more-schedule" onclick="toggleSchedule()">
 		📊 전체 상환 스케줄 상세 보기 </button>
 		<div id="scheduleSection" class="schedule-section-hidden">
@@ -502,8 +520,8 @@
 		<button class="modal-btn" id="modalConfirm">확인</button>
 	</div>
 </div>
-<script src="kb_rates.js?v=2603291640"></script>
-<script src="common.js?v=2603291640"></script>
+<script src="kb_rates.js?v=202603291324"></script>
+<script src="common.js?v=202603291324"></script>
 <script>
     /* ── 사용 가이드 모달 ──────────────────────────────────────────────── */
     // ESC 키로 가이드 닫기 (이건 남겨두셔도 좋습니다)
