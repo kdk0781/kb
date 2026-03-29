@@ -28,7 +28,7 @@ const FALLBACK_RATES = {
 // ── 소스 설정 ─────────────────────────────────────────────────────────────────
 const _KB_SCRIPT_URL = 'https://kdk0781.github.io/kb/interest/script.js';
 const _KB_PROXY_URL  = 'https://api.allorigins.win/raw?url=';
-const _KB_CACHE_KEY  = '2603291337';       // 버전 변경 시 캐시 자동 무효화
+const _KB_CACHE_KEY  = '2603291424';       // 버전 변경 시 캐시 자동 무효화
 const _KB_CACHE_MS   = 30 * 60 * 1000;      // 30분 캐시 (금리 변동 대응)
 
 let _ratesMem    = null;
