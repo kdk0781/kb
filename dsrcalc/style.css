@@ -317,6 +317,14 @@ body.dark .btn-guide { background: rgba(255,184,28,.13); color: var(--kb-yellow)
     width: 100%;
 }
 
+/* 2. 헤더와 푸터 사이의 본문 영역에만 스크롤 생성 */
+#userGuideContent .guide-body,
+#adminGuideContent .guide-body {
+    flex: 1;               /* 남은 중간 공간을 모두 차지 */
+    overflow-y: auto;      /* 내용이 길면 세로 스크롤 생성 */
+    min-height: 0;         /* Flexbox 스크롤 삐져나감 버그 방지 (핵심!) */
+}
+
 .guide-body {
   overflow-y: auto; padding: 16px 18px 16px; flex: 1;
   overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
