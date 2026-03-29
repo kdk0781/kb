@@ -10,10 +10,16 @@
     .report-container { max-width: 600px; margin: 0 auto; background: var(--bg-surface); border-radius: var(--radius-xl); padding: 24px; box-shadow: var(--shadow-lg); animation: fade-up 0.5s var(--ease) both; }
     
     /* 헤더 */
-    .report-header { text-align: center; border-bottom: 2px solid var(--border); padding-bottom: 20px; margin-bottom: 24px; }
+    .report-header { text-align: center; border-bottom: 2px solid var(--border); padding-bottom: 20px; margin-bottom: 20px; }
     .report-title { font-size: 24px; font-weight: 800; color: var(--kb-navy); margin-bottom: 8px; letter-spacing: -0.03em; }
     .report-date { font-size: 13px; color: var(--text-muted); background: var(--bg-page); padding: 4px 12px; border-radius: 20px; display: inline-block; }
     
+    /* ★ 고도화: 전문가 상담 안내 배너 */
+    .notice-banner { display: flex; gap: 12px; align-items: flex-start; background: rgba(26, 43, 90, 0.04); border: 1px solid rgba(26, 43, 90, 0.1); border-left: 4px solid var(--kb-navy); border-radius: var(--radius-sm); padding: 16px; margin-bottom: 24px; text-align: left; }
+    .notice-icon { font-size: 20px; line-height: 1; flex-shrink: 0; }
+    .notice-text { font-size: 13.5px; color: var(--text-secondary); line-height: 1.6; word-break: keep-all; }
+    .notice-text strong { color: var(--kb-navy-deep); font-weight: 800; background: linear-gradient(transparent 60%, rgba(255, 204, 0, 0.4) 60%); }
+
     /* 핵심 데이터 카드 */
     .data-card { background: var(--bg-page); border-radius: var(--radius-md); padding: 16px; margin-bottom: 24px; border: 1px solid var(--border); }
     .data-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; }
@@ -36,7 +42,7 @@
     .loan-cat-tag { font-size: 15px; font-weight: 800; color: var(--text-primary); display: flex; align-items: center; gap: 6px; word-break: keep-all; }
     .loan-term-tag { font-size: 12px; color: var(--text-muted); font-weight: 600; background: var(--bg-surface-3); padding: 3px 8px; border-radius: 4px; flex-shrink: 0; }
     
-    /* ★ 고도화: 대출 정보 그리드 (PC 기본: 2컬럼) */
+    /* 대출 정보 그리드 */
     .loan-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 14px; background: var(--bg-page); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-light); }
     .info-item { display: flex; justify-content: space-between; align-items: center; }
     .info-label { color: var(--text-muted); font-weight: 500; font-size: 13px; }
@@ -61,26 +67,22 @@
     #reportLoading { text-align: center; padding: 80px 20px; color: var(--text-muted); animation: pulse 1.5s infinite; }
     #reportError { display: none; text-align: center; padding: 80px 24px; color: var(--danger); flex-direction: column; align-items: center; background: var(--bg-surface); border-radius: var(--radius-xl); max-width: 500px; margin: 40px auto; box-shadow: var(--shadow-xl); border: 2px solid var(--danger-border); }
     
-    /* 애니메이션 정의 */
     @keyframes fade-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes fade-in { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
 
-    /* ── [★ 고도화] 모바일 전용 반응형 스타일 (max-width: 500px) ── */
+    /* 반응형 모바일 최적화 */
     @media (max-width: 500px) {
       body { padding: 12px 10px 40px; }
       .report-container { padding: 18px 14px; border-radius: var(--radius-lg); }
       .report-title { font-size: 20px; }
+      .notice-text { font-size: 12.5px; }
       .data-card { padding: 12px; }
       .data-label { font-size: 13px; }
       .data-value { font-size: 15px; }
       .data-value.highlight { font-size: 19px; }
-      
-      /* 대출 내역 카드 모바일 최적화 */
       .loan-card { padding: 16px 12px; }
       .loan-cat-tag { font-size: 14px; }
-      
-      /* ★ 핵심 수정: 모바일에서는 1컬럼 스택 구조로 변경하여 가독성 확보 */
       .loan-info-grid { grid-template-columns: 1fr; gap: 8px; padding: 10px; }
       .info-item { justify-content: space-between; padding: 2px 0; }
       .info-label { font-size: 12px; }
@@ -104,6 +106,14 @@
     <div class="report-header">
       <div class="report-title">📊 DSR 진단 리포트</div>
       <div class="report-date" id="r_date">0000년 00월 00일 기준</div>
+    </div>
+
+    <div class="notice-banner">
+      <div class="notice-icon">💡</div>
+      <div class="notice-text">
+        본 리포트는 고객님의 입력값을 바탕으로 산출된 <strong>가심사 참고용 자료</strong>입니다.<br>
+        실제 대출 가능 여부 및 한도·금리는 금융기관 심사에 따라 달라질 수 있으므로, 정확한 진행은 반드시 <strong>전문 대출상담사</strong>를 통해 확인하시기 바랍니다.
+      </div>
     </div>
 
     <div class="data-card">
@@ -181,7 +191,6 @@
       data.loans.forEach((loan, index) => {
         const catInfo = CAT_MAP[loan.cat] || { lab: loan.cat, ico: '📌' };
         
-        // 카드 HTML 생성
         const cardPageHtml = `
           <div class="loan-card">
             <div class="loan-card-top">
@@ -213,7 +222,7 @@
       document.getElementById('reportContent').style.display = 'block';
     }
 
-    // 상환 스케줄 계산 로직 (기존 동일)
+    // 상환 스케줄 계산
     function generateScheduleTableHtml(loan) {
       const P = loan.P;
       const n = loan.n;
@@ -229,7 +238,7 @@
 
       if (['mortgage_level', 'officetel', 'credit', 'cardloan'].includes(loan.cat)) {
         const denominator = Math.pow(1 + r, n) - 1;
-        if (denominator === 0) return ''; // 금리 0% 예외처리(필요시)
+        if (denominator === 0) return ''; 
         const M = (P * r * Math.pow(1 + r, n)) / denominator;
         
         for (let i = 1; i <= n; i++) {
