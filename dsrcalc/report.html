@@ -6,7 +6,7 @@
   <title>DSR 진단 리포트</title>
   <link rel="stylesheet" href="common.css" media="all">
   <style>
-    body { background: var(--bg-page); padding: 20px 16px 50px; font-family: 'Pretendard', sans-serif; color: var(--text-primary); }
+    body { background: var(--bg-page); padding: 20px 16px 50px; font-family: 'Pretendard', sans-serif; color: var(--text-primary); -webkit-font-smoothing: antialiased; }
     .report-container { max-width: 600px; margin: 0 auto; background: var(--bg-surface); border-radius: var(--radius-xl); padding: 24px; box-shadow: var(--shadow-lg); animation: fade-up 0.5s var(--ease) both; }
     
     /* 헤더 */
@@ -14,51 +14,78 @@
     .report-title { font-size: 24px; font-weight: 800; color: var(--kb-navy); margin-bottom: 8px; letter-spacing: -0.03em; }
     .report-date { font-size: 13px; color: var(--text-muted); background: var(--bg-page); padding: 4px 12px; border-radius: 20px; display: inline-block; }
     
-    /* 핵심 데이터 */
+    /* 핵심 데이터 카드 */
     .data-card { background: var(--bg-page); border-radius: var(--radius-md); padding: 16px; margin-bottom: 24px; border: 1px solid var(--border); }
     .data-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; }
     .data-row:not(:last-child) { border-bottom: 1px solid var(--border-light); }
     .data-label { font-size: 14px; font-weight: 600; color: var(--text-secondary); }
-    .data-value { font-size: 16px; font-weight: 800; text-align: right; }
+    .data-value { font-size: 16px; font-weight: 800; text-align: right; letter-spacing: -0.02em; }
     .data-value.highlight { color: var(--danger); font-size: 22px; }
     
-    /* 코멘트 */
+    /* AI 코멘트 박스 */
     .rec-box { padding: 18px; background: var(--kb-yellow-pale); border-radius: var(--radius-md); font-size: 14px; line-height: 1.7; color: var(--kb-navy-deep); border: 1px solid var(--kb-yellow-light); margin-bottom: 30px; word-break: keep-all; }
     
-    /* 부채 리스트 */
+    /* 부채 상세 리스트 헤더 */
     .list-header { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; border-bottom: 2px solid var(--borderStrong); padding-bottom: 10px; }
     .list-title { font-size: 16px; font-weight: 800; color: var(--kb-navy); }
     
+    /* 대출 내역 카드 */
     .loan-card { background: var(--bg-surface); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 16px; transition: box-shadow 0.2s; }
     .loan-card:hover { box-shadow: var(--shadow-md); }
-    .loan-card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-    .loan-cat-tag { font-size: 15px; font-weight: 800; color: var(--text-primary); display: flex; align-items: center; gap: 6px; }
-    .loan-term-tag { font-size: 12px; color: var(--text-muted); font-weight: 600; background: var(--bg-surface-3); padding: 3px 8px; border-radius: 4px; }
+    .loan-card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 10px; }
+    .loan-cat-tag { font-size: 15px; font-weight: 800; color: var(--text-primary); display: flex; align-items: center; gap: 6px; word-break: keep-all; }
+    .loan-term-tag { font-size: 12px; color: var(--text-muted); font-weight: 600; background: var(--bg-surface-3); padding: 3px 8px; border-radius: 4px; flex-shrink: 0; }
     
-    .loan-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 14px; background: var(--bg-page); padding: 12px; border-radius: var(--radius-sm); }
-    .info-item { display: flex; justify-content: space-between; }
-    .info-label { color: var(--text-muted); font-weight: 500; }
-    .info-val { font-weight: 700; color: var(--text-secondary); }
+    /* ★ 고도화: 대출 정보 그리드 (PC 기본: 2컬럼) */
+    .loan-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 14px; background: var(--bg-page); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-light); }
+    .info-item { display: flex; justify-content: space-between; align-items: center; }
+    .info-label { color: var(--text-muted); font-weight: 500; font-size: 13px; }
+    .info-val { font-weight: 700; color: var(--text-secondary); letter-spacing: -0.01em; }
     
-    /* 스케줄 버튼 및 표 */
+    /* 스케줄 버튼 */
     .sched-btn-wrap { margin-top: 14px; text-align: center; }
-    .btn-sched-toggle { background: var(--bg-surface-3); color: var(--text-secondary); border: 1px solid var(--border); padding: 8px 16px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s; width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; }
+    .btn-sched-toggle { background: var(--bg-surface-3); color: var(--text-secondary); border: 1px solid var(--border); padding: 8px 16px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s; width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; -webkit-tap-highlight-color: transparent; }
     .btn-sched-toggle:hover { background: var(--border-strong); color: var(--text-primary); }
     .btn-sched-toggle svg { transition: transform 0.2s; }
     .btn-sched-toggle.active svg { transform: rotate(180deg); }
 
-    .sched-table-wrap { display: none; margin-top: 16px; border-top: 1px dashed var(--border-strong); padding-top: 16px; overflow-x: auto; animation: fade-in 0.3s var(--ease); }
-    .sched-table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 380px; text-align: right; }
+    /* 상세 스케줄 표 */
+    .sched-table-wrap { display: none; margin-top: 16px; border-top: 1px dashed var(--border-strong); padding-top: 16px; overflow-x: auto; animation: fade-in 0.3s var(--ease); -webkit-overflow-scrolling: touch; }
+    .sched-table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 400px; text-align: right; }
     .sched-table th { background: var(--bg-page); color: var(--text-secondary); font-weight: 700; padding: 8px 4px; border-bottom: 1px solid var(--border-strong); text-align: center;}
-    .sched-table td { padding: 8px 4px; border-bottom: 1px solid var(--border-light); color: var(--text-secondary); font-family: 'Roboto', monospace; }
+    .sched-table td { padding: 8px 4px; border-bottom: 1px solid var(--border-light); color: var(--text-secondary); font-family: 'Roboto', monospace; letter-spacing: -0.02em; }
     .sched-table tr:last-child td { border-bottom: none; font-weight: 700; color: var(--kb-navy); background: var(--kb-yellow-pale); }
-    .sched-table th:first-child, .sched-table td:first-child { text-align: center; width: 40px; }
+    .sched-table th:first-child, .sched-table td:first-child { text-align: center; width: 40px; color: var(--text-muted); }
 
     /* 로딩/에러 */
     #reportLoading { text-align: center; padding: 80px 20px; color: var(--text-muted); animation: pulse 1.5s infinite; }
-    #reportError { display: none; text-align: center; padding: 80px 24px; color: var(--danger); flex-direction: column; align-items: center; background: var(--bg-surface); border-radius: var(--radius-xl); max-width: 500px; margin: 40px auto; box-shadow: var(--shadow-xl); }
+    #reportError { display: none; text-align: center; padding: 80px 24px; color: var(--danger); flex-direction: column; align-items: center; background: var(--bg-surface); border-radius: var(--radius-xl); max-width: 500px; margin: 40px auto; box-shadow: var(--shadow-xl); border: 2px solid var(--danger-border); }
     
+    /* 애니메이션 정의 */
+    @keyframes fade-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes fade-in { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
+
+    /* ── [★ 고도화] 모바일 전용 반응형 스타일 (max-width: 500px) ── */
+    @media (max-width: 500px) {
+      body { padding: 12px 10px 40px; }
+      .report-container { padding: 18px 14px; border-radius: var(--radius-lg); }
+      .report-title { font-size: 20px; }
+      .data-card { padding: 12px; }
+      .data-label { font-size: 13px; }
+      .data-value { font-size: 15px; }
+      .data-value.highlight { font-size: 19px; }
+      
+      /* 대출 내역 카드 모바일 최적화 */
+      .loan-card { padding: 16px 12px; }
+      .loan-cat-tag { font-size: 14px; }
+      
+      /* ★ 핵심 수정: 모바일에서는 1컬럼 스택 구조로 변경하여 가독성 확보 */
+      .loan-info-grid { grid-template-columns: 1fr; gap: 8px; padding: 10px; }
+      .info-item { justify-content: space-between; padding: 2px 0; }
+      .info-label { font-size: 12px; }
+      .info-val { font-size: 14px; color: var(--text-primary); }
+    }
   </style>
 </head>
 <body>
@@ -118,11 +145,9 @@
       if (!hash) { showError("잘못된 접근이거나 링크 데이터가 누락되었습니다."); return; }
 
       try {
-        // ★ 한글 깨짐 방지 디코딩
         const decodedStr = decodeURIComponent(escape(atob(hash)));
         const data = JSON.parse(decodedStr);
 
-        // ★ 만료 체크 (7일)
         if (Date.now() > data.expiry) {
           showError("이 진단 리포트 링크는 유효기간이 만료되었습니다.<br>계산기에서 다시 계산 후 발급해주세요.");
           return;
@@ -188,67 +213,60 @@
       document.getElementById('reportContent').style.display = 'block';
     }
 
-    // ★ 핵심 고도화: 대출 종류별 상세 상환 스케줄 계산 및 HTML 생성 (기존 로직 이식)
+    // 상환 스케줄 계산 로직 (기존 동일)
     function generateScheduleTableHtml(loan) {
-      const P = loan.P; // 원금
-      const n = loan.n; // 기간(월)
-      const r_yr = loan.R; // 연금리(%)
-      
-      // 스트레스 금리 반영 여부 확인 및 계산
+      const P = loan.P;
+      const n = loan.n;
+      const r_yr = loan.R;
       const sr_val = SR_MAP[loan.SR] || 0;
-      const r_final_yr = r_yr + sr_val; // 최종 연금리
-      const r = (r_final_yr / 100) / 12; // 월 소수점 금리
+      const r_final_yr = r_yr + sr_val;
+      const r = (r_final_yr / 100) / 12;
 
       let rowsHtml = '';
-      let totalP = 0; // 원금 합계
-      let totalI = 0; // 이자 합계
-      let currP = P; // 잔액
+      let totalP = 0;
+      let totalI = 0;
+      let currP = P;
 
-      // 1. 원리금균등 상환 (mortgage_level, officetel, credit, cardloan)
       if (['mortgage_level', 'officetel', 'credit', 'cardloan'].includes(loan.cat)) {
-        // 월 상환액(원리금) 계산 수식
-        const M = (P * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+        const denominator = Math.pow(1 + r, n) - 1;
+        if (denominator === 0) return ''; // 금리 0% 예외처리(필요시)
+        const M = (P * r * Math.pow(1 + r, n)) / denominator;
         
         for (let i = 1; i <= n; i++) {
-          const I_i = currP * r; // 이번달 이자
-          const P_i = M - I_i; // 이번달 원금
+          const I_i = currP * r;
+          const P_i = M - I_i;
           currP -= P_i;
-          if (i === n) currP = 0; // 마지막 회차 잔액 조정
+          if (i === n) currP = 0;
           totalP += P_i; totalI += I_i;
           rowsHtml += `<tr><td>${i}</td><td>${Math.round(P_i).toLocaleString()}</td><td>${Math.round(I_i).toLocaleString()}</td><td>${Math.round(M).toLocaleString()}</td><td>${Math.round(Math.abs(currP)).toLocaleString()}</td></tr>`;
         }
       } 
-      // 2. 원금균등 상환 (mortgage_prin)
       else if (loan.cat === 'mortgage_prin') {
-        const P_i = P / n; // 매달 동일한 원금
-        
+        const P_i = P / n;
         for (let i = 1; i <= n; i++) {
-          const I_i = currP * r; // 이번달 이자
-          const M = P_i + I_i; // 이번달 원리금
+          const I_i = currP * r;
+          const M = P_i + I_i;
           currP -= P_i;
           if (i === n) currP = 0;
           totalP += P_i; totalI += I_i;
           rowsHtml += `<tr><td>${i}</td><td>${Math.round(P_i).toLocaleString()}</td><td>${Math.round(I_i).toLocaleString()}</td><td>${Math.round(M).toLocaleString()}</td><td>${Math.round(Math.abs(currP)).toLocaleString()}</td></tr>`;
         }
       }
-      // 3. 만기일시 상환 (jeonse)
       else if (loan.cat === 'jeonse') {
-        const I_i = P * r; // 매달 동일한 이자
-        
+        const I_i = P * r;
         for (let i = 1; i <= n; i++) {
-          let P_rep = 0; // 평소엔 원금 상환 없음
+          let P_rep = 0;
           let M = I_i;
-          if (i === n) { P_rep = P; M = P + I_i; currP = 0; } // 마지막 달에 원금 전액 상환
+          if (i === n) { P_rep = P; M = P + I_i; currP = 0; }
           totalP += P_rep; totalI += I_i;
           rowsHtml += `<tr><td>${i}</td><td>${Math.round(P_rep).toLocaleString()}</td><td>${Math.round(I_i).toLocaleString()}</td><td>${Math.round(M).toLocaleString()}</td><td>${Math.round(currP).toLocaleString()}</td></tr>`;
         }
       }
 
-      // 표 전체 HTML 구성 (합계 행 포함)
       const tableHtml = `
         <table class="sched-table">
           <thead>
-            <tr><th>회차</th><th>상환원금</th><th>이자</th><th>납입금합계</th><th>대출잔액</th></tr>
+            <tr><th>회차</th><th>상환원금</th><th>이자</th><th>납입합계</th><th>대출잔액</th></tr>
           </thead>
           <tbody>
             ${rowsHtml}
@@ -258,7 +276,6 @@
               <td>${Math.round(totalI).toLocaleString()}</td>
               <td>${Math.round(totalP + totalI).toLocaleString()}</td>
               <td>-</td>
-            }
             </tr>
           </tbody>
         </table>
@@ -266,7 +283,6 @@
       return tableHtml;
     }
 
-    // 표 펼치기/접기 제어
     function toggleSchedule(index) {
       const wrap = document.getElementById(`schedWrap_${index}`);
       const btn = wrap.previousElementSibling.firstElementChild;
