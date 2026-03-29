@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // ─────────────────────────────────────────────────────────────
 
 /* =============================================================================
-   DSR CORE SYSTEM — KB 브랜드 VER 2026.05-C
+   DSR CORE SYSTEM — 브랜드 VER 2026.05-C
    파일명: common.js
    ============================================================================= */
 
@@ -1090,7 +1090,7 @@ async function generateAdminShareLink() {
     // ★ 핵심 고도화: 모바일(iOS/Android)에서는 네이티브 공유 창 띄우기
     if (navigator.share && /Mobi|Android/i.test(navigator.userAgent)) {
       navigator.share({
-        title: 'KB DSR 계산기 (고객용)',
+        title: 'DSR 계산기 (고객용)',
         text: 'DSR 계산기 간편 접속 및 앱 설치 링크입니다. (24시간 유효)',
         url: shortUrl
       }).catch((error) => {
