@@ -1,16 +1,138 @@
-let deferredPrompt;
+/* =============================================================================
+   share.js — 1회성 링크 게이트 (HMAC-SHA256 서명 검증 + nonce 소인)
+   ─────────────────────────────────────────────────────────────────────────────
+   ★ _OTL_SIGN_KEY 는 common.js 의 값과 반드시 동일해야 합니다
+   ============================================================================= */
 
+// ─── 설정 ─────────────────────────────────────────────────────────────────────
+// ★ common.js 의 _OTL_SIGN_KEY 와 동기화 — 두 파일 항상 같이 변경하세요
+const _OTL_SIGN_KEY = 'KB_DSR_OTL_SIGN_2026';
+
+// nonce 를 localStorage 에 보관할 기간 (ms) — 링크 유효시간보다 길게 유지 권장
+//   7일  →   7 * 24 * 60 * 60 * 1000  =    604_800_000
+//  30일  →  30 * 24 * 60 * 60 * 1000  =  2_592_000_000  ← 현재값
+//  60 * 1000 = 1분
+const _NONCE_KEEP_MS = 0.01 * 24 * 60 * 60 * 1000; // ← 여기만 수정
+// ──────────────────────────────────────────────────────────────────────────────
+
+let deferredPrompt;
+const _NONCE_KEY_PREFIX = 'otl_used_';
+
+// ─── HMAC-SHA256 서명 검증 ────────────────────────────────────────────────────
+async function _verifySign(payload, sigToCheck) {
+  const keyBuf    = new TextEncoder().encode(_OTL_SIGN_KEY);
+  const dataBuf   = new TextEncoder().encode(JSON.stringify(payload));
+  const cryptoKey = await crypto.subtle.importKey(
+    'raw', keyBuf, { name: 'HMAC', hash: 'SHA-256' }, false, ['verify']
+  );
+  const b64    = sigToCheck.replace(/-/g, '+').replace(/_/g, '/');
+  const binary = atob(b64);
+  const sigBuf = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) sigBuf[i] = binary.charCodeAt(i);
+  return crypto.subtle.verify('HMAC', cryptoKey, sigBuf, dataBuf);
+}
+
+// ─── nonce localStorage 유틸 ─────────────────────────────────────────────────
+function _isNonceUsed(nonce) {
+  try { return localStorage.getItem(_NONCE_KEY_PREFIX + nonce) !== null; }
+  catch { return false; }
+}
+
+function _markNonceUsed(nonce) {
+  try {
+    localStorage.setItem(
+      _NONCE_KEY_PREFIX + nonce,
+      JSON.stringify({ usedAt: Date.now(), keepUntil: Date.now() + _NONCE_KEEP_MS })
+    );
+  } catch { /* localStorage 쓰기 실패 시 무시 */ }
+}
+
+function _cleanOldNonces() {
+  try {
+    for (const key of Object.keys(localStorage)) {
+      if (!key.startsWith(_NONCE_KEY_PREFIX)) continue;
+      try {
+        const { keepUntil } = JSON.parse(localStorage.getItem(key));
+        if (Date.now() > keepUntil) localStorage.removeItem(key);
+      } catch { localStorage.removeItem(key); }
+    }
+  } catch { /* 무시 */ }
+}
+
+// ─── UI 카드 전환 ─────────────────────────────────────────────────────────────
+function _showCard(cardId) {
+  ['cardLoading', 'cardMain', 'cardExpired', 'cardUsed', 'cardInvalid'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('active', id === cardId);
+  });
+}
+
+// ─── 토큰 검증 (기존 validateToken 교체) ─────────────────────────────────────
+async function validateToken() {
+  _cleanOldNonces(); // 만료된 소인 청소
+
+  const raw = new URLSearchParams(location.search).get('t');
+  if (!raw) { _showCard('cardInvalid'); return; }
+
+  // 1. Base64 → JSON 파싱
+  let token;
+  try {
+    token = JSON.parse(decodeURIComponent(escape(atob(raw))));
+  } catch {
+    _showCard('cardInvalid'); return;
+  }
+
+  const { url, exp, nonce, sig } = token;
+  if (!url || !exp || !nonce || !sig) { _showCard('cardInvalid'); return; }
+
+  // 2. ★ 만료 시각 검증 (ms 타임스탬프 직접 비교)
+  if (Date.now() > exp) { _showCard('cardExpired'); return; }
+
+  // 3. ★ HMAC-SHA256 서명 검증 (exp·url·nonce 조작 시 불일치로 차단)
+  let sigOk = false;
+  try { sigOk = await _verifySign({ url, exp, nonce }, sig); }
+  catch { sigOk = false; }
+  if (!sigOk) { _showCard('cardInvalid'); return; }
+
+  // 4. ★ 1회성 nonce 소인 검사 (같은 기기 재접속 차단)
+  if (_isNonceUsed(nonce)) { _showCard('cardUsed'); return; }
+
+  // ✅ 모든 검증 통과 → 소인 기록
+  _markNonceUsed(nonce);
+
+  // 주소창 세탁 (토큰 URL 노출 제거)
+  window.history.replaceState(null, '', 'share.html');
+
+  // 유효기간 뱃지 업데이트
+  const expDate = new Date(exp).toLocaleString('ko-KR', {
+    month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+  });
+  const badge = document.getElementById('expiryBadge');
+  if (badge) badge.textContent = `⏱ ${expDate}까지 유효`;
+
+  // 1회성 접속 버튼 — 토큰의 url 로 이동 (하드코딩 제거)
+  document.getElementById('btnOneTime')?.addEventListener('click', () => {
+    localStorage.setItem('kb_guest_mode', 'true'); // 고객 낙인 → 관리자 UI 차단
+    window.location.href = url;
+  });
+
+  _showCard('cardMain');
+}
+
+// ─── window.onload ────────────────────────────────────────────────────────────
 window.onload = function() {
   if (checkInAppBrowser()) return;
-  
-  // 최초 접속 시 토큰 검증 및 세션 스토리지 저장
+
+  // 토큰 검증 (비동기)
   validateToken();
 
+  // PWA 설치 프롬프트 캐싱 (기존 로직 완전 보존)
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
   });
 
+  // 앱 설치 버튼 (기존 로직 완전 보존)
   document.getElementById('btnInstall').addEventListener('click', async () => {
     if (deferredPrompt) {
       deferredPrompt.prompt();
@@ -21,47 +143,13 @@ window.onload = function() {
       }
     } else {
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-      if (isIOS) { alert("아이폰 하단의 [공유(네모에 화살표)] 버튼을 누른 후\n[홈 화면에 추가]를 선택하여 설치해주세요."); } 
+      if (isIOS) { alert("아이폰 하단의 [공유(네모에 화살표)] 버튼을 누른 후\n[홈 화면에 추가]를 선택하여 설치해주세요."); }
       else { alert("브라우저 설정 메뉴(우측 상단 ⁝)에서\n'앱 설치' 또는 '홈 화면에 추가'를 선택해주세요."); }
     }
   });
-
-// ★ 고도화: 1회성 접속 시 브라우저에 '고객 모드' 강력한 락(Lock)을 걸어버림
-   document.getElementById('btnOneTime').addEventListener('click', () => {
-    localStorage.setItem('kb_guest_mode', 'true'); // ★ 고객 낙인 찍기
-    window.location.href = 'index.html'; // ★ 꼬리표 없이 깔끔하게 이동
-  });
 };
 
-function validateToken() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const token = urlParams.get('t');
-  const mainCard = document.getElementById('mainCard');
-  const errorCard = document.getElementById('errorCard');
-
-  // 1. URL에 토큰이 있는 경우 (최초 접속)
-  if (token) {
-    try {
-      const payload = JSON.parse(decodeURIComponent(atob(token)));
-      if (Date.now() <= payload.exp) {
-        // 검증 성공! 브라우저 메모리에 기록하고 주소창 세탁
-        sessionStorage.setItem('kb_valid_share', 'true');
-        window.history.replaceState(null, '', 'share.html');
-        mainCard.classList.remove('hidden'); errorCard.classList.remove('active');
-        return;
-      }
-    } catch (e) {}
-  }
-
-  // 2. URL에 토큰은 없지만, 방금 검증을 통과한 기록이 있는 경우 (앱 설치 시 에러 방지)
-  if (sessionStorage.getItem('kb_valid_share') === 'true') {
-    mainCard.classList.remove('hidden'); errorCard.classList.remove('active');
-    return;
-  }
-
-  // 3. 둘 다 아니면 만료 에러
-  mainCard.classList.add('hidden'); errorCard.classList.add('active');
-}
+// ─── 아래 두 함수는 기존 코드 완전 보존 ──────────────────────────────────────
 
 function showInstallSuccess() {
   document.body.innerHTML = `
@@ -73,7 +161,6 @@ function showInstallSuccess() {
   `;
 }
 
-// (checkInAppBrowser 함수는 기존과 완전히 동일하게 아래에 유지해 주세요)
 function checkInAppBrowser() {
   const ua = navigator.userAgent.toLowerCase();
   const isKakao = ua.indexOf('kakaotalk') > -1;
@@ -82,7 +169,7 @@ function checkInAppBrowser() {
   if (isInApp) {
     const currentUrl = location.href;
     if (ua.indexOf('android') > -1 && isKakao) { location.href = 'intent://' + currentUrl.replace(/https?:\/\//i, '') + '#Intent;scheme=https;package=com.android.chrome;end'; return true; }
-    
+
     document.body.innerHTML = `
       <div style="min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px; background:#F4F6FB; text-align:center;">
         <div style="font-size:50px; margin-bottom:20px;">🧭</div>

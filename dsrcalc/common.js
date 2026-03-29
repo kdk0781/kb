@@ -61,8 +61,8 @@ const APP_CONFIG = {
   SCHEDULE_MAX_HEIGHT_PX:        480,
 
   // ── 임시 리포트 링크 ────────────────────────────────────────────────────────
-  REPORT_LINK_EXPIRY_DAYS:  7,
-  REPORT_COPY_DAILY_LIMIT:  10,     // 하루 복사 횟수 제한 — 숫자만 변경
+  REPORT_LINK_EXPIRY_DAYS:  1,    // 0.1 - 0.:24분
+  REPORT_COPY_DAILY_LIMIT:  100,     // 하루 복사 횟수 제한 — 숫자만 변경
   REPORT_PAGE_PATH: 'report.html',
   SHORTENER_API: 'https://is.gd/create.php?format=simple&url=',
 
@@ -957,7 +957,7 @@ function _buildReportData() {
     maxPTxt:document.getElementById('absMaxPrin')?.innerText||'-',
     maxLTxt:document.getElementById('absMaxLevel')?.innerText||'-',
     recHtml:document.getElementById('recDesc')?.innerHTML||'',
-    expiry:Date.now()+_C.REPORT_LINK_EXPIRY_DAYS*86400000,
+    expiry:Date.now()+_C.REPORT_LINK_EXPIRY_DAYS*86400000, // 86400000 24H report
     createdAt:new Date().toISOString() };
 }
 
@@ -1044,6 +1044,35 @@ async function copyResultText() {
   }
 }
 
+// ─── [9-OTL] 1회성 링크 서명 유틸 ──────────────────────────────────────────
+// ★ 이 키는 share.js 의 _OTL_SIGN_KEY 와 반드시 동일해야 합니다
+const _OTL_SIGN_KEY = 'KB_DSR_OTL_SIGN_2026';
+
+/** HMAC-SHA256 서명 생성 */
+async function _otlSign(payload) {
+  const keyBuf    = new TextEncoder().encode(_OTL_SIGN_KEY);
+  const dataBuf   = new TextEncoder().encode(JSON.stringify(payload));
+  const cryptoKey = await crypto.subtle.importKey(
+    'raw', keyBuf, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+  );
+  const sigBuf = await crypto.subtle.sign('HMAC', cryptoKey, dataBuf);
+  return btoa(String.fromCharCode(...new Uint8Array(sigBuf)))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+}
+
+/** 토큰 발급: { url, exp, nonce, sig } → Base64 문자열 */
+async function _otlIssue(targetUrl, ttlMs) {
+  const payload = {
+    url:   targetUrl,
+    exp:   Date.now() + ttlMs,
+    nonce: crypto.randomUUID().slice(0, 12)
+  };
+  const sig   = await _otlSign(payload);
+  const token = { ...payload, sig };
+  return btoa(unescape(encodeURIComponent(JSON.stringify(token))));
+}
+// ────────────────────────────────────────────────────────────────────────────
+
 // ─── [9] 관리자 기능 ───────────────────────────────
 
 function checkAdminAuth() {
@@ -1075,8 +1104,16 @@ async function generateAdminShareLink() {
   try {
     const currentUrl = window.location.href.split('?')[0].split('#')[0];
     const baseUrl = currentUrl.substring(0, currentUrl.lastIndexOf('/') + 1);
-    const payload = { url: currentUrl, exp: Date.now() + (24 * 60 * 60 * 1000) };
-    const encodedPayload = btoa(encodeURIComponent(JSON.stringify(payload)));
+    // ★ 링크 유효 시간 설정 ───────────────────────────────────────────────────
+    // 단위: 밀리초(ms) — 아래 숫자 하나만 바꾸면 됩니다
+    //   1시간  →   1 * 60 * 60 * 1000  =    3_600_000
+    //   6시간  →   6 * 60 * 60 * 1000  =   21_600_000
+    //  12시간  →  12 * 60 * 60 * 1000  =   43_200_000
+    //  24시간  →  24 * 60 * 60 * 1000  =   86_400_000  ← 현재값
+    //  48시간  →  48 * 60 * 60 * 1000  =  172_800_000
+    const SHARE_LINK_TTL_MS = 24 * 60 * 60 * 1000; // ← 여기만 수정
+    // ─────────────────────────────────────────────────────────────────────────
+    const encodedPayload = await _otlIssue(currentUrl, SHARE_LINK_TTL_MS);
     const longShareUrl = `${baseUrl}share.html?t=${encodedPayload}`;
     
     // URL 단축 수행 (비동기)

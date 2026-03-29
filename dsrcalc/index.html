@@ -11,10 +11,9 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="application-name" content="DSR계산기">
 <meta name="description" content="KB DSR 계산기 — 스트레스금리 반영 DSR 진단 및 대출 한도 분석">
-<link rel="icon" type="image/svg+xml" href="favicon-light.svg" media="(prefers-color-scheme: light)">
-<link rel="icon" type="image/svg+xml" href="favicon-dark.svg" media="(prefers-color-scheme: dark)">
-<link rel="icon" type="image/png" href="../ico/favicon-light.png" sizes="32x32"> 
-<link rel="apple-touch-icon" sizes="180x180" href="../ico/favicon-light.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../ico/dsrcalc.png">
+<link rel="icon" type="image/png" href="../ico/dsrcalc.png">
+<link rel="shortcut icon" href="../ico/dsrcalc.png">
 <link rel="manifest" href="app_main.json">
 <link rel="stylesheet" href="common.css?v=2603291824" media="all">
 <title>DSR 계산기</title>
@@ -106,10 +105,8 @@
                     <div class="guide-step-content">
                         <div class="guide-step-title">부채 상세 설정순서</div>
                         <div class="guide-step-desc">
-							1. <b>대출종류 입력</b> <br/>
-							2. <b>금리유형 선택시</b> - 금리랑 스트레스 금리 자동 셋팅됨<br/>
-							3. <b>유효성 검사</b> - 팝업 노출시 확인 요망 <br />
-							4. <b>기본 국민은행 기준 셋팅</b> - 타은행 직접입력으로 진행
+							1. 대출종류 입력 <br/>
+							2. 금리유형 선택시 <b>금리랑 스트레스 금리 자동 셋팅됨</b><br/>
                             <span class="guide-tip">💡 금리 업데이트가 안되는 경우 금리유형 직접입력으로 하여 진행 가능함</span>
                         </div>
                     </div>
@@ -139,7 +136,7 @@
                     </div>
                 </div>
                 <div class="guide-step">
-                    <div class="guide-step-num">8</div>
+                    <div class="guide-step-num">7</div>
                     <div class="guide-step-content">
                         <div class="guide-step-title">기존 금리가 변경이 안되있는 경우</div>
                         <div class="guide-step-desc">
@@ -163,81 +160,157 @@
 				<button class="guide-close-btn" onclick="closeGuide()" aria-label="닫기">×</button>
 			</div>
 			<div class="guide-body">
+
+				<!-- ① 공지사항 강제 노출 -->
 				<div class="guide-step">
-					<div class="guide-step-num" >1</div>
+					<div class="guide-step-num">1</div>
 					<div class="guide-step-content">
 						<div class="guide-step-title">공지사항 강제 노출 (NOTICE_VERSION)</div>
 						<div class="guide-step-desc">
-							 앱 재설치 없이 중요 팝업을 모든 고객에게 다시 띄우는 로직입니다.<br>
-							 · <b>방법:</b><code>common.js</code>의 <code>APP_CONFIG.NOTICE_VERSION</code> 값을 올립니다 (예: '0781_7' → '0781_8').<br>
-							 · <b>원리:</b> "하루 보지 않기" 설정이 구버전 이름(hideNotice_0781_7)으로 저장되어 있으므로, 버전을 올리면 브라우저가 새 공지로 인식하여 강제 노출합니다.
+							앱 재설치 없이 중요 팝업을 모든 고객에게 다시 띄우는 로직입니다.<br>
+							· <b>수정 위치:</b> <code>common.js</code> → <code>APP_CONFIG.NOTICE_VERSION</code><br>
+							· <b>방법:</b> 값을 한 단계 올립니다 (예: <code>'0781_7'</code> → <code>'0781_8'</code>)<br>
+							· <b>원리:</b> "다시 보지 않기" 설정이 이전 버전 키(<code>hideNotice_0781_7</code>)로 저장되어 있으므로, 버전이 바뀌면 새 공지로 인식해 강제 노출합니다.<br>
+							<span class="guide-tip">💡 ?v= 버전도 함께 올려야 브라우저 캐시가 즉시 갱신됩니다 (→ 항목 8 참조)</span>
 						</div>
 					</div>
 				</div>
+
+				<!-- ② 실시간 금리 연동 -->
 				<div class="guide-step">
-					<div class="guide-step-num" >2</div>
+					<div class="guide-step-num">2</div>
 					<div class="guide-step-content">
 						<div class="guide-step-title">실시간 금리 연동 및 UI 자동화</div>
 						<div class="guide-step-desc">
-							 매주 바뀌는 대출 금리를 HTML 수정 없이 즉시 반영합니다.<br>
-							 · <b>구현:</b> HTML 셀렉트 박스에 숫자가 아닌 <code>value="m5_cycle"</code> 같은 '식별자'를 넣습니다.<br>
-							 · <b>원리:</b><code>kb_rates.js</code> 등 외부 파일에서 최신 금리를 주입하면, <code>_syncAllRateSelects()</code> 함수가 화면 UI 글자(예: "5년변동 5.14%")를 자동으로 다시 그리고 계산 로직에도 실시간 반영합니다.
+							매주 바뀌는 대출 금리를 HTML 수정 없이 자동 반영합니다.<br>
+							· <b>금리 원본:</b> <code>kb/interest/script.js</code> 의 <code>r.base</code> · <code>r.stress</code> · <code>r.add.mort</code> 블록<br>
+							· <b>로더:</b> <code>kb_rates.js</code> 가 파싱 후 <code>APP_CONFIG.KB_MORTGAGE_RATES</code> · <code>STRESS_RATES</code> 에 주입<br>
+							· <b>UI 반영:</b> <code>_syncAllRateSelects()</code> 가 셀렉트 옵션 텍스트를 자동 갱신 (value는 식별자 고정)<br>
+							· <b>캐시 갱신:</b> <code>kb_rates.js?v=</code> 버전을 올리면 구버전 로컬스토리지 캐시가 자동 무효화됩니다<br>
+							<span class="guide-tip">💡 파싱 실패 시 FALLBACK_RATES 폴백값 자동 적용 — 계산기는 항상 동작합니다</span>
 						</div>
 					</div>
 				</div>
+
+				<!-- ③ PWA 캐시 무효화 -->
 				<div class="guide-step">
-					<div class="guide-step-num" >3</div>
+					<div class="guide-step-num">3</div>
 					<div class="guide-step-content">
-						<div class="guide-step-title">PWA 캐시 무효화 (app_main.json 분리)</div>
+						<div class="guide-step-title">PWA 캐시 무효화 (매니페스트 분리)</div>
 						<div class="guide-step-desc">
-							 PWA 웹앱의 강력한 캐시 기능 때문에 업데이트가 지연되는 현상을 차단합니다.<br>
-							 · <b>구현:</b><code>dsr.json</code>을 버리고 <code>app_main.json</code>, <code>app_admin.json</code>으로 분리했습니다.<br>
-							 · <b>원리:</b> 파일명과 시작 주소(start_url)가 달라지면 브라우저가 완전히 새로운 앱으로 인식하므로, 관리자/사용자 충돌 없이 최신 상태로 강제 갱신됩니다.
+							PWA의 강력한 캐시로 인해 업데이트가 지연되는 현상을 차단합니다.<br>
+							· <b>구조:</b> 사용자용 <code>app_main.json</code> / 관리자용 <code>app_admin.json</code> 분리 운용<br>
+							· <b>원리:</b> <code>start_url</code> 이 다르면 브라우저가 완전히 다른 PWA 앱으로 인식 → 캐시 충돌 없음<br>
+							· <b>강제 갱신:</b> FAB 새로고침 버튼(↻)이 Cache API + Service Worker 전체 초기화 후 재로드<br>
+							<span class="guide-tip">💡 JS·CSS 파일 수정 시에는 항목 8의 ?v= 버전 업이 필수입니다</span>
 						</div>
 					</div>
 				</div>
+
+				<!-- ④ 1회성 링크 보안 시스템 -->
 				<div class="guide-step">
-					<div class="guide-step-num" >4</div>
+					<div class="guide-step-num">4</div>
 					<div class="guide-step-content">
-						<div class="guide-step-title">리포트 링크 암호화 및 버전 추적</div>
+						<div class="guide-step-title">1회성 링크 보안 시스템 (HMAC-SHA256)</div>
 						<div class="guide-step-desc">
-							 고객에게 배포되는 진단 리포트 링크의 호환성 유지 및 만료를 제어합니다.<br>
-							 · <b>구현:</b><code>v: _C.APP_VERSION</code>(예: 2026.05-C)과 <code>expiry</code>(만료 시간)를 Base64로 암호화하여 URL을 만듭니다.<br>
-							 · <b>원리:</b> 추후 로직이 대폭 변경되어도 리포트 페이지(report.html)에서 구버전 링크임을 식별해 호환성 처리를 하거나 만료시킬 수 있습니다.
+							고객 배포용 단축 링크의 위변조·재사용을 3단으로 차단합니다.<br>
+							· <b>① 만료 시각 검증:</b> 토큰에 ms 타임스탬프(<code>exp</code>)가 포함 — 기간 초과 시 즉시 차단<br>
+							· <b>② 서명 검증 (HMAC-SHA256):</b> <code>exp</code>·<code>url</code>·<code>nonce</code> 중 하나라도 조작하면 서명 불일치로 차단<br>
+							· <b>③ 1회성 소인:</b> 접속 기기의 localStorage에 <code>nonce</code> 기록 → 같은 기기 재접속 차단<br><br>
+							· <b>서명 키 위치:</b> <code>common.js</code> 와 <code>share.js</code> 각 최상단 <code>_OTL_SIGN_KEY</code><br>
+							· <b>⚠ 중요:</b> 두 파일의 키 값이 반드시 동일해야 합니다 — 키를 바꾸면 기존 링크 전체 즉시 무효화<br>
+							<span class="guide-tip">💡 링크 유효시간 변경은 항목 5에서 별도 설명합니다</span>
 						</div>
 					</div>
 				</div>
+
+				<!-- ⑤ 링크 유효시간 변경 -->
 				<div class="guide-step">
-					<div class="guide-step-num" >5</div>
+					<div class="guide-step-num">5</div>
 					<div class="guide-step-content">
-						<div class="guide-step-title">리포트 일일 복사량 컨트롤</div>
+						<div class="guide-step-title">고객용 링크 유효시간 변경 (SHARE_LINK_TTL_MS)</div>
 						<div class="guide-step-desc">
-							 무분별한 링크 생성(어뷰징)으로 인한 트래픽 낭비를 막습니다.<br>
-							 · <b>제어:</b><code>APP_CONFIG.MAX_REPORT_COPIES</code> 에서 하루 허용량(예: 5회)을 설정합니다.<br>
-							 · <b>원리:</b> 사용자의 로컬스토리지에 오늘 날짜 기준으로 카운팅을 저장하며, 초과 시 알림을 띄우고 버튼 작동을 막습니다.
+							발급되는 1회성 단축 링크의 유효기간을 숫자 하나로 조정합니다.<br>
+							· <b>수정 위치:</b> <code>common.js</code> → <code>generateAdminShareLink()</code> 함수 내 <code>SHARE_LINK_TTL_MS</code><br>
+							· <b>단위:</b> 밀리초(ms) — 주석으로 시간대별 환산값이 표기되어 있습니다<br>
+							&nbsp;&nbsp;&nbsp;— &nbsp;<code>1000</code> = 1초<br/>
+							&nbsp;&nbsp;&nbsp;— &nbsp;<code>60 * 1000</code> = 1분<br/>
+							&nbsp;&nbsp;&nbsp;— &nbsp;<code>60 * 60 * 1000</code> = 1분<br/>
+							&nbsp;&nbsp;&nbsp;— &nbsp;<code>6 * 60 * 60 * 1000</code> = 6시간<br>
+							&nbsp;&nbsp;&nbsp;— &nbsp;<code>24 * 60 * 60 * 1000</code> = 24시간 (현재값)<br>
+							&nbsp;&nbsp;&nbsp;— &nbsp;<code>48 * 60 * 60 * 1000</code> = 48시간<br>
+							· <b>share.js 는 수정 불필요:</b> 토큰 내 <code>exp</code> 값을 직접 읽으므로 자동 적용됩니다<br>
+							<span class="guide-tip">💡 변경 후 ?v= 버전을 올려야 관리자 브라우저에도 즉시 반영됩니다</span>
 						</div>
 					</div>
 				</div>
+
+				<!-- ⑥ 리포트 링크 제어 -->
 				<div class="guide-step">
-					<div class="guide-step-num" >6</div>
+					<div class="guide-step-num">6</div>
 					<div class="guide-step-content">
-						<div class="guide-step-title">스트레스 DSR 단계 스위치</div>
+						<div class="guide-step-title">리포트 링크 발급량 · 유효기간 제어</div>
 						<div class="guide-step-desc">
-							 정부 규제 단계 변경 시 코드 전면 수정 없이 스위치 하나로 대응합니다.<br>
-							 · <b>제어:</b><code>APP_CONFIG.STRESS_PHASE</code> 값을 1, 2, 3으로만 변경합니다.<br>
-							 · <b>원리:</b> 해당 숫자에 따라 가산 금리 반영 비율(25% → 50% → 100%)이 계산 로직 내에서 자동으로 전환 적용됩니다.
+							고객용 DSR 진단 리포트 링크의 남용 방지 및 만료를 제어합니다.<br>
+							· <b>일일 발급 한도:</b> <code>common.js</code> → <code>APP_CONFIG.REPORT_COPY_DAILY_LIMIT</code> (기본 10회)<br>
+							&nbsp;&nbsp;&nbsp;— 오늘 날짜 기준 카운팅, 초과 시 버튼 비활성화<br>
+							· <b>링크 유효기간:</b> <code>common.js</code> → <code>APP_CONFIG.REPORT_LINK_EXPIRY_DAYS</code> (기본 7일)<br>
+							&nbsp;&nbsp;&nbsp;— <code>report.html</code> 에서 만료 여부 자동 판별<br>
+							· <b>원리:</b> 로컬스토리지에 날짜별 카운트 저장, 8일 지난 기록은 자동 삭제<br>
+							<span class="guide-tip">💡 리포트 링크는 1회성이 아닌 다회 공유용입니다 — 단축 링크(share.html)와 다릅니다</span>
 						</div>
 					</div>
 				</div>
+
+				<!-- ⑦ 관리자 계정 설정 -->
+				<div class="guide-step">
+					<div class="guide-step-num">7</div>
+					<div class="guide-step-content">
+						<div class="guide-step-title">관리자 계정 초기값 설정</div>
+						<div class="guide-step-desc">
+							최초 배포 전 관리자 아이디·비밀번호·대표 URL을 설정합니다.<br>
+							· <b>수정 위치:</b> <code>admin.js</code> 최상단 <code>DEFAULT_CONFIG</code> 블록<br>
+							&nbsp;&nbsp;&nbsp;— <code>id</code>: 관리자 아이디<br>
+							&nbsp;&nbsp;&nbsp;— <code>pw</code>: 비밀번호 — <b>배포 전 반드시 변경</b><br>
+							&nbsp;&nbsp;&nbsp;— <code>mainUrl</code>: 로그인 후 이동할 대표 페이지 경로<br>
+							· <b>운용 중 변경:</b> 로그인 페이지 하단 <b>⚙️ 관리자 설정 변경</b> 모달로 즉시 수정 가능<br>
+							· <b>저장 위치:</b> localStorage(<code>kb_admin_config</code>) — 기기별 독립 저장<br>
+							· <b>세션 유효기간:</b> 로그인 후 24시간, 이후 자동 로그아웃<br>
+							<span class="guide-tip">💡 DEFAULT_CONFIG 는 localStorage 기록이 없을 때만 사용되는 초기값입니다</span>
+						</div>
+					</div>
+				</div>
+
+				<!-- ⑧ 캐시 버전 업 -->
+				<div class="guide-step">
+					<div class="guide-step-num">8</div>
+					<div class="guide-step-content">
+						<div class="guide-step-title">파일 수정 후 캐시 버전 업 (필수)</div>
+						<div class="guide-step-desc">
+							JS·CSS 파일을 수정할 때마다 호출 버전을 올려야 사용자 브라우저 캐시가 갱신됩니다.<br>
+							· <b>수정 위치:</b> <code>index.html</code> 하단 스크립트 태그의 <code>?v=</code> 쿼리<br>
+							&nbsp;&nbsp;&nbsp;— <code>common.css?v=<b>YYYYMMDDHHNN</b></code> — CSS 수정 시 변경<br>
+							&nbsp;&nbsp;&nbsp;— <code>kb_rates.js?v=<b>YYYYMMDDHHNN</b></code> — 금리 업데이트 시 반드시 변경<br>
+							&nbsp;&nbsp;&nbsp;— <code>common.js?v=<b>YYYYMMDDHHNN</b></code> — 로직 수정 시 반드시 변경<br>
+							· <b>권장 값:</b> 수정일시 12자리 (예: <code>260329 1824</code> = 26년 03월 29일 18:24)<br>
+							· <b>kb_rates.js 캐시 키:</b> <code>?v=</code> 값을 읽어 localStorage 키로 사용 → 버전이 바뀌면 구버전 금리 캐시 자동 폐기<br>
+							<span class="guide-tip">💡 세 파일의 ?v= 값이 달라도 무방합니다 — 각각 독립적으로 캐시를 관리합니다</span>
+						</div>
+					</div>
+				</div>
+
 				<div class="guide-divider"></div>
 				<div class="guide-warn-box">
-					 ⚠️ <b>유지보수 주의</b> — 위 시스템 로직들을 수정할 때는 반드시 <code>index.html</code> 상단의 css 하단의 JS 호출 버전(예: <code>?v=1.2</code>)을 올려주어야 사용자 브라우저 캐시가 갱신됩니다.
+					⚠️ <b>보안 주의</b> — <code>admin.js</code>의 기본 비밀번호는 배포 전 반드시 변경하세요.<br>
+					<code>_OTL_SIGN_KEY</code> 는 <code>common.js</code>와 <code>share.js</code> 양쪽을 항상 동시에 수정해야 합니다.<br>
+					두 파일 중 하나라도 다르면 모든 발급 링크가 즉시 무효화됩니다.
 				</div>
 			</div>
 			<div class="guide-footer">
 				<button class="guide-start-btn" onclick="closeGuide()">닫기</button>
 			</div>
 		</div>
+
 
 	</div>
 </div>
@@ -248,7 +321,7 @@
 			📢 업데이트 안내
 		</div>
 		<div class="notice-body">
-			<span class="main-text">금리 자동 연동 · 사용 가이드 추가</span>
+			<span class="main-text">KB 금리 자동 연동 · 사용 가이드 추가</span>
 			<span class="sub-text">담보대출 금리가 자동 적용되며, 상단 가이드 버튼에서 사용법을 확인할 수 있습니다.</span>
 		</div>
 		<div class="notice-footer">
@@ -304,7 +377,7 @@
 	<!-- 결과 영역 -->
 	<div id="resultArea" class="result-box" style="display:none;">
 		<div class="recommendation-box">
-			<h4 class="rec-box-title">🎯 전문 DSR 진단</h4>
+			<h4 class="rec-box-title">🎯 KB 전문 DSR 진단</h4>
 			<p id="recDesc" class="rec-box-desc">
 				분석 데이터 대기 중...
 			</p>
@@ -535,7 +608,7 @@
 	</div>
 </div>
 <script src="kb_rates.js?v=2603291824"></script>
-<script src="common.js?v=2603291824"></script>
+<script src="common.js?v=2603292329"></script>
 <script>
     /* ── 사용 가이드 모달 ──────────────────────────────────────────────── */
     // ESC 키로 가이드 닫기 (이건 남겨두셔도 좋습니다)
