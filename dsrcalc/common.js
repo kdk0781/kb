@@ -61,8 +61,8 @@ const APP_CONFIG = {
   SCHEDULE_MAX_HEIGHT_PX:        480,
 
   // ── 임시 리포트 링크 ────────────────────────────────────────────────────────
-  REPORT_LINK_EXPIRY_DAYS:  1,    // 0.1 - 0.:24분
-  REPORT_COPY_DAILY_LIMIT:  100,     // 하루 복사 횟수 제한 — 숫자만 변경
+  REPORT_LINK_EXPIRY_DAYS:  7,    // 0.1 - 0.:24분
+  REPORT_COPY_DAILY_LIMIT:  10,     // 하루 복사 횟수 제한 — 숫자만 변경
   REPORT_PAGE_PATH: 'report.html',
   SHORTENER_API: 'https://is.gd/create.php?format=simple&url=',
 
@@ -506,7 +506,7 @@ function calculateLogic() {
   if (remainView) { remainView.innerText = f(remainLimit); remainView.style.color = isOver ? "var(--danger)" : dsr > _C.DSR_WARN_PCT ? "var(--warn)" : "var(--safe)"; }
 
   const recDesc = document.getElementById('recDesc');
-  if (recDesc) recDesc.innerHTML = buildRecommendText(dsr, isOver, remainLimit, maxPrin, maxLevel, f, income, totalAnnPayment);
+  if (recDesc) recDesc.innerHTML = buildRecommendText(dsr, isOver, remainLimit, maxPrin, maxLevel, f, totalAnnPayment, income);
 
 
   document.getElementById('scheduleSection').classList.remove('schedule-visible');
@@ -605,14 +605,24 @@ function toggleReverseCalc() {
 
 
 // ─── [4-1] 추천 문구 ─────────────────────────────────────────────────────────
-function buildRecommendText(dsr, isOver, remainLimit, maxPrin, maxLevel, f, totalAnnPayment) {
-  const d = dsr.toFixed(1);
+// ★ totalAnnPayment: 연간 총 원리금(원) / income: 연간 세전 소득(원)
+function buildRecommendText(dsr, isOver, remainLimit, maxPrin, maxLevel, f, totalAnnPayment, income) {
+  const d         = dsr.toFixed(1);
+  const targetDSR = 35; // 안정권 목표 (%)
+
   if (isOver) {
-      // 🎯 목표 연소득 계산 (35% 안정권 기준)
-      const reqIncome = totalAnnPayment / 0.35;
-      const fReqIncome = (Math.ceil(reqIncome / 10000) * 10000).toLocaleString() + "원";
-      
-      return `<b style="color:var(--danger)">⛔ DSR 규제선(${_C.DSR_LIMIT_PCT}%) 초과 — 현재 ${d}% (초과 ${(dsr-_C.DSR_LIMIT_PCT).toFixed(1)}%p)</b><br><span style="font-size:12px;line-height:1.8;">신규 대출 실행이 제한됩니다. 안정권(35%) 진입을 위해 <b>목표 연소득 <span style="color:var(--kb-yellow-deep)">${fReqIncome}</span> 이상</b> 증빙하시거나, 기존 부채 상환을 통해 <b>권장 목표 원금 <span style="color:var(--kb-yellow-deep)">${f(maxPrin)}</span> 이하</b>로 월 상환부담을 줄이셔야 합니다.</span>`;
+    // ① 필요 연소득: 현재 상환액 기준 역산 ← _buildReportData.reqIncome 과 동일 공식
+    const reqIncome  = totalAnnPayment / (targetDSR / 100);
+    const fReqIncome = (Math.ceil(reqIncome / 10000) * 10000).toLocaleString() + '원';
+
+    // ② 줄여야 할 연간 상환액
+    const excessPmt = totalAnnPayment - income * (targetDSR / 100);
+    const fExcess   = Math.round(Math.max(0, excessPmt)).toLocaleString() + '원';
+
+    return `<b style="color:var(--danger)">⛔ DSR 규제선(${_C.DSR_LIMIT_PCT}%) 초과 — 현재 ${d}% (초과 ${(dsr-_C.DSR_LIMIT_PCT).toFixed(1)}%p)</b><br>` +
+      `<span style="font-size:12px;line-height:1.8;">신규 대출 실행이 제한됩니다. 안정권(${targetDSR}%) 진입을 위해<br>` +
+      `· <b>연소득</b>이 <span style="color:var(--kb-yellow-deep)">${fReqIncome}</span> 이상 증빙되거나,<br>` +
+      `· 연간 원리금을 <span style="color:var(--kb-yellow-deep)">${fExcess}</span> 이상 줄여야 합니다.</span>`;
   }
   if (dsr >= _C.DSR_WARN_PCT) return `<b style="color:var(--warn)">⚠️ DSR 경계 구간 — 현재 ${d}%</b><br><span style="font-size:12px;line-height:1.8;">규제선까지 여유 <b>${(_C.DSR_LIMIT_PCT - dsr).toFixed(1)}%p</b>. 변동금리 상승 시 초과 위험이 있습니다. 추가 대출이 필요하다면 <b>원금균등 방식</b>으로 빠른 원금 감소를 권장합니다.<br>추가 여력: <b style="color:var(--warn)">${f(remainLimit)}</b></span>`;
   if (dsr >= _C.DSR_CAUTION_PCT) return `<b style="color:var(--kb-yellow-deep)">✅ 안정 구간 — 현재 ${d}%</b><br><span style="font-size:12px;line-height:1.8;">부채 구조 양호. 추가 대출 여력 <b style="color:var(--safe)">${f(remainLimit)}</b>. 장기 보유 목적이면 <b>원금균등</b>, 초기 현금흐름 안정이라면 <b>원리금균등</b>을 고려하세요.</span>`;
@@ -942,23 +952,77 @@ function initCopyBtn() {
 }
 
 function _buildReportData() {
-  const items=document.querySelectorAll('[id^="loan_"]'), loans=[];
-  items.forEach(item=>{
-    const cat=item.querySelector('.l-category').value, P=getNum(item.querySelector('.l-p').value);
-    const R=Number(item.querySelector('.l-r').value)||getDefaultRate(cat);
-    const SR = item.querySelector('.l-sr-select')?.value || '0'; // ★ 식별자 그대로 저장
-    const n=getNum(item.querySelector('.l-m').value)||360;
-    const rt=item.querySelector('.l-rate-type')?.value||'직접입력';
-    if(P>0) loans.push({cat,P,R,SR,n,rt});
+  const items = document.querySelectorAll('[id^="loan_"]');
+  const loans = [];
+
+  const income = getNum(document.getElementById('income').value);
+
+  // ── 부채별 연간 상환액 + DSR 기여도 계산 ──────────────────────────────────
+  let totalAnnPayment = 0;
+  let totalPrin       = 0;
+
+  items.forEach(item => {
+    const cat    = item.querySelector('.l-category').value;
+    const P      = getNum(item.querySelector('.l-p').value);
+    const R      = Number(item.querySelector('.l-r').value) || getDefaultRate(cat);
+    const SR_key = item.querySelector('.l-sr-select')?.value || '0';
+    const SR     = getStressRate(SR_key);
+    const n      = getNum(item.querySelector('.l-m').value) || 360;
+    const rt     = item.querySelector('.l-rate-type')?.value || '직접입력';
+    if (P <= 0) return;
+
+    const r_dsr = (R + SR) / 1200;
+    let loanAnnPmt = 0;
+    if (cat === 'jeonse') {
+      loanAnnPmt = P * (R / 1200) * 12;
+    } else if (isPurchaseLoan(cat, n)) {
+      loanAnnPmt = cat === 'mortgage_prin'
+        ? (P / n) * 12 + (P * r_dsr * (n + 1) / 2) / (n / 12)
+        : calcPMT(P, r_dsr, n) * 12;
+    } else {
+      loanAnnPmt = calcPMT(P, r_dsr, _C.DSR_VIRTUAL_MONTHS[cat] ?? n) * 12;
+    }
+
+    totalAnnPayment += loanAnnPmt;
+    totalPrin       += P;
+    loans.push({ cat, P, R, SR: SR_key, n, rt,
+      annPmt:  Math.round(loanAnnPmt),
+      dsrCont: income > 0 ? (loanAnnPmt / income) * 100 : 0
+    });
   });
-  return { v:_C.APP_VERSION, income:getNum(document.getElementById('income').value), loans,
-    dsrText:document.getElementById('dsrVal')?.innerText||'-',
-    remainTxt:document.getElementById('remainingLimit')?.innerText||'-',
-    maxPTxt:document.getElementById('absMaxPrin')?.innerText||'-',
-    maxLTxt:document.getElementById('absMaxLevel')?.innerText||'-',
-    recHtml:document.getElementById('recDesc')?.innerHTML||'',
-    expiry:Date.now()+_C.REPORT_LINK_EXPIRY_DAYS*86400000, // 86400000 24H report
-    createdAt:new Date().toISOString() };
+
+  // ── 역행 산출값 ── totalAnnPayment 기준 일관된 공식 ───────────────────────
+  const dsr           = income > 0 ? (totalAnnPayment / income) * 100 : 0;
+  const isOver        = dsr > _C.DSR_LIMIT_PCT;
+  const targetDSR     = 35;
+  // ★ 핵심: reqIncome = totalAnnPayment / 0.35  (income 으로 나누는 게 아님)
+  const reqIncome     = totalAnnPayment > 0 ? totalAnnPayment / (targetDSR / 100) : 0;
+  const excessPmt     = Math.max(0, totalAnnPayment - income * (targetDSR / 100));
+  const avgPmtRatio   = totalPrin > 0 ? totalAnnPayment / totalPrin : 0;
+  const estReducePrin = avgPmtRatio > 0 ? excessPmt / avgPmtRatio : 0;
+
+  return {
+    v:      _C.APP_VERSION,
+    income,
+    loans,
+    // ── 화면 표시 스냅샷 (참고용) ──────────────────────────────────────────
+    dsrText:   document.getElementById('dsrVal')?.innerText         || '-',
+    remainTxt: document.getElementById('remainingLimit')?.innerText || '-',
+    maxPTxt:   document.getElementById('absMaxPrin')?.innerText     || '-',
+    maxLTxt:   document.getElementById('absMaxLevel')?.innerText    || '-',
+    // ★ recHtml 은 report.html 에서 원본 데이터로 직접 재생성하므로 저장 불필요
+    // ── 역행 산출 (report.html 에서 렌더링 — DOM 스냅샷 의존 제거) ──────────
+    dsr:            Math.round(dsr * 100) / 100,
+    isOver,
+    totalAnnPayment: Math.round(totalAnnPayment),
+    reqIncome:      Math.ceil(reqIncome / 10000) * 10000,    // 만원 올림
+    excessPmt:      Math.round(excessPmt),
+    estReducePrin:  Math.ceil(estReducePrin / 10000) * 10000, // 만원 올림
+    targetDSR,
+    // ── 메타 ──────────────────────────────────────────────────────────────
+    expiry:    Date.now() + _C.REPORT_LINK_EXPIRY_DAYS * 86400000,
+    createdAt: new Date().toISOString()
+  };
 }
 
 async function _shortenUrl(longUrl) {
