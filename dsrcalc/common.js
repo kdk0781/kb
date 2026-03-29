@@ -812,33 +812,77 @@ async function _shortenUrl(longUrl) {
   } catch { return longUrl; }
 }
 
-async function copyResultText() {
-  const limit=_C.REPORT_COPY_DAILY_LIMIT, count=_getCopyCount();
-  if(count>=limit){ showAlert(`금일 임시 링크 복사를 모두 사용하셨습니다.<br><span style="font-size:12px;">(${count}/${limit}회 사용 완료 — 내일 초기화됩니다)</span>`,null,"🚫"); return; }
-  if(document.getElementById('resultArea')?.style.display==='none'){ showAlert("먼저 DSR 분석을 실행해주세요.",null,"ℹ️"); return; }
-
-  const btn=document.getElementById('btnCopyReport'), origHtml=btn?.innerHTML;
-  if(btn){btn.innerHTML='🔗 링크 생성 중...';btn.disabled=true;}
-
-  const data=_buildReportData();
-  const encoded=btoa(unescape(encodeURIComponent(JSON.stringify(data))));
-  const base=window.location.href.replace(/[^/]*(\?.*)?$/,'');
-  const longUrl=`${base}${_C.REPORT_PAGE_PATH}#${encoded}`;
-  const shortUrl=await _shortenUrl(longUrl);
-
-  if(btn){btn.innerHTML=origHtml;btn.disabled=false;}
-  const newCount=_incCopyCount(), remaining=limit-newCount;
-  const expDate=new Date(data.expiry).toLocaleDateString('ko-KR',{month:'long',day:'numeric'});
-
-  if(btn){
-    if(remaining<=0){btn.disabled=true;btn.innerHTML=`📋 DSR 진단 리포트 복사 <span class="copy-count-badge">${newCount}/${limit} 사용 완료</span>`;btn.classList.add('btn-copy--exhausted');}
-    else btn.innerHTML=`📋 DSR 진단 리포트 복사 <span class="copy-count-badge">${newCount}/${limit} 사용중</span>`;
+// ─── [8-1] 클립보드 복사 강제 실행 함수 (공통) ───
+function _forceCopy(text, successMsg) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => {
+      if(successMsg) showAlert(successMsg, null, "✅");
+    }).catch(() => { _fcFallback(text, successMsg); });
+  } else {
+    _fcFallback(text, successMsg);
   }
+}
 
-  const msg=`🔗 임시 링크가 복사되었습니다!<br><span style="font-size:12px;line-height:1.8;display:block;margin-top:8px;">• 링크는 <b>${expDate}</b>까지 유효합니다<br>• ${remaining>0?`오늘 남은 복사 횟수: <b>${remaining}회</b>`:'오늘 복사 횟수를 모두 사용하셨습니다'}<br>• 링크 만료 전 미리 확인하세요</span>`;
+function _fcFallback(text, successMsg){
+  const t = document.createElement("textarea");
+  t.style.cssText = "position:fixed;top:-9999px;opacity:0;";
+  document.body.appendChild(t); t.value = text; t.focus(); t.select();
+  try { 
+    document.execCommand("copy"); 
+    if(successMsg) showAlert(successMsg, null, "✅");
+  } catch(e) {
+    if(successMsg) showAlert("복사에 실패했습니다. 모바일 공유하기 버튼을 이용해주세요.", null, "⚠️");
+  }
+  document.body.removeChild(t);
+}
 
-  if(navigator.clipboard?.writeText) navigator.clipboard.writeText(shortUrl).then(()=>showAlert(msg,null,"✅")).catch(()=>{_fc(shortUrl);showAlert(msg,null,"✅");});
-  else{_fc(shortUrl);showAlert(msg,null,"✅");}
+// ─── [8-2] 리포트 링크 생성 및 공유 (iOS 이슈 해결) ───
+async function copyResultText() {
+  const limit = _C.REPORT_COPY_DAILY_LIMIT, count = _getCopyCount();
+  if(count >= limit){ showAlert(`금일 리포트 발급을 모두 사용하셨습니다.<br><span style="font-size:12px;">(${count}/${limit}회 사용 완료 — 내일 초기화됩니다)</span>`, null, "🚫"); return; }
+  if(document.getElementById('resultArea')?.style.display === 'none'){ showAlert("먼저 DSR 분석을 실행해주세요.", null, "ℹ️"); return; }
+
+  const btn = document.getElementById('btnCopyReport'), origHtml = btn?.innerHTML;
+  if(btn){ btn.innerHTML = '🔗 리포트 생성 중...'; btn.disabled = true; }
+
+  try {
+    const data = _buildReportData();
+    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+    const base = window.location.href.replace(/[^/]*(\?.*)?$/, '');
+    const longUrl = `${base}${_C.REPORT_PAGE_PATH}#${encoded}`;
+    
+    // URL 단축 수행 (비동기)
+    const shortUrl = await _shortenUrl(longUrl);
+
+    const newCount = _incCopyCount(), remaining = limit - newCount;
+    const expDate = new Date(data.expiry).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' });
+
+    if(btn){
+      if(remaining <= 0){ btn.disabled = true; btn.innerHTML = `📋 진단 리포트 공유 <span class="copy-count-badge">${newCount}/${limit} 완료</span>`; btn.classList.add('btn-copy--exhausted'); }
+      else btn.innerHTML = `📋 진단 리포트 공유 <span class="copy-count-badge">${newCount}/${limit}회 남음</span>`;
+    }
+
+    const msg = `📊 <b>진단 리포트 링크가 복사되었습니다!</b><br><span style="font-size:12px;line-height:1.8;display:block;margin-top:8px;">• 고객의 정보 보호를 위해 <b>${expDate}</b>까지만 유효합니다.<br>• 오늘 남은 발급 횟수: <b>${remaining}회</b></span>`;
+
+    // ★ 핵심 고도화: 모바일(iOS/Android)에서는 네이티브 공유 창(카카오톡 등) 띄우기
+    if (navigator.share && /Mobi|Android/i.test(navigator.userAgent)) {
+      navigator.share({
+        title: 'DSR 진단 리포트',
+        text: '고객님의 DSR 진단 리포트가 준비되었습니다. 아래 링크를 확인해주세요.',
+        url: shortUrl
+      }).catch((error) => {
+        // 사용자가 공유 창을 닫았거나 실패한 경우 일반 복사로 대체
+        if(error.name !== 'AbortError') _forceCopy(shortUrl, msg);
+      });
+    } else {
+      // PC 환경에서는 바로 클립보드 복사
+      _forceCopy(shortUrl, msg);
+    }
+  } catch (e) {
+    showAlert("링크 생성 중 오류가 발생했습니다.", null, "⚠️");
+  } finally {
+    if(btn && !btn.disabled){ btn.innerHTML = origHtml; btn.disabled = false; }
+  }
 }
 
 function _fc(text){
@@ -848,6 +892,7 @@ function _fc(text){
   try{document.execCommand("copy");}catch{}
   document.body.removeChild(t);
 }
+
 // ─── [9] 관리자 기능 ───────────────────────────────
 
 function checkAdminAuth() {
@@ -869,6 +914,7 @@ function checkAdminAuth() {
   } catch(e) {}
 }
 
+// ─── [9] 관리자 기능: 배포용 링크 생성 (iOS 이슈 해결) ───
 async function generateAdminShareLink() {
   const btn = document.getElementById('btnAdminShare');
   const origHtml = btn.innerHTML;
@@ -881,19 +927,26 @@ async function generateAdminShareLink() {
     const payload = { url: currentUrl, exp: Date.now() + (24 * 60 * 60 * 1000) };
     const encodedPayload = btoa(encodeURIComponent(JSON.stringify(payload)));
     const longShareUrl = `${baseUrl}share.html?t=${encodedPayload}`;
+    
+    // URL 단축 수행 (비동기)
     const shortUrl = await _shortenUrl(longShareUrl);
     
-    const msg = `🔗 <b>고객용 설치 유도 링크가 복사되었습니다.</b><br><br>` +
+    const msg = `🔗 <b>고객용 앱 설치 링크가 복사되었습니다.</b><br><br>` +
                 `<span style="font-size:12px; display:block; margin-top:8px;">` +
                 `• 이 링크는 발급 시간 기준 <b>24시간 동안만 유효</b>합니다.<br>` +
-                `• 고객 접속 시 PWA 자동 설치 안내 페이지로 연결됩니다.</span>`;
+                `• 접속 시 PWA 자동 설치 안내 페이지로 연결됩니다.</span>`;
 
-    if (navigator.clipboard?.writeText) {
-      navigator.clipboard.writeText(shortUrl).then(() => showAlert(msg, null, "✅")).catch(() => {
-        _fc(shortUrl); showAlert(msg, null, "✅");
+    // ★ 핵심 고도화: 모바일(iOS/Android)에서는 네이티브 공유 창 띄우기
+    if (navigator.share && /Mobi|Android/i.test(navigator.userAgent)) {
+      navigator.share({
+        title: 'KB DSR 계산기 (고객용)',
+        text: 'DSR 계산기 간편 접속 및 앱 설치 링크입니다. (24시간 유효)',
+        url: shortUrl
+      }).catch((error) => {
+        if(error.name !== 'AbortError') _forceCopy(shortUrl, msg);
       });
     } else {
-      _fc(shortUrl); showAlert(msg, null, "✅");
+      _forceCopy(shortUrl, msg);
     }
   } catch (e) {
     console.error(e);
