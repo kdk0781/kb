@@ -162,6 +162,96 @@
         <button class="guide-start-btn" onclick="closeGuide()">✅ 확인했습니다 — 시작하기</button>
       </div>
     </div>
+  <!-- ── 관리자 가이드 모달 ──────────────────────────────────────────────────── -->
+	<div id="adminGuideContent" style="display:none;">
+	  <div class="guide-header">
+		<div class="guide-header-title">🛠️ DSR 계산기 시스템 관리자 매뉴얼</div>
+		<button class="guide-close-btn" onclick="closeGuide()" aria-label="닫기">×</button>
+	  </div>
+
+	  <div class="guide-body">
+		<div class="guide-step">
+		  <div class="guide-step-num">1</div>
+		  <div class="guide-step-content">
+			<div class="guide-step-title">공지사항 강제 노출 (NOTICE_VERSION)</div>
+			<div class="guide-step-desc">
+			  앱 재설치 없이 중요 팝업을 모든 고객에게 다시 띄우는 로직입니다.<br>
+			  · <b>방법:</b> <code>common.js</code>의 <code>APP_CONFIG.NOTICE_VERSION</code> 값을 올립니다 (예: '0781_7' → '0781_8').<br>
+			  · <b>원리:</b> "하루 보지 않기" 설정이 구버전 이름(hideNotice_0781_7)으로 저장되어 있으므로, 버전을 올리면 브라우저가 새 공지로 인식하여 강제 노출합니다.
+			</div>
+		  </div>
+		</div>
+		<div class="guide-step">
+		  <div class="guide-step-num" >2</div>
+		  <div class="guide-step-content">
+			<div class="guide-step-title">실시간 금리 연동 및 UI 자동화</div>
+			<div class="guide-step-desc">
+			  매주 바뀌는 대출 금리를 HTML 수정 없이 즉시 반영합니다.<br>
+			  · <b>구현:</b> HTML 셀렉트 박스에 숫자가 아닌 <code>value="m5_cycle"</code> 같은 '식별자'를 넣습니다.<br>
+			  · <b>원리:</b> <code>kb_rates.js</code> 등 외부 파일에서 최신 금리를 주입하면, <code>_syncAllRateSelects()</code> 함수가 화면 UI 글자(예: "5년변동 5.14%")를 자동으로 다시 그리고 계산 로직에도 실시간 반영합니다.
+			</div>
+		  </div>
+		</div>
+		<div class="guide-step">
+		  <div class="guide-step-num" >3</div>
+		  <div class="guide-step-content">
+			<div class="guide-step-title">PWA 캐시 무효화 (app_main.json 분리)</div>
+			<div class="guide-step-desc">
+			  PWA 웹앱의 강력한 캐시 기능 때문에 업데이트가 지연되는 현상을 차단합니다.<br>
+			  · <b>구현:</b> <code>dsr.json</code>을 버리고 <code>app_main.json</code>, <code>app_admin.json</code>으로 분리했습니다.<br>
+			  · <b>원리:</b> 파일명과 시작 주소(start_url)가 달라지면 브라우저가 완전히 새로운 앱으로 인식하므로, 관리자/사용자 충돌 없이 최신 상태로 강제 갱신됩니다.
+			</div>
+		  </div>
+		</div>
+		<div class="guide-step">
+		  <div class="guide-step-num" >4</div>
+		  <div class="guide-step-content">
+			<div class="guide-step-title">리포트 링크 암호화 및 버전 추적</div>
+			<div class="guide-step-desc">
+			  고객에게 배포되는 진단 리포트 링크의 호환성 유지 및 만료를 제어합니다.<br>
+			  · <b>구현:</b> <code>v: _C.APP_VERSION</code>(예: 2026.05-C)과 <code>expiry</code>(만료 시간)를 Base64로 암호화하여 URL을 만듭니다.<br>
+			  · <b>원리:</b> 추후 로직이 대폭 변경되어도 리포트 페이지(report.html)에서 구버전 링크임을 식별해 호환성 처리를 하거나 만료시킬 수 있습니다.
+			</div>
+		  </div>
+		</div>
+		<div class="guide-step">
+		  <div class="guide-step-num" >5</div>
+		  <div class="guide-step-content">
+			<div class="guide-step-title">리포트 일일 복사량 컨트롤</div>
+			<div class="guide-step-desc">
+			  무분별한 링크 생성(어뷰징)으로 인한 트래픽 낭비를 막습니다.<br>
+			  · <b>제어:</b> <code>APP_CONFIG.MAX_REPORT_COPIES</code> 에서 하루 허용량(예: 5회)을 설정합니다.<br>
+			  · <b>원리:</b> 사용자의 로컬스토리지에 오늘 날짜 기준으로 카운팅을 저장하며, 초과 시 알림을 띄우고 버튼 작동을 막습니다.
+			</div>
+		  </div>
+		</div>
+		<div class="guide-step">
+		  <div class="guide-step-num" >6</div>
+		  <div class="guide-step-content">
+			<div class="guide-step-title">스트레스 DSR 단계 스위치</div>
+			<div class="guide-step-desc">
+			  정부 규제 단계 변경 시 코드 전면 수정 없이 스위치 하나로 대응합니다.<br>
+			  · <b>제어:</b> <code>APP_CONFIG.STRESS_PHASE</code> 값을 1, 2, 3으로만 변경합니다.<br>
+			  · <b>원리:</b> 해당 숫자에 따라 가산 금리 반영 비율(25% → 50% → 100%)이 계산 로직 내에서 자동으로 전환 적용됩니다.
+			</div>
+		  </div>
+		</div>
+
+		<div class="guide-divider"></div>
+
+		<div class="guide-warn-box" style="background-color:#ffebee; color:#c62828;">
+		  ⚠️ <b>유지보수 주의</b> — 위 시스템 로직들을 수정할 때는 반드시 <code>index.html</code> 하단의 JS 호출 버전(예: <code>?v=1.2</code>)을 올려주어야 사용자 브라우저 캐시가 갱신됩니다.
+		</div>
+
+	  </div><div class="guide-footer" style="display: flex; gap: 10px;">
+		<button class="guide-start-btn" onclick="closeGuide()" style="flex: 1; background-color: #555;">닫기</button>
+		<button class="guide-start-btn" onclick="logoutAdmin()" style="flex: 1; background-color: #d32f2f;">관리자 로그아웃</button>
+	  </div>
+	</div>
+
+
+
+
   </div>
 
 	 <!-- ── 공지 팝업 ─────────────────────────────────────────────────────────── -->
@@ -358,7 +448,7 @@
   </div>
 
   <script src="kb_rates.js?v=2026.05-C"></script>
-  <script src="common.js?v=260329"></script> <!-- ver -->
+  <script src="common.js?v=2026.05-C"></script>
   <script>
     /* ── 사용 가이드 모달 ──────────────────────────────────────────────── */
     function openGuide() {

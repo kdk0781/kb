@@ -504,6 +504,7 @@ body.white .loading-sub { color: var(--text-muted); }
 
 /* ── 인풋 카드 ───────────────────────────────────────────────────────────── */
 #loanList .input-card {padding-top:30px;}
+
 .input-card {
   background: var(--bg-surface);
   border: 1.5px solid var(--border);

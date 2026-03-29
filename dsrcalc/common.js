@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // ─────────────────────────────────────────────────────────────
 
 /* =============================================================================
-   DSR CORE SYSTEM — KB 브랜드 VER 260329
+   DSR CORE SYSTEM — KB 브랜드 VER 2026.05-C
    파일명: common.js
    ============================================================================= */
 
@@ -17,8 +17,8 @@ document.addEventListener('DOMContentLoaded', () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 const APP_CONFIG = {
 
-  APP_VERSION:    '260329',
-  NOTICE_VERSION: '260329',
+  APP_VERSION:    '2026.05-C',
+  NOTICE_VERSION: '0781_7',
 
   // ── DSR 구간 기준 (%) ───────────────────────────────────────────────────────
   DSR_LIMIT_PCT:   40,
@@ -62,7 +62,7 @@ const APP_CONFIG = {
 
   // ── 임시 리포트 링크 ────────────────────────────────────────────────────────
   REPORT_LINK_EXPIRY_DAYS:  7,
-  REPORT_COPY_DAILY_LIMIT:  10,     // 하루 복사 횟수 제한 — 숫자만 변경
+  REPORT_COPY_DAILY_LIMIT:  5,     // 하루 복사 횟수 제한 — 숫자만 변경
   REPORT_PAGE_PATH: 'report.html',
   SHORTENER_API: 'https://is.gd/create.php?format=simple&url=',
 
@@ -761,6 +761,60 @@ function setWarning(id, isError) { const el = document.getElementById(id); if (e
 function formatComma(obj) { const v = obj.value.replace(/[^0-9]/g,""); obj.value = v.length>0?Number(v).toLocaleString():""; obj.classList.remove('input-warning'); }
 function getNum(val)  { return Number(String(val).replace(/,/g,""))||0; }
 function removeLoan(id) { document.getElementById(`loan_${id}`)?.remove(); }
+
+// ─── [7] 사용자 & 관리자 가이드 ────────────────────────────────────────────────────
+
+function openGuide() {
+    const guideModal = document.getElementById('guideModal');
+    const userGuideContent = document.getElementById('userGuideContent');
+    const adminGuideContent = document.getElementById('adminGuideContent');
+    
+    // 관리자 여부 체크 (로그인 시 localStorage에 'isAdmin'을 'true'로 저장했다고 가정)
+    const isAdmin = localStorage.getItem('isAdmin') === 'true';
+
+    // 권한에 따라 화면 스위칭
+    if (userGuideContent && adminGuideContent) {
+        if (isAdmin) {
+            userGuideContent.style.display = 'none';
+            adminGuideContent.style.display = 'block';
+        } else {
+            userGuideContent.style.display = 'block';
+            adminGuideContent.style.display = 'none';
+        }
+    }
+
+    // 모달 표시
+    if (guideModal) {
+        guideModal.style.display = 'flex'; // 또는 'block' (기존 CSS에 맞게 설정)
+    }
+}
+
+// 가이드 모달 닫기
+function closeGuide() {
+    const guideModal = document.getElementById('guideModal');
+    if (guideModal) {
+        guideModal.style.display = 'none';
+    }
+}
+
+// 배경 클릭 시 닫기 (기존에 설정하신 onclick="closeGuideOnBackdrop(event)" 처리용)
+function closeGuideOnBackdrop(event) {
+    if (event.target === event.currentTarget) {
+        closeGuide();
+    }
+}
+
+// 관리자 로그아웃 함수
+function logoutAdmin() {
+    if (confirm("관리자 모드에서 로그아웃 하시겠습니까?")) {
+        localStorage.removeItem('isAdmin');
+        alert("일반 사용자 모드로 전환됩니다.");
+        location.reload(); 
+    }
+}
+
+
+
 
 // ─── [8] 임시 리포트 링크 ─────────────────────────────────────────────────────
 const _COPY_KEY = 'dsr_copy_count';
