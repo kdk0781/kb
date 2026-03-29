@@ -309,6 +309,14 @@ body.dark .btn-guide { background: rgba(255,184,28,.13); color: var(--kb-yellow)
 .guide-close-btn:hover  { background: var(--danger-bg); color: var(--danger); }
 .guide-close-btn:active { transform: scale(.88); }
 
+/* 가이드 팝업 스크롤 복구용 CSS */
+#userGuideContent, #adminGuideContent {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+}
+
 .guide-body {
   overflow-y: auto; padding: 16px 18px 16px; flex: 1;
   overscroll-behavior: contain; -webkit-overflow-scrolling: touch;

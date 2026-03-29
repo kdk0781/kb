@@ -762,30 +762,40 @@ function formatComma(obj) { const v = obj.value.replace(/[^0-9]/g,""); obj.value
 function getNum(val)  { return Number(String(val).replace(/,/g,""))||0; }
 function removeLoan(id) { document.getElementById(`loan_${id}`)?.remove(); }
 
-// ─── [7] 사용자 & 관리자 가이드 ────────────────────────────────────────────────────
-
+// ─── [7] 사용자 & 관리자 가이드 (수정된 버전) ──────────────────────────────────
 function openGuide() {
     const guideModal = document.getElementById('guideModal');
     const userGuideContent = document.getElementById('userGuideContent');
     const adminGuideContent = document.getElementById('adminGuideContent');
     
-    // 관리자 여부 체크 (로그인 시 localStorage에 'isAdmin'을 'true'로 저장했다고 가정)
-    const isAdmin = localStorage.getItem('isAdmin') === 'true';
+    // ★ 핵심: 가짜 isAdmin 대신, 진짜 관리자 세션(kb_admin_session)을 체크합니다.
+    let isAdmin = false;
+    try {
+        const sessionStr = localStorage.getItem('kb_admin_session');
+        if (sessionStr) {
+            const session = JSON.parse(sessionStr);
+            // 인증되었고, 만료 시간이 지나지 않았다면 관리자로 인정
+            if (session.isAuth && Date.now() < session.expires) {
+                isAdmin = true;
+            }
+        }
+    } catch(e) {}
 
-    // 권한에 따라 화면 스위칭
+    // 권한에 따라 화면 스위칭 (CSS가 깨지지 않게 flex로 띄움)
     if (userGuideContent && adminGuideContent) {
         if (isAdmin) {
             userGuideContent.style.display = 'none';
-            adminGuideContent.style.display = 'block';
+            adminGuideContent.style.display = 'flex'; // 스크롤 유지를 위해 flex 사용
         } else {
-            userGuideContent.style.display = 'block';
+            userGuideContent.style.display = 'flex';
             adminGuideContent.style.display = 'none';
         }
     }
 
-    // 모달 표시
+    // 모달 표시 및 뒷배경 스크롤 방지
     if (guideModal) {
-        guideModal.style.display = 'flex'; // 또는 'block' (기존 CSS에 맞게 설정)
+        guideModal.style.display = 'flex';
+        document.body.style.overflow = 'hidden'; 
     }
 }
 
