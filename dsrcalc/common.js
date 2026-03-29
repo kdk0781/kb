@@ -62,7 +62,7 @@ const APP_CONFIG = {
 
   // ── 임시 리포트 링크 ────────────────────────────────────────────────────────
   REPORT_LINK_EXPIRY_DAYS:  7,
-  REPORT_COPY_DAILY_LIMIT:  5,     // 하루 복사 횟수 제한 — 숫자만 변경
+  REPORT_COPY_DAILY_LIMIT:  10,     // 하루 복사 횟수 제한 — 숫자만 변경
   REPORT_PAGE_PATH: 'report.html',
   SHORTENER_API: 'https://is.gd/create.php?format=simple&url=',
 
