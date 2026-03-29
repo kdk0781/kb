@@ -14,7 +14,6 @@
     .report-title { font-size: 24px; font-weight: 800; color: var(--kb-navy); margin-bottom: 8px; letter-spacing: -0.03em; }
     .report-date { font-size: 13px; color: var(--text-muted); background: var(--bg-page); padding: 4px 12px; border-radius: 20px; display: inline-block; }
     
-    /* ★ 고도화: 카운트다운 타이머 스타일 */
     .expiry-timer { margin-top: 14px; font-size: 14px; font-weight: 600; color: var(--danger); background: rgba(220, 53, 69, 0.08); display: inline-block; padding: 6px 16px; border-radius: 20px; border: 1px solid rgba(220, 53, 69, 0.2); animation: pulse 2s infinite; letter-spacing: -0.02em; }
     .expiry-timer b { font-weight: 800; font-family: 'Roboto', monospace; font-size: 15px; }
 
@@ -69,8 +68,13 @@
     .security-modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.65); z-index: 9999; display: none; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px); animation: fade-in 0.3s; }
     .security-modal-content { background: var(--bg-surface); padding: 32px 24px; border-radius: var(--radius-lg); text-align: center; max-width: 320px; width: 100%; box-shadow: var(--shadow-xl); animation: fade-up 0.4s var(--ease); }
     .security-modal-title { font-size: 18px; font-weight: 800; color: var(--kb-navy); margin-bottom: 12px; }
-    .security-modal-desc { font-size: 14px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 24px; word-break: keep-all; }
-    .btn-modal-confirm { width: 100%; padding: 14px; background: var(--kb-navy); color: #fff; border: none; border-radius: var(--radius-md); font-size: 15px; font-weight: 700; cursor: pointer; transition: opacity 0.2s; }
+    .security-modal-desc { font-size: 14px; color: var(--text-secondary); line-height: 1.6; word-break: keep-all; }
+    
+    /* 팝업 하단 버튼 그룹 (하루 보지 않기 + 닫기) */
+    .modal-btn-group { display: flex; gap: 8px; margin-top: 24px; }
+    .btn-modal-secondary { flex: 1; padding: 14px 10px; background: var(--bg-surface-3); color: var(--text-secondary); border: none; border-radius: var(--radius-sm); font-size: 13px; font-weight: 700; cursor: pointer; transition: background 0.2s; }
+    .btn-modal-confirm { flex: 1; padding: 14px 10px; background: var(--kb-navy); color: #fff; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 700; cursor: pointer; transition: opacity 0.2s; }
+    .btn-modal-secondary:active { background: var(--border-strong); }
     .btn-modal-confirm:active { opacity: 0.8; }
 
     @keyframes fade-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
@@ -113,10 +117,13 @@
       <div class="security-modal-title">보안 링크 안내</div>
       <div class="security-modal-desc">
         고객님의 소중한 금융 정보 보호를 위해<br>
-        이 리포트는 <b style="color: var(--danger);" id="modalTimeLeft">0일 0시간</b> 뒤<br>
-        <strong>완전 파기</strong>됩니다.
+        본 리포트는 <strong>발급일로부터 7일 뒤</strong><br>
+        안전하게 <strong style="color: var(--danger);">자동 파기</strong>됩니다.
       </div>
-      <button class="btn-modal-confirm" onclick="closeSecurityModal()">확인했습니다</button>
+      <div class="modal-btn-group">
+        <button class="btn-modal-secondary" onclick="closeSecurityModalForADay()">오늘 하루 보지 않기</button>
+        <button class="btn-modal-confirm" onclick="closeSecurityModal()">닫기</button>
+      </div>
     </div>
   </div>
 
@@ -177,7 +184,6 @@
         const decodedStr = decodeURIComponent(escape(atob(hash)));
         const data = JSON.parse(decodedStr);
 
-        // 최초 진입 시 만료 체크
         if (Date.now() > data.expiry) {
           showError("이 진단 리포트 링크는 <b>유효기간이 만료</b>되었습니다.<br>고객님의 정보 보호를 위해 데이터가 파기되었습니다.");
           return;
@@ -186,8 +192,11 @@
         renderReport(data);
         startCountdown(data.expiry);
 
-        // 보안 팝업 띄우기
-        document.getElementById('securityModal').style.display = 'flex';
+        // ★ 고도화: 하루 동안 보지 않기 로직 체크
+        const hideUntil = localStorage.getItem('hideReportSecurityModal');
+        if (!hideUntil || Date.now() > parseInt(hideUntil, 10)) {
+          document.getElementById('securityModal').style.display = 'flex';
+        }
 
       } catch (e) {
         console.error(e);
@@ -195,21 +204,25 @@
       }
     }
 
-    // 팝업 닫기 함수
+    // 팝업 닫기 (단순 닫기)
     function closeSecurityModal() {
       document.getElementById('securityModal').style.display = 'none';
     }
 
-    // ★ 실시간 카운트다운 타이머 로직
+    // 팝업 닫기 (하루 동안 보지 않기 - 24시간 저장)
+    function closeSecurityModalForADay() {
+      const hideTime = Date.now() + (24 * 60 * 60 * 1000); // 현재 시간 + 24시간
+      localStorage.setItem('hideReportSecurityModal', hideTime.toString());
+      closeSecurityModal();
+    }
+
     function startCountdown(expiryTime) {
       const timerEl = document.getElementById('r_timer');
-      const modalTimeEl = document.getElementById('modalTimeLeft');
       
       function updateTimer() {
         const now = Date.now();
         const diff = expiryTime - now;
 
-        // 시간이 다 되면 화면 파기 및 에러창 호출
         if (diff <= 0) {
           clearInterval(countdownInterval);
           closeSecurityModal();
@@ -227,16 +240,10 @@
         timeStr += `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 
         timerEl.innerHTML = `⏳ 열람 기한 <b>${timeStr}</b> 남음`;
-
-        // 팝업창 텍스트 세팅 (최초 1회 렌더링 시점에만)
-        if (modalTimeEl && !countdownInterval) {
-          if(d > 0) modalTimeEl.innerText = `${d}일 ${h}시간`;
-          else modalTimeEl.innerText = `${h}시간 ${m}분`;
-        }
       }
 
-      updateTimer(); // 1초 기다리지 않고 바로 즉시 실행
-      countdownInterval = setInterval(updateTimer, 1000); // 1초마다 반복 갱신
+      updateTimer(); 
+      countdownInterval = setInterval(updateTimer, 1000); 
     }
 
     function renderReport(data) {
