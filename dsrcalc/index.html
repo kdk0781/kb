@@ -40,163 +40,118 @@
 <!-- ── 사용 가이드 모달 ──────────────────────────────────────────────────── -->
 <div id="guideModal" class="guide-overlay" style="display:none;" onclick="closeGuideOnBackdrop(event)">
 	<div class="guide-box">
-		<div class="guide-header">
-			<div class="guide-header-title">
-				📖 DSR 계산기 사용 가이드
-			</div>
-			<button class="guide-close-btn" onclick="closeGuide()" aria-label="닫기">×</button>
-		</div>
-		<div class="guide-body">
-			<!-- STEP 1 -->
-			<div class="guide-step">
-				<div class="guide-step-num">
-					1
-				</div>
-				<div class="guide-step-content">
-					<div class="guide-step-title">
-						연간 세전 소득 입력
-					</div>
-					<div class="guide-step-desc">
-						 근로소득, 사업소득 등 <b>세전(공제 전) 연간 소득</b>을 입력합니다.<br>
-						 건강보험료 납부 확인서 또는 근로소득 원천징수영수증을 참고하세요. <br>
-						<span class="guide-tip">💡 최소 100만 원 이상 입력해야 계산됩니다</span>
-					</div>
-				</div>
-			</div>
-			<!-- STEP 2 -->
-			<div class="guide-step">
-				<div class="guide-step-num">
-					2
-				</div>
-				<div class="guide-step-content">
-					<div class="guide-step-title">
-						대출 종류 선택
-					</div>
-					<div class="guide-step-desc">
-						 보유 또는 신청 예정인 대출 종류를 선택합니다.<br>
-						 · <b>주택담보 (원리금)</b> — 매월 원금+이자를 함께 상환<br>
-						 · <b>주택담보 (원금)</b> — 원금균등 상환 방식<br>
-						 · <b>전세대출 (만기)</b> — 만기 일시 상환, <b>이자만 DSR 산정</b><br>
-						 · <b>오피스텔</b> — 구입자금이면 '주택담보'로 설정 권장<br>
-						 · <b>신용대출</b> — 가상 5년 만기로 DSR 산정<br>
-						 · <b>카드론</b> — 가상 3년 만기 고정 (DSR 부담 큼)
-					</div>
-				</div>
-			</div>
-			<!-- STEP 3 -->
-			<div class="guide-step">
-				<div class="guide-step-num">
-					3
-				</div>
-				<div class="guide-step-content">
-					<div class="guide-step-title">
-						금리 유형 선택 (주택담보만 해당)
-					</div>
-					<div class="guide-step-desc">
-						 주택담보대출 선택 시 <b>금리 유형(담보)</b>에서 자동 금리 적용이 가능합니다.<br>
-						 · <b>5년변동 / 5년혼합</b> — 5년 주기 변동 (스트레스 금리 다름)<br>
-						 · <b>6,12개월변동</b> — 코픽스 연동 단기 변동형<br>
-						 · <b>직접 입력</b> — 금융기관에서 받은 실제 금리를 직접 입력<br>
-						<span class="guide-tip">💡 금리 유형 선택 시 스트레스 금리가 자동 연동됩니다</span>
-					</div>
-				</div>
-			</div>
-			<!-- STEP 4 -->
-			<div class="guide-step">
-				<div class="guide-step-num">
-					4
-				</div>
-				<div class="guide-step-content">
-					<div class="guide-step-title">
-						원금/잔액 및 기간 입력
-					</div>
-					<div class="guide-step-desc">
-						 · <b>원금/잔액</b> — 신청 예정 대출금 또는 현재 남은 잔액<br>
-						 · <b>기간(개월)</b> — 대출 상환 기간 (예: 30년 → 360개월)<br>
-						 · 스트레스 금리는 상품 유형에 따라 자동 설정되며 수동 변경도 가능합니다. <br>
-						<span class="guide-tip">💡 부채 항목 추가 버튼으로 여러 부채를 함께 분석할 수 있습니다</span>
-					</div>
-				</div>
-			</div>
-			<!-- STEP 5 -->
-			<div class="guide-step">
-				<div class="guide-step-num">
-					5
-				</div>
-				<div class="guide-step-content">
-					<div class="guide-step-title">
-						DSR 분석 및 한도 확인
-					</div>
-					<div class="guide-step-desc">
-						 모든 정보를 입력한 뒤 <b>DSR 분석 및 한도 확인</b> 버튼을 누르면<br>
-						 · 종합 DSR 지수 (규제선 40% 기준)<br>
-						 · 원금균등 / 원리금균등 방식별 최대 대출 한도<br>
-						 · 현재 추가 가능한 대출 여력<br>
-						 을 확인할 수 있습니다.
-					</div>
-				</div>
-			</div>
-			<!-- STEP 6 -->
-			<div class="guide-step">
-				<div class="guide-step-num">
-					6
-				</div>
-				<div class="guide-step-content">
-					<div class="guide-step-title">
-						상환 스케줄 확인 및 리포트 공유
-					</div>
-					<div class="guide-step-desc">
-						 · <b>전체 상환 스케줄</b> — 회차별 원금·이자·합계를 N년차 누적 요약과 함께 확인<br>
-						 · <b>DSR 진단 리포트 복사</b> — 임시 링크(7일 유효)를 생성하여 공유<br>
-						<span class="guide-tip">💡 리포트 링크는 읽기 전용 페이지로 제3자와 공유 가능합니다</span>
-					</div>
-				</div>
-			</div>
-			<!-- STEP 7 -->
-			<div class="guide-step">
-				<div class="guide-step-num">
-					7
-				</div>
-				<div class="guide-step-content">
-					<div class="guide-step-title">
-						기존 금리가 변경이 안되있는 경우
-					</div>
-					<div class="guide-step-desc">
-						 · 오른쪽 하단에 있는 <b>새로고침 버튼</b>을 눌러 초기화 시켜주세요<br>
-						<span class="guide-tip">💡 안드로이드는 브라우저 캐시, 아이폰은 사파리 캐시 삭제</span>
-					</div>
-				</div>
-			</div>
-			<div class="guide-divider">
-			</div>
-			<!-- 주의사항 -->
-			<div class="guide-warn-box">
-				 ⚠️ <b>주의</b> — 본 계산기는 참고용 예상 수치입니다.<br>
-				 실제 DSR 산정은 금융기관의 심사 기준에 따라 달라질 수 있으며,<br>
-				 대출 실행 전 반드시 담당 금융기관에 확인하시기 바랍니다.
-			</div>
-		</div>
-		<!-- /guide-body -->
-		<div class="guide-footer">
-			<button class="guide-start-btn" onclick="closeGuide()">✅ 확인했습니다 — 시작하기</button>
-		</div>
-		<!-- ── 관리자 가이드 모달 ──────────────────────────────────────────────────── -->
-		<div id="adminGuideContent" style="display:none;">
+		
+        <div id="userGuideContent">
+            <div class="guide-header">
+                <div class="guide-header-title">📖 DSR 계산기 사용 가이드</div>
+                <button class="guide-close-btn" onclick="closeGuide()" aria-label="닫기">×</button>
+            </div>
+            
+            <div class="guide-body">
+                <div class="guide-step">
+                    <div class="guide-step-num">1</div>
+                    <div class="guide-step-content">
+                        <div class="guide-step-title">연간 세전 소득 입력</div>
+                        <div class="guide-step-desc">
+                            근로소득, 사업소득 등 <b>세전(공제 전) 연간 소득</b>을 입력합니다.<br>
+                            건강보험료 납부 확인서 또는 근로소득 원천징수영수증을 참고하세요. <br>
+                            <span class="guide-tip">💡 최소 100만 원 이상 입력해야 계산됩니다</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="guide-step">
+                    <div class="guide-step-num">2</div>
+                    <div class="guide-step-content">
+                        <div class="guide-step-title">대출 종류 선택</div>
+                        <div class="guide-step-desc">
+                            보유 또는 신청 예정인 대출 종류를 선택합니다.<br>
+                            · <b>주택담보 (원리금)</b> — 매월 원금+이자를 함께 상환<br>
+                            · <b>주택담보 (원금)</b> — 원금균등 상환 방식<br>
+                            · <b>전세대출 (만기)</b> — 만기 일시 상환, <b>이자만 DSR 산정</b><br>
+                            · <b>오피스텔</b> — 구입자금이면 '주택담보'로 설정 권장<br>
+                            · <b>신용대출</b> — 가상 5년 만기로 DSR 산정<br>
+                            · <b>카드론</b> — 가상 3년 만기 고정 (DSR 부담 큼)
+                        </div>
+                    </div>
+                </div>
+                <div class="guide-step">
+                    <div class="guide-step-num">3</div>
+                    <div class="guide-step-content">
+                        <div class="guide-step-title">금리 유형 선택 (주택담보만 해당)</div>
+                        <div class="guide-step-desc">
+                            주택담보대출 선택 시 <b>금리 유형(담보)</b>에서 자동 금리 적용이 가능합니다.<br>
+                            · <b>5년변동 / 5년혼합</b> — 5년 주기 변동 (스트레스 금리 다름)<br>
+                            · <b>6,12개월변동</b> — 코픽스 연동 단기 변동형<br>
+                            · <b>직접 입력</b> — 금융기관에서 받은 실제 금리를 직접 입력<br>
+                            <span class="guide-tip">💡 금리 유형 선택 시 스트레스 금리가 자동 연동됩니다</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="guide-step">
+                    <div class="guide-step-num">4</div>
+                    <div class="guide-step-content">
+                        <div class="guide-step-title">원금/잔액 및 기간 입력</div>
+                        <div class="guide-step-desc">
+                            · <b>원금/잔액</b> — 신청 예정 대출금 또는 현재 남은 잔액<br>
+                            · <b>기간(개월)</b> — 대출 상환 기간 (예: 30년 → 360개월)<br>
+                            · 스트레스 금리는 상품 유형에 따라 자동 설정되며 수동 변경도 가능합니다. <br>
+                            <span class="guide-tip">💡 부채 항목 추가 버튼으로 여러 부채를 함께 분석할 수 있습니다</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="guide-step">
+                    <div class="guide-step-num">5</div>
+                    <div class="guide-step-content">
+                        <div class="guide-step-title">DSR 분석 및 한도 확인</div>
+                        <div class="guide-step-desc">
+                            모든 정보를 입력한 뒤 <b>DSR 분석 및 한도 확인</b> 버튼을 누르면<br>
+                            · 종합 DSR 지수 (규제선 40% 기준)<br>
+                            · 원금균등 / 원리금균등 방식별 최대 대출 한도<br>
+                            · 현재 추가 가능한 대출 여력<br>
+                            을 확인할 수 있습니다.
+                        </div>
+                    </div>
+                </div>
+                <div class="guide-step">
+                    <div class="guide-step-num">6</div>
+                    <div class="guide-step-content">
+                        <div class="guide-step-title">상환 스케줄 확인 및 리포트 공유</div>
+                        <div class="guide-step-desc">
+                            · <b>전체 상환 스케줄</b> — 회차별 원금·이자·합계를 N년차 누적 요약과 함께 확인<br>
+                            · <b>DSR 진단 리포트 복사</b> — 임시 링크(7일 유효)를 생성하여 공유<br>
+                            <span class="guide-tip">💡 리포트 링크는 읽기 전용 페이지로 제3자와 공유 가능합니다</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="guide-step">
+                    <div class="guide-step-num">7</div>
+                    <div class="guide-step-content">
+                        <div class="guide-step-title">기존 금리가 변경이 안되있는 경우</div>
+                        <div class="guide-step-desc">
+                            · 오른쪽 하단에 있는 <b>새로고침 버튼</b>을 눌러 초기화 시켜주세요<br>
+                            <span class="guide-tip">💡 안드로이드는 브라우저 캐시, 아이폰은 사파리 캐시 삭제</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="guide-divider"></div>
+                <div class="guide-warn-box">
+                    ⚠️ <b>주의</b> — 본 계산기는 참고용 예상 수치입니다.<br>
+                    실제 DSR 산정은 금융기관의 심사 기준에 따라 달라질 수 있으며,<br>
+                    대출 실행 전 반드시 담당 금융기관에 확인하시기 바랍니다.
+                </div>
+            </div><div class="guide-footer">
+                <button class="guide-start-btn" onclick="closeGuide()">✅ 확인했습니다 — 시작하기</button>
+            </div>
+        </div><div id="adminGuideContent" style="display:none;">
 			<div class="guide-header">
-				<div class="guide-header-title">
-					🛠️ 시스템 관리자 매뉴얼
-				</div>
+				<div class="guide-header-title" style="color:#d32f2f;">🛠️ 시스템 관리자 매뉴얼</div>
 				<button class="guide-close-btn" onclick="closeGuide()" aria-label="닫기">×</button>
 			</div>
 			<div class="guide-body">
 				<div class="guide-step">
-					<div class="guide-step-num">
-						1
-					</div>
+					<div class="guide-step-num" style="background-color:#d32f2f;">1</div>
 					<div class="guide-step-content">
-						<div class="guide-step-title">
-							공지사항 강제 노출 (NOTICE_VERSION)
-						</div>
+						<div class="guide-step-title">공지사항 강제 노출 (NOTICE_VERSION)</div>
 						<div class="guide-step-desc">
 							 앱 재설치 없이 중요 팝업을 모든 고객에게 다시 띄우는 로직입니다.<br>
 							 · <b>방법:</b><code>common.js</code>의 <code>APP_CONFIG.NOTICE_VERSION</code> 값을 올립니다 (예: '0781_7' → '0781_8').<br>
@@ -205,13 +160,9 @@
 					</div>
 				</div>
 				<div class="guide-step">
-					<div class="guide-step-num">
-						2
-					</div>
+					<div class="guide-step-num" style="background-color:#d32f2f;">2</div>
 					<div class="guide-step-content">
-						<div class="guide-step-title">
-							실시간 금리 연동 및 UI 자동화
-						</div>
+						<div class="guide-step-title">실시간 금리 연동 및 UI 자동화</div>
 						<div class="guide-step-desc">
 							 매주 바뀌는 대출 금리를 HTML 수정 없이 즉시 반영합니다.<br>
 							 · <b>구현:</b> HTML 셀렉트 박스에 숫자가 아닌 <code>value="m5_cycle"</code> 같은 '식별자'를 넣습니다.<br>
@@ -220,13 +171,9 @@
 					</div>
 				</div>
 				<div class="guide-step">
-					<div class="guide-step-num">
-						3
-					</div>
+					<div class="guide-step-num" style="background-color:#d32f2f;">3</div>
 					<div class="guide-step-content">
-						<div class="guide-step-title">
-							PWA 캐시 무효화 (app_main.json 분리)
-						</div>
+						<div class="guide-step-title">PWA 캐시 무효화 (app_main.json 분리)</div>
 						<div class="guide-step-desc">
 							 PWA 웹앱의 강력한 캐시 기능 때문에 업데이트가 지연되는 현상을 차단합니다.<br>
 							 · <b>구현:</b><code>dsr.json</code>을 버리고 <code>app_main.json</code>, <code>app_admin.json</code>으로 분리했습니다.<br>
@@ -235,13 +182,9 @@
 					</div>
 				</div>
 				<div class="guide-step">
-					<div class="guide-step-num">
-						4
-					</div>
+					<div class="guide-step-num" style="background-color:#d32f2f;">4</div>
 					<div class="guide-step-content">
-						<div class="guide-step-title">
-							리포트 링크 암호화 및 버전 추적
-						</div>
+						<div class="guide-step-title">리포트 링크 암호화 및 버전 추적</div>
 						<div class="guide-step-desc">
 							 고객에게 배포되는 진단 리포트 링크의 호환성 유지 및 만료를 제어합니다.<br>
 							 · <b>구현:</b><code>v: _C.APP_VERSION</code>(예: 2026.05-C)과 <code>expiry</code>(만료 시간)를 Base64로 암호화하여 URL을 만듭니다.<br>
@@ -250,13 +193,9 @@
 					</div>
 				</div>
 				<div class="guide-step">
-					<div class="guide-step-num">
-						5
-					</div>
+					<div class="guide-step-num" style="background-color:#d32f2f;">5</div>
 					<div class="guide-step-content">
-						<div class="guide-step-title">
-							리포트 일일 복사량 컨트롤
-						</div>
+						<div class="guide-step-title">리포트 일일 복사량 컨트롤</div>
 						<div class="guide-step-desc">
 							 무분별한 링크 생성(어뷰징)으로 인한 트래픽 낭비를 막습니다.<br>
 							 · <b>제어:</b><code>APP_CONFIG.MAX_REPORT_COPIES</code> 에서 하루 허용량(예: 5회)을 설정합니다.<br>
@@ -265,13 +204,9 @@
 					</div>
 				</div>
 				<div class="guide-step">
-					<div class="guide-step-num">
-						6
-					</div>
+					<div class="guide-step-num" style="background-color:#d32f2f;">6</div>
 					<div class="guide-step-content">
-						<div class="guide-step-title">
-							스트레스 DSR 단계 스위치
-						</div>
+						<div class="guide-step-title">스트레스 DSR 단계 스위치</div>
 						<div class="guide-step-desc">
 							 정부 규제 단계 변경 시 코드 전면 수정 없이 스위치 하나로 대응합니다.<br>
 							 · <b>제어:</b><code>APP_CONFIG.STRESS_PHASE</code> 값을 1, 2, 3으로만 변경합니다.<br>
@@ -279,8 +214,7 @@
 						</div>
 					</div>
 				</div>
-				<div class="guide-divider">
-				</div>
+				<div class="guide-divider"></div>
 				<div class="guide-warn-box" style="background-color:#ffebee; color:#c62828;">
 					 ⚠️ <b>유지보수 주의</b> — 위 시스템 로직들을 수정할 때는 반드시 <code>index.html</code> 하단의 JS 호출 버전(예: <code>?v=1.2</code>)을 올려주어야 사용자 브라우저 캐시가 갱신됩니다.
 				</div>
@@ -290,6 +224,7 @@
 				<button class="guide-start-btn" onclick="logoutAdmin()" style="flex: 1; background-color: #d32f2f;">관리자 로그아웃</button>
 			</div>
 		</div>
+
 	</div>
 </div>
 <!-- ── 공지 팝업 ─────────────────────────────────────────────────────────── -->
@@ -567,8 +502,8 @@
 		<button class="modal-btn" id="modalConfirm">확인</button>
 	</div>
 </div>
-<script src="kb_rates.js?v=2026.05-C"></script>
-<script src="common.js?v=2026.05-C"></script>
+<script src="kb_rates.js?v=20260329"></script>
+<script src="common.js?v=20260329"></script>
 <script>
     /* ── 사용 가이드 모달 ──────────────────────────────────────────────── */
     // ESC 키로 가이드 닫기 (이건 남겨두셔도 좋습니다)
