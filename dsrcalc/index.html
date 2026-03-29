@@ -15,7 +15,7 @@
 <link rel="icon" type="image/png" href="../ico/dsrcalc.png">
 <link rel="shortcut icon" href="../ico/dsrcalc.png">
 <link rel="manifest" href="app_main.json">
-<link rel="stylesheet" href="common.css?V=202603291252" media="all">
+<link rel="stylesheet" href="common.css?v=202603231311" media="all">
 <title>DSR 계산기</title>
 </head>
 <body>
@@ -149,7 +149,7 @@
 			</div>
 			<div class="guide-body">
 				<div class="guide-step">
-					<div class="guide-step-num" style="background-color:#d32f2f;">1</div>
+					<div class="guide-step-num" >1</div>
 					<div class="guide-step-content">
 						<div class="guide-step-title">공지사항 강제 노출 (NOTICE_VERSION)</div>
 						<div class="guide-step-desc">
@@ -160,7 +160,7 @@
 					</div>
 				</div>
 				<div class="guide-step">
-					<div class="guide-step-num" style="background-color:#d32f2f;">2</div>
+					<div class="guide-step-num" >2</div>
 					<div class="guide-step-content">
 						<div class="guide-step-title">실시간 금리 연동 및 UI 자동화</div>
 						<div class="guide-step-desc">
@@ -171,7 +171,7 @@
 					</div>
 				</div>
 				<div class="guide-step">
-					<div class="guide-step-num" style="background-color:#d32f2f;">3</div>
+					<div class="guide-step-num" >3</div>
 					<div class="guide-step-content">
 						<div class="guide-step-title">PWA 캐시 무효화 (app_main.json 분리)</div>
 						<div class="guide-step-desc">
@@ -182,7 +182,7 @@
 					</div>
 				</div>
 				<div class="guide-step">
-					<div class="guide-step-num" style="background-color:#d32f2f;">4</div>
+					<div class="guide-step-num" >4</div>
 					<div class="guide-step-content">
 						<div class="guide-step-title">리포트 링크 암호화 및 버전 추적</div>
 						<div class="guide-step-desc">
@@ -193,7 +193,7 @@
 					</div>
 				</div>
 				<div class="guide-step">
-					<div class="guide-step-num" style="background-color:#d32f2f;">5</div>
+					<div class="guide-step-num" >5</div>
 					<div class="guide-step-content">
 						<div class="guide-step-title">리포트 일일 복사량 컨트롤</div>
 						<div class="guide-step-desc">
@@ -204,7 +204,7 @@
 					</div>
 				</div>
 				<div class="guide-step">
-					<div class="guide-step-num" style="background-color:#d32f2f;">6</div>
+					<div class="guide-step-num" >6</div>
 					<div class="guide-step-content">
 						<div class="guide-step-title">스트레스 DSR 단계 스위치</div>
 						<div class="guide-step-desc">
@@ -215,13 +215,12 @@
 					</div>
 				</div>
 				<div class="guide-divider"></div>
-				<div class="guide-warn-box" style="background-color:#ffebee; color:#c62828;">
+				<div class="guide-warn-box">
 					 ⚠️ <b>유지보수 주의</b> — 위 시스템 로직들을 수정할 때는 반드시 <code>index.html</code> 하단의 JS 호출 버전(예: <code>?v=1.2</code>)을 올려주어야 사용자 브라우저 캐시가 갱신됩니다.
 				</div>
 			</div>
-			<div class="guide-footer" style="display: flex; gap: 10px;">
-				<button class="guide-start-btn" onclick="closeGuide()" style="flex: 1; background-color: #555;">닫기</button>
-				<button class="guide-start-btn" onclick="logoutAdmin()" style="flex: 1; background-color: #d32f2f;">관리자 로그아웃</button>
+			<div class="guide-footer">
+				<button class="guide-start-btn" onclick="closeGuide()">닫기</button>
 			</div>
 		</div>
 
@@ -502,8 +501,8 @@
 		<button class="modal-btn" id="modalConfirm">확인</button>
 	</div>
 </div>
-<script src="kb_rates.js?v=20260329"></script>
-<script src="common.js?v=20260329"></script>
+<script src="kb_rates.js?v=202603231311"></script>
+<script src="common.js?v=202603231311"></script>
 <script>
     /* ── 사용 가이드 모달 ──────────────────────────────────────────────── */
     // ESC 키로 가이드 닫기 (이건 남겨두셔도 좋습니다)
@@ -515,7 +514,6 @@
           }
       }
     });
-    /* ── 하드 새로고침 (캐시 초기화 포함) ─────────────────────────────── */
     /* ── 하드 새로고침 (캐시 초기화 포함) ─────────────────────────────── */
     async function hardRefresh() {
       const overlay = document.getElementById('loadingOverlay');

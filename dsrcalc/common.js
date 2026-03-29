@@ -814,16 +814,6 @@ function closeGuideOnBackdrop(event) {
     }
 }
 
-// 관리자 로그아웃 함수
-function logoutAdmin() {
-    if (confirm("관리자 모드에서 로그아웃 하시겠습니까?")) {
-        localStorage.removeItem('isAdmin');
-        alert("일반 사용자 모드로 전환됩니다.");
-        location.reload(); 
-    }
-}
-
-
 
 
 // ─── [8] 임시 리포트 링크 ─────────────────────────────────────────────────────
