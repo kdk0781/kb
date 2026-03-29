@@ -762,40 +762,62 @@ function formatComma(obj) { const v = obj.value.replace(/[^0-9]/g,""); obj.value
 function getNum(val)  { return Number(String(val).replace(/,/g,""))||0; }
 function removeLoan(id) { document.getElementById(`loan_${id}`)?.remove(); }
 
-// ─── [7] 사용자 & 관리자 가이드 (수정된 버전) ──────────────────────────────────
+// ─── [7] 사용자 & 관리자 가이드 ──────────────────────────────────────────────
+
 function openGuide() {
     const guideModal = document.getElementById('guideModal');
     const userGuideContent = document.getElementById('userGuideContent');
     const adminGuideContent = document.getElementById('adminGuideContent');
     
-    // ★ 핵심: 가짜 isAdmin 대신, 진짜 관리자 세션(kb_admin_session)을 체크합니다.
+    // 진짜 관리자 세션 체크
     let isAdmin = false;
     try {
         const sessionStr = localStorage.getItem('kb_admin_session');
         if (sessionStr) {
             const session = JSON.parse(sessionStr);
-            // 인증되었고, 만료 시간이 지나지 않았다면 관리자로 인정
             if (session.isAuth && Date.now() < session.expires) {
                 isAdmin = true;
             }
         }
     } catch(e) {}
 
-    // 권한에 따라 화면 스위칭 (CSS가 깨지지 않게 flex로 띄움)
+    // 권한에 따라 화면 스위칭
     if (userGuideContent && adminGuideContent) {
         if (isAdmin) {
             userGuideContent.style.display = 'none';
-            adminGuideContent.style.display = 'flex'; // 스크롤 유지를 위해 flex 사용
+            adminGuideContent.style.display = 'flex'; 
         } else {
             userGuideContent.style.display = 'flex';
             adminGuideContent.style.display = 'none';
         }
     }
 
-    // 모달 표시 및 뒷배경 스크롤 방지
+    // 모달 표시 및 스크롤 차단 (인라인 스타일 제거, 클래스로 제어)
     if (guideModal) {
         guideModal.style.display = 'flex';
-        document.body.style.overflow = 'hidden'; 
+        // 기존의 document.body.style.overflow = 'hidden'; 대신 아래 클래스 사용
+        document.body.classList.add('body-no-scroll');
+    }
+}
+
+// 가이드 모달 닫기
+function closeGuide() {
+    const guideModal = document.getElementById('guideModal');
+    if (guideModal) {
+        guideModal.style.display = 'none';
+    }
+    
+    // ★ 핵심: 닫기(X), 확인, 배경 클릭 시 모두 이 로직을 타면서 스크롤 복구
+    document.body.classList.remove('body-no-scroll');
+    
+    // (만약 어딘가에 남아있을지 모를 기존 인라인 스타일까지 확실하게 찌꺼기 제거)
+    document.body.style.overflow = ''; 
+}
+
+// 배경 클릭 시 닫기
+function closeGuideOnBackdrop(event) {
+    if (event.target === event.currentTarget) {
+        closeGuide();
     }
 }
 
