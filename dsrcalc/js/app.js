@@ -1,0 +1,99 @@
+/* =============================================================================
+   js/app.js — 앱 진입점 (window.onload)
+   · partials 주입 완료 후 초기화 시작
+   · KB 금리 로드 → 스케줄 최대 높이 설정 → 부채 항목 1개 추가
+   · 하드 새로고침 (캐시 초기화 포함)
+   · URL 세탁 (_r 파라미터 제거)
+   · 의존: 모든 다른 JS 파일들 (마지막에 로드되어야 함)
+   ============================================================================= */
+
+// ─── 주소창 세탁 (index.html 직접 접근 시) ────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  if (window.location.href.includes('index.html')) {
+    window.history.replaceState(null, '', window.location.href.split('index.html')[0]);
+  }
+  // URL ?_r 파라미터 정리 (하드 새로고침 후)
+  const url = new URL(window.location.href);
+  if (url.searchParams.has('_r')) {
+    url.searchParams.delete('_r');
+    history.replaceState(null, '', url.pathname + (url.search !== '?' ? url.search : ''));
+  }
+});
+
+// ─── 앱 초기화 ────────────────────────────────────────────────────────────────
+window.onload = async function () {
+  // partials 주입 완료 대기 (loader.js 가 먼저 로드된 경우)
+  if (window.__partialsReady) await window.__partialsReady;
+
+  // 테마 / 모달 / UI 초기화
+  applySystemTheme();
+  initNotice();
+  addLoan();
+
+  // 모달 확인 버튼 연결
+  const confirmBtn = document.getElementById('modalConfirm');
+  if (confirmBtn) confirmBtn.onclick = handleModalConfirm;
+
+  // 스케줄 최대 높이 CSS 변수 적용
+  document.documentElement.style.setProperty('--schedule-max-height', _C.SCHEDULE_MAX_HEIGHT_PX + 'px');
+
+  // 리포트 발급 카운터 뱃지 초기화
+  initCopyBtn();
+
+  // 관리자 세션 체크
+  checkAdminAuth();
+
+  // KB 금리 자동 로드
+  if (typeof applyKBRatesToConfig === 'function') {
+    _showLoading(true);
+    try {
+      await applyKBRatesToConfig();
+      _syncAllRateSelects();
+    } finally {
+      _showLoading(false);
+    }
+  }
+};
+
+/** 로딩 오버레이 표시/숨김 */
+function _showLoading(visible) {
+  const el = document.getElementById('loadingOverlay');
+  if (!el) return;
+  el.style.display = visible ? 'flex' : 'none';
+  document.body.style.overflow = visible ? 'hidden' : '';
+}
+
+// ─── 하드 새로고침 ────────────────────────────────────────────────────────────
+async function hardRefresh() {
+  const overlay = document.getElementById('loadingOverlay');
+  overlay.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  try {
+    localStorage.removeItem('kb_rates_v2');
+    if ('caches' in window) {
+      const cacheNames = await caches.keys();
+      await Promise.all(cacheNames.map(name => caches.delete(name)));
+    }
+    if ('serviceWorker' in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(registrations.map(r => r.unregister()));
+    }
+    await new Promise(r => setTimeout(r, 800));
+    const ts  = Date.now();
+    const url = new URL(window.location.href);
+    url.searchParams.set('_r', ts);
+    window.location.replace(url.toString());
+  } catch (e) {
+    console.warn('[hardRefresh] 일부 캐시 삭제 실패:', e);
+    await new Promise(r => setTimeout(r, 600));
+    window.location.reload();
+  }
+}
+
+// ─── ESC 키로 가이드 모달 닫기 ────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    const guideModal = document.getElementById('guideModal');
+    if (guideModal && guideModal.style.display !== 'none') closeGuide();
+  }
+});
