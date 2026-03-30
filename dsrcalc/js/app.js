@@ -40,6 +40,17 @@ window.onload = async function () {
   // 리포트 발급 카운터 뱃지 초기화
   initCopyBtn();
 
+  // 분석 완료 시 부채 카운트 동기화 (report.js 의 재분석 판별용)
+  // calculateLogic() 결과 렌더링 직후 호출
+  const _origCalcLogic = window.calculateLogic;
+  if (typeof calculateLogic === 'function') {
+    const _origFn = calculateLogic;
+    window.calculateLogic = function() {
+      _origFn.apply(this, arguments);
+      if (typeof _syncLoanCount === 'function') _syncLoanCount();
+    };
+  }
+
   // 관리자 세션 체크
   checkAdminAuth();
 

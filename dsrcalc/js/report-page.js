@@ -1,26 +1,21 @@
 /* =============================================================================
-   js/report-page.js — report.html 전용 렌더러
-   · HMAC 서명 검증 (재공유 차단)
-   · countUp 애니메이션 + 실시간 카운트다운
-   · 리포트 섹션 순서대로 조합 → DOM 렌더링
-   · 의존: css/report.css (스타일)
+   js/report-page.js — DSR 진단 리포트 렌더러 v5
+   ─────────────────────────────────────────────────────────────────────────────
+   ① 관리자 기기 (kb_admin_session 유효) → 무제한 접속
+   ② 최초 수신 기기 → 기기 바인딩 후 유효기간 다회 접속 허용
+   ③ 다른 기기에서 복사된 링크 → 재공유 차단 메시지
+   ─────────────────────────────────────────────────────────────────────────────
+   ★ 리포트 유효기간 변경: js/config.js 의 REPORT_LINK_EXPIRY_DAYS 수정
+      3일  → 3   /  7일 → 7 (현재)  /  14일 → 14
+   ★ _RPT_SIGN_KEY 는 js/report.js 의 _OTL_SIGN_KEY 와 동일해야 합니다.
+   조합 + 렌더 - 순서변경 가능
    ============================================================================= */
 
-/* ════════════════════════════════════════════════════════════════════════════
-   report.html — DSR 진단 리포트 렌더러 v4
-   · 최초 수신자 검증 (st 토큰 1회 소비 → localStorage 낙인)
-   · 재공유 차단 (낙인 없는 기기에서 st 없이 접속 → 차단)
-   · 상담사 연락처 워터마크 배너
-   · X일 Y시간 실시간 카운트다운
-   · body.white / body.dark 완전 분리 테마
-════════════════════════════════════════════════════════════════════════════ */
+const _RPT_SIGN_KEY  = 'KB_DSR_OTL_SIGN_2026';
+const _RPT_GRANT_PFX = 'rpt_grant_';
+const _RPT_ACTIVE    = 'rpt_active_nonce';
 
-// ── 상수 ──────────────────────────────────────────────────────────────────
-// ★ common.js 의 _OTL_SIGN_KEY 와 반드시 동일해야 합니다
-const _RPT_SIGN_KEY   = 'KB_DSR_OTL_SIGN_2026';
-const _RPT_NONCE_PFX  = 'rpt_viewed_';   // localStorage 낙인 키 접두사
-
-// ── 유틸 ──────────────────────────────────────────────────────────────────
+// ─── 유틸 ─────────────────────────────────────────────────────────────────────
 const won = v => Math.round(v).toLocaleString() + '원';
 const pct = v => v.toFixed(2) + '%';
 const CAT_LABELS = {
@@ -32,13 +27,31 @@ const CAT_EMOJI = {
   mortgage_level:'🏠', mortgage_prin:'🏠', jeonse:'🔑',
   officetel:'🏢', credit:'💳', cardloan:'💰',
 };
+
 function dsrColor(v) {
-  if (v > 40) return 'var(--rp-danger)'; if (v > 36) return 'var(--rp-warn)';
-  if (v > 25) return 'var(--rp-yellow-deep)'; return 'var(--rp-safe)';
+  if (v > 40) return 'var(--rp-danger)';
+  if (v > 36) return 'var(--rp-warn)';
+  if (v > 25) return 'var(--rp-yellow-deep)';
+  return 'var(--rp-safe)';
 }
 function rankClass(i) { return ['rank-1','rank-2','rank-3'][i] ?? 'rank-n'; }
 
-// ── HMAC-SHA256 서명 검증 (share.js 와 동일 로직) ─────────────────────────
+/** 남은 시간에 따른 카운트다운 색상 */
+function countdownColor(msLeft) {
+  if (msLeft < 86400000)      return '#dc2626'; // 1일 미만: 빨간색
+  if (msLeft < 3 * 86400000) return '#d97706'; // 3일 미만: 노란색
+  return '#FFB800';                              // 여유: KB 노란색
+}
+
+// ─── 관리자 기기 판별 ─────────────────────────────────────────────────────────
+function _isAdminDevice() {
+  try {
+    const s = JSON.parse(localStorage.getItem('kb_admin_session') || 'null');
+    return s?.isAuth && Date.now() < s.expires;
+  } catch { return false; }
+}
+
+// ─── HMAC 검증 ────────────────────────────────────────────────────────────────
 async function _rptVerifySign(payload, sigToCheck) {
   const keyBuf  = new TextEncoder().encode(_RPT_SIGN_KEY);
   const dataBuf = new TextEncoder().encode(JSON.stringify(payload));
@@ -50,37 +63,76 @@ async function _rptVerifySign(payload, sigToCheck) {
   return crypto.subtle.verify('HMAC', ck, buf, dataBuf);
 }
 
-// ── countUp 애니메이션 ────────────────────────────────────────────────────
+// ─── 기기 바인딩 유틸 ─────────────────────────────────────────────────────────
+function _rptIsGranted(nonce) {
+  try {
+    const raw = localStorage.getItem(_RPT_GRANT_PFX + nonce);
+    if (!raw) return false;
+    return Date.now() < JSON.parse(raw).expiry;
+  } catch { return false; }
+}
+function _rptGrant(nonce, expiry) {
+  try {
+    localStorage.setItem(_RPT_GRANT_PFX + nonce, JSON.stringify({ expiry, grantedAt: Date.now() }));
+    localStorage.setItem(_RPT_ACTIVE, nonce);
+    // 만료된 기록 청소
+    for (const k of Object.keys(localStorage)) {
+      if (!k.startsWith(_RPT_GRANT_PFX)) continue;
+      try { if (Date.now() > JSON.parse(localStorage.getItem(k)).expiry) localStorage.removeItem(k); }
+      catch { localStorage.removeItem(k); }
+    }
+  } catch {}
+}
+
+// ─── countUp 애니메이션 ────────────────────────────────────────────────────────
 function countUp(el, target, suffix, dur = 800) {
   const start = performance.now();
   const isInt = Number.isInteger(target);
   const step  = ts => {
     const p = Math.min((ts - start) / dur, 1);
     const e = p === 1 ? 1 : 1 - Math.pow(2, -10 * p);
-    el.textContent = (isInt ? Math.round(target * e).toLocaleString()
-                             : (target * e).toFixed(2)) + suffix;
+    el.textContent = (isInt ? Math.round(target * e).toLocaleString() : (target * e).toFixed(2)) + suffix;
     if (p < 1) requestAnimationFrame(step);
   };
   requestAnimationFrame(step);
 }
 
-// ── 실시간 카운트다운 (매분 갱신) ──────────────────────────────────────────
-function startCountdown(expiry, expiryFmt) {
+// ─── 실시간 카운트다운 ────────────────────────────────────────────────────────
+function startCountdown(expiry) {
   const update = () => {
-    const diff = Math.max(0, expiry - Date.now());
+    const diff  = Math.max(0, expiry - Date.now());
     const days  = Math.floor(diff / 86400000);
     const hours = Math.floor((diff % 86400000) / 3600000);
+    const color = countdownColor(diff);
     const dEl = document.getElementById('cdDays');
     const hEl = document.getElementById('cdHours');
-    if (dEl) dEl.textContent = days;
-    if (hEl) hEl.textContent = String(hours).padStart(2, '0');
+    if (dEl) { dEl.textContent = days; dEl.style.color = color; }
+    if (hEl) { hEl.textContent = String(hours).padStart(2, '0'); hEl.style.color = color; }
     if (diff <= 0) clearInterval(window._cdTimer);
   };
   update();
   window._cdTimer = setInterval(update, 60_000);
 }
 
-// ── 에러 렌더러 ──────────────────────────────────────────────────────────
+// ─── 개인정보 보호 공지 팝업 ─────────────────────────────────────────────────
+function initReportNotice(expiryDays) {
+  const today   = new Date().toISOString().slice(0, 10);
+  const hideKey = 'rpt_notice_hide_' + today;
+  if (localStorage.getItem(hideKey) === 'true') return; // 오늘 숨김 처리됨
+
+  const popup = document.getElementById('rptNoticePopup');
+  if (popup) popup.style.display = 'flex';
+}
+function closeReportNotice() {
+  document.getElementById('rptNoticePopup')?.remove();
+}
+function hideReportNoticeToday() {
+  const today = new Date().toISOString().slice(0, 10);
+  localStorage.setItem('rpt_notice_hide_' + today, 'true');
+  closeReportNotice();
+}
+
+// ─── 에러 렌더러 ──────────────────────────────────────────────────────────────
 function renderError(icon, title, desc) {
   document.getElementById('rpWrap').innerHTML = `
     <div class="rp-error">
@@ -90,77 +142,46 @@ function renderError(icon, title, desc) {
     </div>`;
 }
 
-/* ════════════════════════════════════════════════════════════════════════════
-   최초 수신자 접근 게이트 (재공유 차단)
-   ─────────────────────────────────────────────────────────────────────────
-   흐름:
-   1. 발급된 URL: report.html?st=<signedToken>#<data>
-      st 토큰 = { nonce, exp, sig } 서명 페이로드
-   2. 최초 접속 (st 있음):
-      · 서명 검증 → nonce 미사용 확인 → localStorage 낙인
-      · replaceState 로 ?st= 제거 (URL 공유해도 st 없음)
-   3. 재접속 (st 없음, 동일 기기):
-      · localStorage 에 reportNonce 낙인 확인 → 통과
-   4. 재공유된 링크 (st 없음, 다른 기기):
-      · 낙인 없음 → 차단 메시지
-   5. 구형 리포트 (reportNonce 없음): 하위 호환 — 그냥 통과
-════════════════════════════════════════════════════════════════════════════ */
-async function checkAccess(d) {
-  const reportNonce = d.reportNonce;
-  // 구형 리포트 (reportNonce 없음) → 하위 호환, 제한 없이 통과
-  if (!reportNonce) return { ok: true };
-
-  const params = new URLSearchParams(location.search);
-  const st     = params.get('st');
-  const usedKey = _RPT_NONCE_PFX + reportNonce;
-
-  // ── Case A: 최초 접속 (st 있음) ─────────────────────────────────────
-  if (st) {
-    let token;
-    try { token = JSON.parse(decodeURIComponent(escape(atob(st)))); }
-    catch { return { ok: false, reason: 'invalid' }; }
-
-    const { nonce, exp, sig } = token;
-    if (!nonce || !exp || !sig) return { ok: false, reason: 'invalid' };
-
-    // 만료 체크
-    if (Date.now() > exp) return { ok: false, reason: 'expired' };
-
-    // 서명 검증
-    let sigOk = false;
-    try { sigOk = await _rptVerifySign({ nonce, exp }, sig); } catch {}
-    if (!sigOk) return { ok: false, reason: 'invalid' };
-
-    // nonce 가 이미 소비됐으면 (=다른 기기에서 st 링크를 먼저 열었음) → 차단
-    if (localStorage.getItem(usedKey)) return { ok: false, reason: 'reshared' };
-
-    // ✅ 검증 통과 → 낙인 기록 (7일 보관)
-    localStorage.setItem(usedKey, JSON.stringify({ grantedAt: Date.now(), exp: d.expiry }));
-
-    // URL에서 ?st= 제거 (주소창 세탁 — 이 시점부터 URL 공유해도 st 없음)
-    const cleanUrl = location.pathname + location.hash;
-    history.replaceState(null, '', cleanUrl);
-
-    return { ok: true };
-  }
-
-  // ── Case B: 재방문 (st 없음, 동일 기기) ─────────────────────────────
-  if (localStorage.getItem(usedKey)) return { ok: true };
-
-  // ── Case C: 재공유된 링크 (st 없음, 낙인 없음) ──────────────────────
-  return { ok: false, reason: 'reshared' };
+// ─── 간이 PMT 계산 (schedule용) ───────────────────────────────────────────────
+function _pmt(P, r, n) {
+  if (r === 0) return P / n;
+  return (P * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
 }
 
-/* ════════════════════════════════════════════════════════════════════════════
-   메인 렌더러
-════════════════════════════════════════════════════════════════════════════ */
+// ─── 부채별 12회차 상환 스케줄 생성 ─────────────────────────────────────────
+// ─── 전회차 상환 스케줄 생성 ─────────────────────────────────────────────────
+// type: 'level' = 원리금균등 / 'prin' = 원금균등
+function buildFullSchedule(P, R, n, type = 'level') {
+  const r = R / 1200;
+  const rows = [];
+  let balance = P;
+  const monthlyLevel = _pmt(P, r, n);
+  const monthlyPrin  = P / n;
+
+  for (let i = 1; i <= n; i++) {
+    const interest  = balance * r;
+    const principal = type === 'level' ? monthlyLevel - interest : monthlyPrin;
+    const payment   = type === 'level' ? monthlyLevel : principal + interest;
+    balance -= (type === 'level' ? principal : monthlyPrin);
+    rows.push({
+      i,
+      principal: Math.round(principal),
+      interest:  Math.round(interest),
+      payment:   Math.round(payment),
+      balance:   Math.max(0, Math.round(balance))
+    });
+  }
+  return rows;
+}
+
+// 스케줄 데이터를 전역 캐시에 저장 (DOM 템플릿 문자열에서 함수 호출 불가 → 분리)
+window._rptSchCache = {};
+
+// ─── 리포트 렌더러 ────────────────────────────────────────────────────────────
 function renderReport(d) {
   const wrap = document.getElementById('rpWrap');
-
-  // 만료 체크
   if (Date.now() > d.expiry) {
-    renderError('⏰', '리포트 유효기간 만료',
-      '이 리포트는 발급일로부터 7일간 유효합니다.<br>담당자에게 새로운 리포트를 요청해 주세요.');
+    renderError('⏰', '리포트 유효기간 만료', '이 리포트는 7일간 유효합니다.<br>담당자에게 새로운 리포트를 요청해 주세요.');
     return;
   }
 
@@ -168,16 +189,19 @@ function renderReport(d) {
     year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit'
   });
   const expiryFmt = new Date(d.expiry).toLocaleDateString('ko-KR', { month:'long', day:'numeric' });
+  const msLeft    = d.expiry - Date.now();
+  const cdColor   = countdownColor(msLeft);
 
   const sortedLoans = d.loans
     ? [...d.loans].sort((a, b) => (b.dsrCont ?? 0) - (a.dsrCont ?? 0))
     : [];
+
   const totalDSR = d.dsr ?? parseFloat(d.dsrText) ?? 0;
   const isOver   = d.isOver ?? (totalDSR > 40);
   const color    = dsrColor(totalDSR);
   const barPct   = Math.min(totalDSR, 100).toFixed(1);
 
-  // ━━━ [1] 헤더 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // ━━━ [1] 헤더 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   const headerHtml = `
     <div class="rp-header">
       <div class="rp-header-glow"></div>
@@ -186,9 +210,15 @@ function renderReport(d) {
       <div class="rp-meta">발급일: ${createdFmt}</div>
       <div class="rp-countdown-wrap">
         <div class="rp-countdown-segments">
-          <div class="cd-block"><div class="cd-num" id="cdDays">--</div><div class="cd-unit">DAYS</div></div>
-          <div class="cd-sep">:</div>
-          <div class="cd-block"><div class="cd-num" id="cdHours">--</div><div class="cd-unit">HOURS</div></div>
+          <div class="cd-block">
+            <div class="cd-num" id="cdDays" style="color:${cdColor};">--</div>
+            <div class="cd-unit">DAYS</div>
+          </div>
+          <div class="cd-sep" style="color:${cdColor}">:</div>
+          <div class="cd-block">
+            <div class="cd-num" id="cdHours" style="color:${cdColor};">--</div>
+            <div class="cd-unit">HOURS</div>
+          </div>
         </div>
         <div class="rp-countdown-right">
           <span class="cd-tag">EXPIRY</span>
@@ -197,38 +227,23 @@ function renderReport(d) {
       </div>
     </div>`;
 
-  // ━━━ [1-1] 상담사 워터마크 배너 (phone 있을 때만) ━━━━━━━━━━━━━━━━━━━━
+  // ━━━ [1-1] 상담사 워터마크 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   let consultantHtml = '';
   if (d.consultant?.phone) {
-    const ph = d.consultant.phone;
     consultantHtml = `
       <div class="consultant-banner">
         <div class="consultant-inner">
           <div class="consultant-avatar">👤</div>
           <div class="consultant-body">
             <div class="consultant-tag">CONSULTANT CONTACT</div>
-            <div class="consultant-phone">${ph}</div>
+            <div class="consultant-phone">${d.consultant.phone}</div>
             <div class="consultant-msg">담당 상담사에게 DSR 관련 궁금한 내용이 있으시면<br>상담 받아보시길 권장합니다.</div>
           </div>
         </div>
       </div>`;
   }
 
-  // ━━━ [2] DSR 종합 카드 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  const dsrCardHtml = `
-    <div class="rp-card">
-      <div class="rp-card-title">종합 DSR 지수 (스트레스 금리 반영)</div>
-      <div class="dsr-big" id="dsrBig" style="color:${color};">0.00%</div>
-      <div class="dsr-label">연소득 대비 연간 원리금 상환 비율</div>
-      <div class="dsr-bar-track"><div class="dsr-bar-fill" id="dsrBar" style="background:${color};"></div></div>
-      <div class="dsr-legend">
-        <span>0%</span>
-        <span style="color:${color}; font-weight:700;">현재 ${pct(totalDSR)}</span>
-        <span>규제선 40%</span>
-      </div>
-    </div>`;
-
-  // ━━━ [3] 요약 그리드 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // ━━━ [2] 요약 그리드 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   const summaryHtml = `
     <div class="rp-card">
       <div class="rp-card-title">한도 분석 요약</div>
@@ -237,22 +252,96 @@ function renderReport(d) {
         <div class="summary-item"><div class="summary-item-label">연간 총 원리금</div><div class="summary-item-value">${won(d.totalAnnPayment ?? 0)}</div></div>
         <div class="summary-item">
           <div class="summary-item-label">원금균등 최대 한도</div>
-          <div class="summary-item-value" style="color:${isOver?'var(--rp-danger)':'var(--rp-safe)'};">${d.maxPTxt || '-'}</div>
+          <div class="summary-item-value" style="color:${isOver?'var(--rp-danger)':'var(--rp-safe)'};">${d.maxPTxt||'-'}</div>
         </div>
         <div class="summary-item">
           <div class="summary-item-label">원리금균등 최대 한도</div>
-          <div class="summary-item-value" style="color:${isOver?'var(--rp-danger)':''};">${isOver ? '한도 초과' : (d.maxLTxt || '-')}</div>
+          <div class="summary-item-value" style="color:${isOver?'var(--rp-danger)':''};">${isOver?'한도 초과':(d.maxLTxt||'-')}</div>
         </div>
         <div class="summary-item full">
           <div class="summary-item-label">현재 추가 가능 대출액</div>
           <div class="summary-item-value" style="color:${isOver?'var(--rp-danger)':'var(--rp-safe)'};">
-            ${isOver ? '신규 대출 불가 (규제선 초과)' : (d.remainTxt || '-')}
+            ${isOver?'신규 대출 불가 (규제선 초과)':(d.remainTxt||'-')}
           </div>
         </div>
       </div>
     </div>`;
 
-  // ━━━ [4] 개별 부채 DSR 기여도 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // ━━━ [3] 부채 상세 내역 (원리금균등 + 원금균등 둘 다 표시) ━━━━━━━━━━━━━━
+  let loanDetailHtml = '';
+  if (d.loans && d.loans.length > 0) {
+    const rows = d.loans.map((l, idx) => {
+      const label   = CAT_LABELS[l.cat] || l.cat;
+      const emoji   = CAT_EMOJI[l.cat]  || '📌';
+      const r_dsr   = (l.R + 0) / 1200; // 스트레스 제외 기본금리만
+      const lvlMon  = l.monthlyLevel ?? Math.round(_pmt(l.P, l.R / 1200, l.n));
+      const prinMon = l.monthlyPrin1 ?? Math.round((l.P / l.n) + l.P * (l.R / 1200));
+      const isJeonse= l.cat === 'jeonse';
+      const schId   = `sch_${idx}`;
+
+      // 전회차 스케줄 — 전역 캐시에 저장 후 탭 전환으로 렌더링
+      window._rptSchCache[schId] = {
+        P: l.P, R: l.R, n: l.n, label, emoji,
+        level: null, prin: null  // lazy: 토글 시 생성
+      };
+
+      return `
+        <div class="ld-item">
+          <div class="ld-header">
+            <div class="ld-name">${emoji} ${label}</div>
+            <div class="ld-term-badge">${l.n}개월</div>
+          </div>
+          <div class="ld-meta-row">
+            <span class="ld-chip">대출 잔액 ${won(l.P)}</span>
+            <span class="ld-chip">금리 ${l.R.toFixed(2)}%</span>
+          </div>
+          ${isJeonse ? `
+          <div class="ld-payment-grid">
+            <div class="ld-payment-item">
+              <div class="ld-payment-label">월 이자 납입액</div>
+              <div class="ld-payment-value">${Math.round(l.P * l.R / 1200).toLocaleString()}원</div>
+            </div>
+          </div>` : `
+          <div class="ld-payment-grid">
+            <div class="ld-payment-item">
+              <div class="ld-payment-label">월 납입액<br><span class="ld-payment-sub">원리금균등</span></div>
+              <div class="ld-payment-value">${lvlMon.toLocaleString()}원</div>
+            </div>
+            <div class="ld-payment-item ld-payment-item--alt">
+              <div class="ld-payment-label">월 납입액 (1회차)<br><span class="ld-payment-sub">원금균등</span></div>
+              <div class="ld-payment-value">${prinMon.toLocaleString()}원</div>
+            </div>
+          </div>`}
+          ${isJeonse ? '' : `
+          <button class="ld-sch-btn" id="btn_${schId}" onclick="_rptToggleSch('${schId}', this)">
+            ▼ 회차별 상환 스케줄 보기
+          </button>
+          <div id="${schId}" class="ld-sch-wrap" style="display:none;"></div>`}
+        </div>`;
+    }).join('');
+
+    loanDetailHtml = `
+      <div class="rp-card">
+        <div class="rp-card-title">📋 부채 상세 내역</div>
+        ${rows}
+      </div>`;
+  }
+  // ━━━ [4] DSR 종합 카드 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  const dsrCardHtml = `
+    <div class="rp-card">
+      <div class="rp-card-title">종합 DSR 지수 (스트레스 금리 반영)</div>
+      <div class="dsr-big" id="dsrBig" style="color:${color};">0.00%</div>
+      <div class="dsr-label">연소득 대비 연간 원리금 상환 비율</div>
+      <div class="dsr-bar-track"><div class="dsr-bar-fill" id="dsrBar" style="background:${color};"></div></div>
+      <div class="dsr-legend">
+        <span>0%</span>
+        <span style="color:${color};font-weight:700;">현재 ${pct(totalDSR)}</span>
+        <span>규제선 40%</span>
+      </div>
+    </div>`;
+
+
+  // ━━━ [5] 개별 DSR 기여도 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   let contribHtml = '';
   if (sortedLoans.length > 0) {
     const maxCont = Math.max(...sortedLoans.map(l => l.dsrCont ?? 0), 1);
@@ -273,8 +362,8 @@ function renderReport(d) {
           <div class="loan-item-meta">
             <div class="loan-meta-row">
               <span class="loan-meta-chip">원금 ${won(l.P)}</span>
-              <span class="loan-meta-chip">금리 ${l.R ? l.R.toFixed(2)+'%' : '-'}</span>
-              <span class="loan-meta-chip">연 상환 ${won(l.annPmt ?? 0)}</span>
+              <span class="loan-meta-chip">금리 ${l.R?l.R.toFixed(2)+'%':'-'}</span>
+              <span class="loan-meta-chip">연 상환 ${won(l.annPmt??0)}</span>
             </div>
             <div class="loan-meta-row">
               <span class="loan-meta-drop" style="color:${fill};">▼ 정리 시 DSR ${cont.toFixed(2)}%p 감소</span>
@@ -282,53 +371,66 @@ function renderReport(d) {
           </div>
         </div>`;
     }).join('');
-    contribHtml = `<div class="rp-card"><div class="rp-card-title">📊 개별 부채별 DSR 기여도 (기여도 높은 순)</div>${rows}</div>`;
+    contribHtml = `
+      <div class="rp-card">
+        <div class="rp-card-title">📊 개별 부채별 DSR 기여도 (기여도 높은 순)</div>
+        ${rows}
+      </div>`;
   }
 
-  // ━━━ [5] 역행 산출 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // ━━━ [6] 역행 산출 / 건전성 진단 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   let reverseHtml = '';
   if (isOver && d.reqIncome) {
-    const top1 = sortedLoans[0];
-    const t1l  = top1 ? `${CAT_EMOJI[top1.cat]||'📌'} ${CAT_LABELS[top1.cat]||top1.cat}` : '-';
-    const t1p  = top1 ? top1.dsrCont.toFixed(2) : '-';
+    const top1     = sortedLoans[0];
+    const t1Label  = top1 ? `${CAT_EMOJI[top1.cat]||'📌'} ${CAT_LABELS[top1.cat]||top1.cat}` : '-';
+    const t1Pct    = top1 ? top1.dsrCont.toFixed(2) : '-';
     reverseHtml = `
       <div class="rp-card reverse-card">
-        <div class="rp-card-title">⚠️ 역행 산출 — 규제선 통과 조건 (DSR ${d.targetDSR ?? 35}% 목표)</div>
+        <div class="rp-card-title">⚠️ 역행 산출 — 규제선 통과 조건 (DSR ${d.targetDSR??35}% 목표)</div>
         <div class="scenario-tabs">
           <div class="scenario-tab tab-income">💰 소득 증빙 시나리오</div>
           <div class="scenario-tab tab-repay">📉 부채 상환 시나리오</div>
         </div>
         <div class="rs-grid">
-          <div class="rs-item hl"><div class="rs-label">필요 연소득<br>(증빙 목표)</div><div class="rs-value c-income">${won(d.reqIncome)}</div></div>
-          <div class="rs-item"><div class="rs-label">줄여야 할<br>연간 상환액</div><div class="rs-value c-danger">${won(d.excessPmt ?? 0)}</div></div>
-          <div class="rs-item full"><div class="rs-label">추정 상환 목표 원금 (평균 상환비율 기준)</div><div class="rs-value c-danger" style="font-size:20px;">${won(d.estReducePrin ?? 0)}</div></div>
+          <div class="rs-item hl">
+            <div class="rs-label">필요 연소득<br>(증빙 목표)</div>
+            <div class="rs-value c-income">${won(d.reqIncome)}</div>
+          </div>
+          <div class="rs-item">
+            <div class="rs-label">줄여야 할<br>연간 상환액</div>
+            <div class="rs-value c-danger">${won(d.excessPmt??0)}</div>
+          </div>
+          <div class="rs-item full">
+            <div class="rs-label">추정 상환 목표 원금</div>
+            <div class="rs-value c-danger" style="font-size:20px;">${won(d.estReducePrin??0)}</div>
+          </div>
         </div>
         <div class="rs-tip">
           💡 <b>우선 정리 추천:</b><br>
-          DSR 기여도 1순위인 <b>${t1l}</b>(기여도 <b>${t1p}%p</b>)를 먼저 상환하면 DSR 감소 효율이 가장 높습니다.<br><br>
+          DSR 기여도 1순위인 <b>${t1Label}</b>(기여도 <b>${t1Pct}%p</b>)를 먼저 상환하면 DSR 감소 효율이 가장 높습니다.<br><br>
           <span style="opacity:.7;">※ 역행 산출값은 현재 부채 구조 기준 추정치이며, 실제 심사 결과와 다를 수 있습니다.</span>
         </div>
       </div>`;
   } else if (!isOver) {
-    const dv = totalDSR.toFixed(1), rw = d.remainTxt || '-';
-    const msg = totalDSR >= 36
+    const dv = totalDSR.toFixed(1), rw = d.remainTxt||'-';
+    const msg = totalDSR>=36
       ? `<b style="color:var(--rp-warn);">⚠️ DSR 경계 구간 — 현재 ${dv}%</b><br><span style="font-size:12.5px;">규제선까지 여유 <b>${(40-totalDSR).toFixed(1)}%p</b>. 추가 대출 여력: <b>${rw}</b></span>`
-      : totalDSR >= 25
+      : totalDSR>=25
       ? `<b style="color:var(--rp-yellow-deep);">✅ 안정 구간 — 현재 ${dv}%</b><br><span style="font-size:12.5px;">부채 구조 양호. 추가 대출 여력 <b>${rw}</b></span>`
       : `<b style="color:var(--rp-safe);">💚 우량 구간 — 현재 ${dv}%</b><br><span style="font-size:12.5px;">부채 건전성 매우 양호. 추가 여력 <b>${rw}</b></span>`;
     reverseHtml = `<div class="rp-card stable-card"><div class="rp-card-title">✅ 부채 건전성 진단</div><div class="rec-box">${msg}</div></div>`;
   }
 
-  // ━━━ [6] 종합 진단 의견 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // ━━━ [7] 종합 진단 의견 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   let recHtml = '';
   if (isOver && d.reqIncome) {
-    const dv = totalDSR.toFixed(1), op = (totalDSR - 40).toFixed(1);
+    const dv = totalDSR.toFixed(1), op = (totalDSR-40).toFixed(1);
     recHtml = `
       <div class="rp-card">
         <div class="rp-card-title">📋 종합 진단 의견</div>
         <div class="rec-box">
           <span class="rec-head" style="color:var(--rp-danger);">⛔ DSR 규제선(40%) 초과 — 현재 ${dv}% (초과 ${op}%p)</span>
-          신규 대출 실행이 제한됩니다.<br>안정권(${d.targetDSR ?? 35}%) 진입을 위해 아래 조건 중 하나를 충족해야 합니다.
+          신규 대출 실행이 제한됩니다.<br>안정권(${d.targetDSR??35}%) 진입을 위해 아래 조건 중 하나를 충족해야 합니다.
           <div class="rec-row" style="margin-top:10px;">
             <span class="rec-dot">·</span><span class="rec-label"><b>연소득</b>이</span>
             <span class="rec-amount">${won(d.reqIncome)}</span>
@@ -336,14 +438,46 @@ function renderReport(d) {
           </div>
           <div class="rec-row">
             <span class="rec-dot">·</span><span class="rec-label">연간 원리금을</span>
-            <span class="rec-amount" style="background:rgba(220,38,38,.1);color:var(--rp-danger);">${won(d.excessPmt ?? 0)}</span>
+            <span class="rec-amount" style="background:rgba(220,38,38,.1);color:var(--rp-danger);">${won(d.excessPmt??0)}</span>
             <span class="rec-label">이상 줄여야 합니다.</span>
           </div>
         </div>
       </div>`;
   }
 
-  // ━━━ [7] 푸터 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // ━━━ [8] 개인정보 보호 팝업 HTML ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  const noticeHtml = `
+    <div id="rptNoticePopup" style="
+      position:fixed;inset:0;background:rgba(0,0,0,.6);
+      display:flex;align-items:center;justify-content:center;
+      z-index:9999;padding:20px;backdrop-filter:blur(4px);">
+      <div style="
+        background:var(--rp-surface);border-radius:18px;
+        max-width:340px;width:100%;padding:28px 22px;text-align:center;
+        box-shadow:0 8px 40px rgba(0,0,0,.4);position:relative;">
+        <div style="font-size:40px;margin-bottom:12px;">🔒</div>
+        <div style="font-size:15px;font-weight:800;color:var(--rp-text);margin-bottom:10px;">금융 정보 보호 안내</div>
+        <div style="font-size:13px;color:var(--rp-text-sub);line-height:1.75;margin-bottom:20px;">
+          고객님의 소중한 금융 정보 보호를 위해<br>
+          본 리포트는 발급일로부터 <b style="color:var(--rp-yellow);">7일 뒤</b><br>
+          안전하게 자동 파기됩니다.
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button onclick="hideReportNoticeToday()" style="
+            flex:1;padding:11px;border-radius:10px;font-size:12.5px;font-weight:700;
+            background:var(--rp-surface-2);color:var(--rp-text-muted);border:1.5px solid var(--rp-border);">
+            오늘 하루 보지 않기
+          </button>
+          <button onclick="closeReportNotice()" style="
+            flex:1;padding:11px;border-radius:10px;font-size:13px;font-weight:800;
+            background:linear-gradient(135deg,#FFB800,#e5a200);color:#111;border:none;">
+            확인
+          </button>
+        </div>
+      </div>
+    </div>`;
+
+  // ━━━ [9] 푸터 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   const footerHtml = `
     <div class="rp-footer">
       본 리포트는 입력값 기준 예상 수치로, 실제 금융기관 심사 결과와 다를 수 있습니다.<br>
@@ -351,13 +485,14 @@ function renderReport(d) {
       <b>KB DSR 계산기</b> · 리포트 유효기간 ${expiryFmt}까지
     </div>`;
 
-  // 조합 + 렌더
-  wrap.innerHTML = headerHtml + consultantHtml + dsrCardHtml + summaryHtml
-                 + contribHtml + reverseHtml + recHtml + footerHtml;
+  // ━━━ 조합 + 렌더 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  wrap.innerHTML = noticeHtml + headerHtml + consultantHtml +
+                   summaryHtml + loanDetailHtml + dsrCardHtml + 
+                   contribHtml + reverseHtml + recHtml + footerHtml;
 
-  // 애니메이션 (DOM 삽입 후)
+  // ── 애니메이션 ───────────────────────────────────────────────────────────
   requestAnimationFrame(() => {
-    startCountdown(d.expiry, expiryFmt);
+    startCountdown(d.expiry);
     const dsrEl = document.getElementById('dsrBig');
     if (dsrEl) countUp(dsrEl, totalDSR, '%', 900);
     const barEl = document.getElementById('dsrBar');
@@ -365,12 +500,163 @@ function renderReport(d) {
     document.querySelectorAll('.loan-bar-fill').forEach((el, i) => {
       setTimeout(() => { el.style.width = (el.dataset.width || '0') + '%'; }, 200 + i * 80);
     });
+    // 개인정보 공지 팝업
+    initReportNotice(7);
   });
 }
 
-// ── 진입점 ────────────────────────────────────────────────────────────────
+// ─── 접근 게이트 ──────────────────────────────────────────────────────────────
+async function checkAccess(d) {
+  const reportNonce = d.reportNonce;
+  if (!reportNonce) return { ok: true }; // 구형 리포트 하위 호환
+
+  // 관리자 기기 → 무제한
+  if (_isAdminDevice()) return { ok: true };
+
+  const params = new URLSearchParams(location.search);
+  const st     = params.get('st');
+  const active = localStorage.getItem(_RPT_ACTIVE);
+
+  // ── Case A: st 토큰 없음 → 기기 바인딩 확인 ──────────────────────────────
+  if (!st) {
+    if (active === reportNonce && _rptIsGranted(reportNonce)) return { ok: true };
+    return { ok: false, reason: 'reshared' };
+  }
+
+  // ── Case B: st 토큰 있음 ─────────────────────────────────────────────────
+  let token;
+  try { token = JSON.parse(decodeURIComponent(escape(atob(st)))); }
+  catch { return { ok: false, reason: 'invalid' }; }
+
+  const { nonce, exp, sig } = token;
+  if (!nonce || !exp || !sig) return { ok: false, reason: 'invalid' };
+  if (Date.now() > exp)       return { ok: false, reason: 'expired' };
+
+  let sigOk = false;
+  try { sigOk = await _rptVerifySign({ nonce, exp }, sig); } catch {}
+  if (!sigOk) return { ok: false, reason: 'invalid' };
+
+  // 이미 이 기기에 바인딩되어 있으면 다회 접속 허용
+  if (_rptIsGranted(nonce)) {
+    history.replaceState(null, '', location.pathname + location.hash);
+    return { ok: true };
+  }
+
+  // 최초 접속 → 바인딩
+  _rptGrant(nonce, d.expiry);
+  history.replaceState(null, '', location.pathname + location.hash);
+  return { ok: true };
+}
+
+
+// ─── 스케줄 토글 + 탭 전환 함수 (전역) ──────────────────────────────────────
+// id: sch_0, sch_1 ... / btn: 토글 버튼 DOM
+function _rptToggleSch(id, btn) {
+  const wrap = document.getElementById(id);
+  if (!wrap) return;
+
+  // 이미 열려있으면 닫기
+  if (wrap.style.display !== 'none') {
+    wrap.style.display = 'none';
+    btn.textContent = '▼ 회차별 상환 스케줄 보기';
+    btn.classList.remove('ld-sch-btn--open');
+    return;
+  }
+
+  // 처음 열릴 때 — 원리금균등(level) 탭 기본 렌더링
+  _rptRenderSchTab(id, 'level');
+  wrap.style.display = 'block';
+  btn.textContent = '▲ 스케줄 닫기';
+  btn.classList.add('ld-sch-btn--open');
+}
+
+/** 탭 전환 함수 */
+function _rptSwitchTab(id, type) {
+  // 탭 버튼 active 전환
+  const wrap = document.getElementById(id);
+  if (!wrap) return;
+  wrap.querySelectorAll('.ld-tab-btn').forEach(b => {
+    b.classList.toggle('ld-tab-btn--active', b.dataset.type === type);
+  });
+  // 테이블만 교체
+  _rptRenderSchTable(id, type);
+}
+
+/** 스케줄 전체 구조 최초 렌더링 (탭 UI + 테이블) */
+function _rptRenderSchTab(id, defaultType = 'level') {
+  const wrap = document.getElementById(id);
+  const data = window._rptSchCache?.[id];
+  if (!wrap || !data) return;
+
+  const w = won => Math.round(won).toLocaleString();
+  // 로드 표시 후 비동기 렌더
+  wrap.innerHTML = `
+    <div class="ld-sch-header">
+      <span class="ld-sch-loan-info">
+        ${data.emoji} ${data.label}
+        &nbsp;|&nbsp; ${w(data.P)}원
+        &nbsp;|&nbsp; ${data.R.toFixed(2)}%
+        &nbsp;|&nbsp; ${data.n}개월
+      </span>
+    </div>
+    <div class="ld-tab-row">
+      <button class="ld-tab-btn ld-tab-btn--active" data-type="level"
+              onclick="_rptSwitchTab('${id}','level')">원금균등 방식</button>
+      <button class="ld-tab-btn" data-type="prin"
+              onclick="_rptSwitchTab('${id}','prin')">원리금균등 방식</button>
+    </div>
+    <div id="${id}_tbl" class="ld-sch-scroll">
+      <div class="ld-sch-loading">⏳ 스케줄 생성 중...</div>
+    </div>`;
+
+  // 탭 초기값 active 반영
+  wrap.querySelectorAll('.ld-tab-btn').forEach(b => {
+    b.classList.toggle('ld-tab-btn--active', b.dataset.type === defaultType);
+  });
+
+  // 비동기로 테이블 렌더 (UI 블로킹 방지)
+  requestAnimationFrame(() => _rptRenderSchTable(id, defaultType));
+}
+
+/** 테이블 rows만 교체 */
+function _rptRenderSchTable(id, type) {
+  const tblWrap = document.getElementById(id + '_tbl');
+  const data    = window._rptSchCache?.[id];
+  if (!tblWrap || !data) return;
+
+  // 캐시가 없으면 계산
+  if (!data[type]) {
+    data[type] = buildFullSchedule(data.P, data.R, data.n, type);
+  }
+  const rows = data[type];
+  const w = v => Math.round(v).toLocaleString();
+
+  const trs = rows.map(rv => `
+    <tr>
+      <td class="ld-td-center">${rv.i}회</td>
+      <td>${w(rv.principal)}</td>
+      <td>${w(rv.interest)}</td>
+      <td class="ld-td-total"><b>${w(rv.payment)}</b></td>
+      <td>${w(rv.balance)}</td>
+    </tr>`).join('');
+
+  tblWrap.innerHTML = `
+    <table class="ld-sch-table">
+      <thead>
+        <tr>
+          <th class="ld-td-center">회차</th>
+          <th>원금</th>
+          <th>이자</th>
+          <th class="ld-td-total">합계</th>
+          <th>잔액</th>
+        </tr>
+      </thead>
+      <tbody>${trs}</tbody>
+    </table>`;
+}
+
+// ─── 진입점 ───────────────────────────────────────────────────────────────────
 (async function () {
-  // 시스템 테마 → body 클래스로 완전히 제어 (common.css 충돌 방지)
   const applyTheme = isDark => {
     document.body.classList.toggle('dark', isDark);
     document.body.classList.toggle('white', !isDark);
@@ -378,20 +664,17 @@ function renderReport(d) {
   applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches);
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => applyTheme(e.matches));
 
-  // 데이터 파싱
   const hash = location.hash.slice(1);
   if (!hash) { renderError('⚠️', '리포트 데이터 없음', '올바른 링크로 접속해 주세요.'); return; }
   let d;
   try { d = JSON.parse(decodeURIComponent(escape(atob(hash)))); }
   catch { renderError('🚫', '리포트를 읽을 수 없습니다', '링크가 손상되었거나 형식이 올바르지 않습니다.'); return; }
 
-  // 만료 사전 체크
   if (Date.now() > d.expiry) {
-    renderError('⏰', '리포트 유효기간 만료', '이 리포트는 발급일로부터 7일간 유효합니다.<br>담당자에게 새로운 리포트를 요청해 주세요.');
+    renderError('⏰', '리포트 유효기간 만료', '이 리포트는 7일간 유효합니다.<br>담당자에게 새로운 리포트를 요청해 주세요.');
     return;
   }
 
-  // ★ 접근 게이트 — 최초 수신자 검증 + 재공유 차단
   const access = await checkAccess(d);
   if (!access.ok) {
     if (access.reason === 'reshared') {
