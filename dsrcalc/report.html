@@ -7,173 +7,329 @@
   <link rel="icon" type="image/png" href="../ico/favicon-light.png">
   <link rel="stylesheet" href="common.css" media="all">
   <style>
-    /* ── 리포트 전용 스타일 ──────────────────────────────────────────────── */
-    body { background: var(--bg-page); }
+    /* ══════════════════════════════════════════════════════════════════════════
+       report.html — 전용 스타일
+       · 라이트 / 다크 시스템 테마 완전 대응
+       · 모바일 우선(Mobile-first) 레이아웃
+    ══════════════════════════════════════════════════════════════════════════ */
 
-    .rp-wrap {
-      max-width: 560px; margin: 0 auto; padding: 20px 16px 60px;
+    /* ── CSS 변수 — 라이트 기본값 ─────────────────────────────────────────── */
+    :root {
+      --rp-bg:          #f4f6fb;
+      --rp-surface:     #ffffff;
+      --rp-surface-2:   #f0f2f8;
+      --rp-border:      #e4e8f0;
+      --rp-text:        #111827;
+      --rp-text-sub:    #4b5563;
+      --rp-text-muted:  #9ca3af;
+      --rp-navy:        #12203A;
+      --rp-yellow:      #FFB800;
+      --rp-yellow-deep: #e5a200;
+      --rp-danger:      #dc2626;
+      --rp-warn:        #d97706;
+      --rp-safe:        #16a34a;
+      --rp-shadow:      0 2px 16px rgba(0,0,0,.07);
+      --rp-radius:      18px;
+      --rp-radius-sm:   12px;
     }
 
-    /* ── 헤더 ─────────────────────────────────────────────────────────────── */
-    .rp-header {
-      background: linear-gradient(135deg, var(--kb-navy, #12203A), #1e3560);
-      border-radius: var(--radius-xl, 18px); padding: 28px 24px 22px;
-      margin-bottom: 16px; position: relative; overflow: hidden;
+    /* ── CSS 변수 — 다크 오버라이드 ──────────────────────────────────────── */
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --rp-bg:        #0d1117;
+        --rp-surface:   #161b22;
+        --rp-surface-2: #1f2937;
+        --rp-border:    #2d3748;
+        --rp-text:      #f1f5f9;
+        --rp-text-sub:  #94a3b8;
+        --rp-text-muted:#64748b;
+        --rp-shadow:    0 2px 16px rgba(0,0,0,.35);
+      }
     }
-    .rp-header::after {
-      content: ''; position: absolute; right: -20px; top: -20px;
-      width: 120px; height: 120px;
-      background: rgba(255,184,0,.12); border-radius: 50%;
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      margin: 0; padding: 0;
+      background: var(--rp-bg);
+      color: var(--rp-text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+      -webkit-font-smoothing: antialiased;
     }
-    .rp-logo { font-size: 11px; font-weight: 700; color: var(--kb-yellow, #FFB800); letter-spacing: .08em; margin-bottom: 6px; }
-    .rp-title { font-size: 20px; font-weight: 900; color: #fff; margin-bottom: 4px; }
-    .rp-meta  { font-size: 11.5px; color: rgba(255,255,255,.55); }
-    .rp-expiry-badge {
-      display: inline-block; margin-top: 10px;
-      font-size: 11px; font-weight: 600; color: var(--kb-yellow, #FFB800);
-      background: rgba(255,184,0,.15); border: 1px solid rgba(255,184,0,.3);
-      border-radius: 6px; padding: 3px 9px;
-    }
+
+    /* ── 래퍼 ─────────────────────────────────────────────────────────────── */
+    .rp-wrap { max-width: 560px; margin: 0 auto; padding: 16px 14px 72px; }
 
     /* ── 공통 카드 ────────────────────────────────────────────────────────── */
     .rp-card {
-      background: var(--bg-surface, #fff);
-      border: 1.5px solid var(--border, #e8eaf0);
-      border-radius: var(--radius-xl, 18px);
-      padding: 20px 18px; margin-bottom: 12px;
-      box-shadow: 0 2px 12px rgba(0,0,0,.06);
+      background: var(--rp-surface);
+      border: 1.5px solid var(--rp-border);
+      border-radius: var(--rp-radius);
+      padding: 18px 16px;
+      margin-bottom: 12px;
+      box-shadow: var(--rp-shadow);
       position: relative; overflow: hidden;
     }
     .rp-card::before {
       content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
-      background: linear-gradient(90deg, var(--kb-yellow, #FFB800), var(--kb-yellow-deep, #e5a800));
+      background: linear-gradient(90deg, var(--rp-yellow), var(--rp-yellow-deep));
     }
     .rp-card-title {
-      font-size: 12px; font-weight: 700; color: var(--text-muted, #8a8fa8);
-      text-transform: uppercase; letter-spacing: .06em; margin-bottom: 14px;
+      font-size: 11px; font-weight: 700; letter-spacing: .07em;
+      color: var(--rp-text-muted); text-transform: uppercase; margin-bottom: 14px;
     }
 
-    /* ── DSR 종합 ─────────────────────────────────────────────────────────── */
-    .dsr-big { font-size: 48px; font-weight: 900; line-height: 1; margin-bottom: 6px; }
-    .dsr-label { font-size: 12.5px; color: var(--text-secondary, #555); margin-bottom: 14px; }
-    .dsr-bar-bg {
-      height: 10px; background: var(--bg-surface-2, #f0f2f7);
-      border-radius: 99px; overflow: hidden; margin-bottom: 6px;
+    /* ── 헤더 카드 ────────────────────────────────────────────────────────── */
+    .rp-header {
+      background: linear-gradient(135deg, #0f1f3d 0%, #1a3060 100%);
+      border-radius: var(--rp-radius); padding: 26px 20px 20px;
+      margin-bottom: 12px; position: relative; overflow: hidden;
     }
-    .dsr-bar-fill { height: 100%; border-radius: 99px; transition: width .6s ease; }
-    .dsr-limit-row {
+    @media (prefers-color-scheme: dark) {
+      .rp-header { background: linear-gradient(135deg, #070d1a 0%, #0f1f3d 100%); }
+    }
+    .rp-header::after {
+      content: ''; position: absolute; right: -28px; top: -28px;
+      width: 130px; height: 130px;
+      background: radial-gradient(circle, rgba(255,184,0,.18) 0%, transparent 70%);
+      border-radius: 50%; pointer-events: none;
+    }
+    .rp-logo  { font-size: 10.5px; font-weight: 700; color: var(--rp-yellow); letter-spacing: .1em; margin-bottom: 6px; }
+    .rp-title { font-size: 22px; font-weight: 900; color: #fff; line-height: 1.2; margin-bottom: 6px; }
+    .rp-meta  { font-size: 11px; color: rgba(255,255,255,.5); margin-bottom: 12px; }
+
+    /* ── D-day 카운터 뱃지 (이미지1 개선) ────────────────────────────────── */
+    .rp-dday-wrap {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: rgba(255,184,0,.13);
+      border: 1px solid rgba(255,184,0,.35);
+      border-radius: 10px; padding: 8px 14px;
+    }
+    .rp-dday-num {
+      font-size: 28px; font-weight: 900; color: var(--rp-yellow);
+      line-height: 1; min-width: 44px; text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+    .rp-dday-right { display: flex; flex-direction: column; }
+    .rp-dday-label { font-size: 10px; font-weight: 600; color: rgba(255,255,255,.5); letter-spacing: .05em; }
+    .rp-dday-sub   { font-size: 11.5px; font-weight: 700; color: rgba(255,255,255,.75); }
+
+    /* ── DSR 종합 카드 ───────────────────────────────────────────────────── */
+    .dsr-big {
+      font-size: 52px; font-weight: 900; line-height: 1;
+      margin-bottom: 4px; font-variant-numeric: tabular-nums;
+      transition: color .3s;
+    }
+    .dsr-label { font-size: 12px; color: var(--rp-text-sub); margin-bottom: 14px; }
+    .dsr-bar-track {
+      height: 10px; background: var(--rp-surface-2);
+      border-radius: 99px; overflow: hidden; margin-bottom: 8px; position: relative;
+    }
+    /* 40% 규제선 마커 */
+    .dsr-bar-track::after {
+      content: ''; position: absolute; left: 40%; top: 0; bottom: 0;
+      width: 2px; background: rgba(255,255,255,.4);
+      z-index: 2;
+    }
+    @media (prefers-color-scheme: dark) {
+      .dsr-bar-track::after { background: rgba(255,255,255,.2); }
+    }
+    .dsr-bar-fill { height: 100%; border-radius: 99px; width: 0; transition: width .9s cubic-bezier(.22,1,.36,1); }
+    .dsr-legend {
       display: flex; justify-content: space-between;
-      font-size: 11px; color: var(--text-muted, #8a8fa8);
+      font-size: 11px; color: var(--rp-text-muted);
+    }
+    .dsr-legend-cur { font-weight: 700; }
+
+    /* ── 요약 그리드 (이미지2 개선) ─────────────────────────────────────── */
+    /* 기본: 2컬럼, 작은 화면에서도 유지하되 값 폰트 줄임 */
+    .summary-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+    }
+    .summary-item {
+      background: var(--rp-surface-2); border-radius: var(--rp-radius-sm);
+      padding: 12px 12px 11px; overflow: hidden;
+    }
+    .summary-item-label {
+      font-size: 10.5px; color: var(--rp-text-muted);
+      margin-bottom: 5px; line-height: 1.3;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .summary-item-value {
+      font-size: 14px; font-weight: 800; color: var(--rp-text);
+      line-height: 1.25;
+      /* 긴 숫자 자동 줄 바꿈 */
+      word-break: break-all; overflow-wrap: anywhere;
+    }
+    /* 넓은 아이템 (full-width) */
+    .summary-item.full { grid-column: 1 / -1; }
+    /* 초소형 화면 */
+    @media (max-width: 360px) {
+      .summary-item-value { font-size: 12.5px; }
     }
 
-    /* ── 요약 그리드 ──────────────────────────────────────────────────────── */
-    .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .summary-item { background: var(--bg-surface-2, #f7f8fa); border-radius: 12px; padding: 12px 14px; }
-    .summary-item-label { font-size: 11px; color: var(--text-muted, #8a8fa8); margin-bottom: 4px; }
-    .summary-item-value { font-size: 15px; font-weight: 800; color: var(--text-primary, #111); word-break: break-all; }
-
-    /* ── 진단 문구 ────────────────────────────────────────────────────────── */
-    .rec-box {
-      background: var(--bg-surface-2, #f7f8fa); border-radius: 12px;
-      padding: 14px 16px; font-size: 13px; line-height: 1.75;
-      color: var(--text-primary, #111);
+    /* ── 개별 부채 기여도 (이미지3 개선) ────────────────────────────────── */
+    .loan-item {
+      padding-bottom: 14px; margin-bottom: 14px;
+      border-bottom: 1px solid var(--rp-border);
     }
+    .loan-item:last-child { padding-bottom: 0; margin-bottom: 0; border-bottom: none; }
 
-    /* ── 개별 부채 DSR 기여도 ─────────────────────────────────────────────── */
-    .loan-contrib-item { margin-bottom: 14px; }
-    .loan-contrib-item:last-child { margin-bottom: 0; }
-    .loan-contrib-header {
-      display: flex; justify-content: space-between; align-items: baseline;
-      margin-bottom: 5px;
+    /* 헤더 행: 이름 + % */
+    .loan-item-header {
+      display: flex; align-items: center;
+      justify-content: space-between; gap: 8px;
+      margin-bottom: 6px;
     }
-    .loan-contrib-name { font-size: 13px; font-weight: 700; color: var(--text-primary, #111); }
-    .loan-contrib-meta { font-size: 11px; color: var(--text-muted, #8a8fa8); }
-    .loan-contrib-pct  { font-size: 14px; font-weight: 900; }
-
-    .contrib-bar-bg {
-      height: 8px; background: var(--bg-surface-2, #f0f2f7);
-      border-radius: 99px; overflow: hidden; margin-bottom: 3px;
+    .loan-item-name {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 13.5px; font-weight: 700; color: var(--rp-text);
+      flex: 1; min-width: 0;
     }
-    .contrib-bar-fill { height: 100%; border-radius: 99px; }
+    .loan-item-name span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .loan-item-pct { font-size: 15px; font-weight: 900; flex-shrink: 0; }
 
-    .loan-contrib-detail {
-      display: flex; justify-content: space-between;
-      font-size: 11px; color: var(--text-muted, #8a8fa8);
+    /* 기여도 바 */
+    .loan-bar-track {
+      height: 7px; background: var(--rp-surface-2);
+      border-radius: 99px; overflow: hidden; margin-bottom: 8px;
     }
+    .loan-bar-fill { height: 100%; border-radius: 99px; width: 0; transition: width .8s cubic-bezier(.22,1,.36,1); }
 
-    /* ── 역행 산출 / 상환 목표 ────────────────────────────────────────────── */
-    .reverse-card { border-color: var(--danger, #e53e3e) !important; }
-    .reverse-card::before { background: linear-gradient(90deg, var(--danger, #e53e3e), #ff6b6b) !important; }
-    .reverse-card .rp-card-title { color: var(--danger, #e53e3e) !important; }
-
-    .reverse-solution-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
-    .reverse-solution-item {
-      background: var(--bg-surface-2, #f7f8fa); border-radius: 12px;
-      padding: 14px; text-align: center;
+    /* 메타 정보 — 모바일에서 세로 2줄 (이미지3 핵심 개선) */
+    .loan-item-meta {
+      display: flex; flex-direction: column; gap: 3px;
     }
-    .reverse-solution-item.highlight {
-      background: rgba(255,184,0,.12); border: 1.5px solid rgba(255,184,0,.4);
+    .loan-meta-row {
+      display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+      font-size: 11.5px; color: var(--rp-text-muted); line-height: 1.4;
     }
-    .rs-label { font-size: 11px; color: var(--text-muted, #8a8fa8); margin-bottom: 6px; }
-    .rs-value { font-size: 16px; font-weight: 900; color: var(--text-primary, #111); word-break: break-all; }
-    .rs-value.accent { color: var(--kb-navy, #12203A); }
-
-    .reverse-tip {
-      font-size: 12px; color: var(--text-secondary, #555); line-height: 1.7;
-      background: var(--bg-surface-2, #f7f8fa); border-radius: 10px; padding: 12px 14px;
+    .loan-meta-chip {
+      background: var(--rp-surface-2); border-radius: 6px;
+      padding: 2px 7px; font-size: 11px; font-weight: 600;
+      color: var(--rp-text-sub); white-space: nowrap;
     }
+    .loan-meta-drop { font-weight: 700; color: var(--rp-text-sub); }
 
-    /* 기여도 정렬 순위 뱃지 */
+    /* 순위 뱃지 */
     .rank-badge {
       display: inline-flex; align-items: center; justify-content: center;
-      width: 18px; height: 18px; border-radius: 50%;
-      font-size: 10px; font-weight: 800; margin-right: 5px;
-      flex-shrink: 0;
+      width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0;
+      font-size: 10px; font-weight: 900;
     }
-    .rank-1 { background: #ff4444; color: #fff; }
-    .rank-2 { background: #ff8c00; color: #fff; }
-    .rank-3 { background: #f5b800; color: #111; }
-    .rank-n { background: var(--bg-surface-2, #e8eaf0); color: var(--text-muted, #8a8fa8); }
+    .rank-1 { background: #dc2626; color: #fff; }
+    .rank-2 { background: #d97706; color: #fff; }
+    .rank-3 { background: #ca8a04; color: #fff; }
+    .rank-n { background: var(--rp-surface-2); color: var(--rp-text-muted); }
 
-    /* 소득/부채 상환 탭 */
-    .reverse-tabs { display: flex; gap: 8px; margin-bottom: 14px; }
-    .reverse-tab {
-      flex: 1; padding: 9px; border-radius: 10px; font-size: 12.5px; font-weight: 700;
-      text-align: center; cursor: default;
-      background: var(--bg-surface-2, #f0f2f7); color: var(--text-muted, #8a8fa8);
-      border: 1.5px solid transparent;
+    /* ── 역행 산출 카드 (이미지4 개선) ──────────────────────────────────── */
+    .reverse-card { border-color: #dc2626 !important; }
+    .reverse-card::before { background: linear-gradient(90deg, #dc2626, #f87171) !important; }
+    .reverse-card .rp-card-title { color: #dc2626 !important; }
+    @media (prefers-color-scheme: dark) {
+      .reverse-card { border-color: #f87171 !important; }
+      .reverse-card .rp-card-title { color: #f87171 !important; }
     }
-    .reverse-tab.active-income { background: rgba(255,184,0,.15); color: var(--kb-navy, #12203A); border-color: var(--kb-yellow, #FFB800); }
-    .reverse-tab.active-repay  { background: rgba(229,62,62,.1);  color: var(--danger, #e53e3e);   border-color: var(--danger, #e53e3e); }
+
+    /* 시나리오 탭 (라벨만 표시, 인터랙션 없음) */
+    .scenario-tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+    .scenario-tab {
+      flex: 1; border-radius: 10px; padding: 9px 6px;
+      font-size: 12px; font-weight: 700; text-align: center;
+      border: 1.5px solid;
+    }
+    .tab-income {
+      background: rgba(255,184,0,.12); color: #92610a;
+      border-color: rgba(255,184,0,.5);
+    }
+    .tab-repay {
+      background: rgba(220,38,38,.08); color: #dc2626;
+      border-color: rgba(220,38,38,.35);
+    }
+    @media (prefers-color-scheme: dark) {
+      .tab-income { color: var(--rp-yellow); background: rgba(255,184,0,.1); }
+      .tab-repay  { color: #f87171; background: rgba(220,38,38,.12); border-color: rgba(248,113,113,.4); }
+    }
+
+    /* 역행 수치 그리드 */
+    .rs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+    .rs-item {
+      background: var(--rp-surface-2); border-radius: var(--rp-radius-sm);
+      padding: 13px 12px; text-align: center;
+    }
+    .rs-item.full { grid-column: 1 / -1; }
+    .rs-item.hl   { background: rgba(255,184,0,.1); border: 1.5px solid rgba(255,184,0,.4); }
+    .rs-label {
+      font-size: 10.5px; color: var(--rp-text-muted);
+      margin-bottom: 5px; line-height: 1.3;
+    }
+    .rs-value {
+      font-size: 17px; font-weight: 900; color: var(--rp-text);
+      line-height: 1.2; word-break: break-all; overflow-wrap: anywhere;
+    }
+    .rs-value.c-income { color: #92610a; }
+    .rs-value.c-danger { color: #dc2626; }
+    @media (prefers-color-scheme: dark) {
+      .rs-value.c-income { color: var(--rp-yellow); }
+      .rs-value.c-danger { color: #f87171; }
+    }
+    @media (max-width: 360px) { .rs-value { font-size: 14px; } }
+
+    /* 역행 팁 박스 */
+    .rs-tip {
+      background: var(--rp-surface-2); border-radius: var(--rp-radius-sm);
+      padding: 13px 14px; font-size: 12.5px; line-height: 1.75;
+      color: var(--rp-text-sub);
+    }
+    .rs-tip b { color: var(--rp-text); }
+
+    /* ── 종합 진단 의견 (이미지4 개선) ──────────────────────────────────── */
+    .rec-box {
+      background: var(--rp-surface-2); border-radius: var(--rp-radius-sm);
+      padding: 15px 14px; font-size: 13.5px; line-height: 1.8;
+      color: var(--rp-text);
+    }
+    .rec-box .rec-head {
+      font-size: 14px; font-weight: 800; margin-bottom: 10px; display: block;
+    }
+    .rec-box .rec-row {
+      display: flex; align-items: baseline; gap: 6px;
+      margin-bottom: 6px; flex-wrap: wrap;
+    }
+    .rec-box .rec-dot { flex-shrink: 0; color: var(--rp-text-muted); }
+    .rec-box .rec-amount {
+      font-size: 15px; font-weight: 900;
+      background: rgba(255,184,0,.15); padding: 1px 7px;
+      border-radius: 6px; color: #7a5200;
+      word-break: break-all;
+    }
+    @media (prefers-color-scheme: dark) {
+      .rec-box .rec-amount { color: var(--rp-yellow); background: rgba(255,184,0,.12); }
+    }
+    .rec-box .rec-label { font-size: 13px; color: var(--rp-text-sub); }
 
     /* ── 안정권 카드 ──────────────────────────────────────────────────────── */
-    .stable-card { border-color: var(--safe, #38a169) !important; }
-    .stable-card::before { background: linear-gradient(90deg, var(--safe, #38a169), #48bb78) !important; }
-
-    /* ── 만료 / 에러 ──────────────────────────────────────────────────────── */
-    .rp-error {
-      text-align: center; padding: 60px 24px;
-    }
-    .rp-error-icon { font-size: 56px; margin-bottom: 16px; }
-    .rp-error-title { font-size: 20px; font-weight: 800; color: var(--text-primary, #111); margin-bottom: 8px; }
-    .rp-error-desc  { font-size: 14px; color: var(--text-secondary, #555); line-height: 1.6; }
-
-    /* ── 푸터 ─────────────────────────────────────────────────────────────── */
-    .rp-footer {
-      text-align: center; font-size: 11px; color: var(--text-muted, #8a8fa8);
-      line-height: 1.7; margin-top: 24px; padding: 0 8px;
-    }
-
-    /* ── 다크모드 대응 ───────────────────────────────────────────────────── */
+    .stable-card { border-color: #16a34a !important; }
+    .stable-card::before { background: linear-gradient(90deg, #16a34a, #4ade80) !important; }
     @media (prefers-color-scheme: dark) {
-      .rp-header { background: linear-gradient(135deg, #0d1929, #172540); }
+      .stable-card { border-color: #4ade80 !important; }
+    }
+
+    /* ── 에러 ────────────────────────────────────────────────────────────── */
+    .rp-error { text-align: center; padding: 64px 24px; }
+    .rp-error-icon  { font-size: 56px; margin-bottom: 16px; }
+    .rp-error-title { font-size: 20px; font-weight: 800; color: var(--rp-text); margin-bottom: 8px; }
+    .rp-error-desc  { font-size: 14px; color: var(--rp-text-sub); line-height: 1.65; }
+
+    /* ── 푸터 ────────────────────────────────────────────────────────────── */
+    .rp-footer {
+      text-align: center; font-size: 11px; color: var(--rp-text-muted);
+      line-height: 1.7; margin-top: 24px; padding: 0 8px;
     }
   </style>
 </head>
 <body>
 
 <div class="rp-wrap" id="rpWrap">
-  <!-- JS가 렌더링 -->
   <div class="rp-error">
     <div class="rp-error-icon">⏳</div>
     <p class="rp-error-title">리포트를 불러오는 중...</p>
@@ -182,13 +338,15 @@
 
 <script>
 /* ════════════════════════════════════════════════════════════════════════════
-   report.html — DSR 진단 리포트 렌더러
-   ════════════════════════════════════════════════════════════════════════════ */
+   report.html — DSR 진단 리포트 렌더러 v2
+   · D-day 카운터 애니메이션 (이미지1)
+   · 모바일 가독성 개선 (이미지2·3·4)
+   · 시스템 테마(다크/라이트) 완전 대응
+════════════════════════════════════════════════════════════════════════════ */
 
-// ── 유틸 ──────────────────────────────────────────────────────────────────────
-const won  = v => Math.round(v).toLocaleString() + '원';
-const wonM = v => (Math.floor(Math.max(0,v)/10000)*10000).toLocaleString() + '원';
-const pct  = v => v.toFixed(2) + '%';
+// ── 유틸 ──────────────────────────────────────────────────────────────────
+const won = v => Math.round(v).toLocaleString() + '원';
+const pct = v => v.toFixed(2) + '%';
 
 const CAT_LABELS = {
   mortgage_level:'주택담보 (원리금)', mortgage_prin:'주택담보 (원금)',
@@ -200,20 +358,34 @@ const CAT_EMOJI = {
   officetel:'🏢', credit:'💳', cardloan:'💰',
 };
 
-// DSR 구간 색상
-function dsrColor(dsr) {
-  if (dsr > 40) return 'var(--danger, #e53e3e)';
-  if (dsr > 36) return 'var(--warn, #d97706)';
-  if (dsr > 25) return 'var(--kb-yellow-deep, #e5a800)';
-  return 'var(--safe, #38a169)';
+function dsrColor(v) {
+  if (v > 40) return 'var(--rp-danger,#dc2626)';
+  if (v > 36) return 'var(--rp-warn,#d97706)';
+  if (v > 25) return 'var(--rp-yellow-deep,#e5a200)';
+  return 'var(--rp-safe,#16a34a)';
+}
+function rankClass(i) { return ['rank-1','rank-2','rank-3'][i] ?? 'rank-n'; }
+
+// ── 숫자 카운트업 애니메이션 ───────────────────────────────────────────────
+// target: 최종 값, el: DOM 요소, suffix: 단위 문자열, duration: ms
+function countUp(el, target, suffix = '', duration = 900) {
+  const start  = performance.now();
+  const isInt  = Number.isInteger(target);
+  const step   = ts => {
+    const elapsed = ts - start;
+    const prog    = Math.min(elapsed / duration, 1);
+    // easeOutExpo
+    const ease    = prog === 1 ? 1 : 1 - Math.pow(2, -10 * prog);
+    const current = target * ease;
+    el.textContent = (isInt
+      ? Math.round(current).toLocaleString()
+      : current.toFixed(2)) + suffix;
+    if (prog < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
 }
 
-// 순위 뱃지 클래스
-function rankClass(i) {
-  return ['rank-1','rank-2','rank-3'][i] ?? 'rank-n';
-}
-
-// ── 에러 렌더러 ───────────────────────────────────────────────────────────────
+// ── 에러 렌더러 ─────────────────────────────────────────────────────────────
 function renderError(icon, title, desc) {
   document.getElementById('rpWrap').innerHTML = `
     <div class="rp-error">
@@ -223,60 +395,66 @@ function renderError(icon, title, desc) {
     </div>`;
 }
 
-// ── 메인 렌더러 ───────────────────────────────────────────────────────────────
+// ── 메인 렌더러 ─────────────────────────────────────────────────────────────
 function renderReport(d) {
   const wrap = document.getElementById('rpWrap');
 
-  // 만료 체크
   if (Date.now() > d.expiry) {
     renderError('⏰', '리포트 유효기간 만료',
       '이 리포트는 발급일로부터 7일간 유효합니다.<br>담당자에게 새로운 리포트를 요청해 주세요.');
     return;
   }
 
-  const createdDate = new Date(d.createdAt).toLocaleString('ko-KR', {
+  // ── 날짜 계산 ────────────────────────────────────────────────────────────
+  const now        = Date.now();
+  const msPerDay   = 86400000;
+  const daysLeft   = Math.max(0, Math.ceil((d.expiry - now) / msPerDay));  // 남은 일수 (올림)
+  const createdFmt = new Date(d.createdAt).toLocaleString('ko-KR', {
     year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit'
   });
-  const expiryDate = new Date(d.expiry).toLocaleDateString('ko-KR', {
-    month:'long', day:'numeric'
-  });
+  const expiryFmt  = new Date(d.expiry).toLocaleDateString('ko-KR', { month:'long', day:'numeric' });
 
-  // 부채 목록 — DSR 기여도 내림차순
+  // ── 데이터 가공 ──────────────────────────────────────────────────────────
   const sortedLoans = d.loans
     ? [...d.loans].sort((a, b) => (b.dsrCont ?? 0) - (a.dsrCont ?? 0))
     : [];
+  const totalDSR = d.dsr ?? parseFloat(d.dsrText) ?? 0;
+  const isOver   = d.isOver ?? (totalDSR > 40);
+  const color    = dsrColor(totalDSR);
+  const barPct   = Math.min(totalDSR, 100).toFixed(1);
 
-  const totalDSR     = d.dsr   ?? parseFloat(d.dsrText) ?? 0;
-  const isOver       = d.isOver ?? (totalDSR > 40);
-  const color        = dsrColor(totalDSR);
-  const barWidth     = Math.min(totalDSR, 100).toFixed(1);
-
-  // ━━━ [1] 헤더 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // ━━━ [1] 헤더 — D-day 카운팅 뱃지 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   const headerHtml = `
     <div class="rp-header">
       <div class="rp-logo">KB DSR 진단 리포트</div>
       <div class="rp-title">📊 DSR 종합 진단 결과</div>
-      <div class="rp-meta">발급일: ${createdDate}</div>
-      <div class="rp-expiry-badge">⏱ ${expiryDate}까지 유효</div>
+      <div class="rp-meta">발급일: ${createdFmt}</div>
+      <div class="rp-dday-wrap">
+        <div class="rp-dday-num" id="ddayNum">0</div>
+        <div class="rp-dday-right">
+          <span class="rp-dday-label">DAYS LEFT</span>
+          <span class="rp-dday-sub">${expiryFmt}까지 유효</span>
+        </div>
+      </div>
     </div>`;
 
-  // ━━━ [2] DSR 종합 카드 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // ━━━ [2] DSR 종합 카드 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   const dsrCardHtml = `
     <div class="rp-card">
       <div class="rp-card-title">종합 DSR 지수 (스트레스 금리 반영)</div>
-      <div class="dsr-big" style="color:${color};">${d.dsrText || pct(totalDSR)}</div>
+      <div class="dsr-big" id="dsrBig" style="color:${color};">0.00%</div>
       <div class="dsr-label">연소득 대비 연간 원리금 상환 비율</div>
-      <div class="dsr-bar-bg">
-        <div class="dsr-bar-fill" style="width:${barWidth}%; background:${color};"></div>
+      <div class="dsr-bar-track">
+        <div class="dsr-bar-fill" id="dsrBar" style="background:${color};"></div>
       </div>
-      <div class="dsr-limit-row">
+      <div class="dsr-legend">
         <span>0%</span>
-        <span style="color:${color}; font-weight:700;">현재 ${pct(totalDSR)}</span>
+        <span class="dsr-legend-cur" style="color:${color};">현재 ${pct(totalDSR)}</span>
         <span>규제선 40%</span>
       </div>
     </div>`;
 
-  // ━━━ [3] 요약 그리드 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // ━━━ [3] 요약 그리드 — 모바일 가독성 개선 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   const summaryHtml = `
     <div class="rp-card">
       <div class="rp-card-title">한도 분석 요약</div>
@@ -291,55 +469,63 @@ function renderReport(d) {
         </div>
         <div class="summary-item">
           <div class="summary-item-label">원금균등 최대 한도</div>
-          <div class="summary-item-value" style="color:${isOver?'var(--danger)':'var(--safe)'};">${d.maxPTxt || '-'}</div>
+          <div class="summary-item-value" style="color:${isOver?'var(--rp-danger)':'var(--rp-safe)'};">
+            ${isOver ? (d.maxPTxt || '권장 신청액 참고') : (d.maxPTxt || '-')}
+          </div>
         </div>
         <div class="summary-item">
           <div class="summary-item-label">원리금균등 최대 한도</div>
-          <div class="summary-item-value">${isOver ? '<span style="color:var(--danger)">한도 초과</span>' : (d.maxLTxt || '-')}</div>
+          <div class="summary-item-value" style="color:${isOver?'var(--rp-danger)':''};">
+            ${isOver ? '한도 초과' : (d.maxLTxt || '-')}
+          </div>
         </div>
-        <div class="summary-item" style="grid-column:1/-1;">
+        <div class="summary-item full">
           <div class="summary-item-label">현재 추가 가능 대출액</div>
-          <div class="summary-item-value" style="color:${isOver?'var(--danger)':'var(--safe)'};">
+          <div class="summary-item-value" style="color:${isOver?'var(--rp-danger)':'var(--rp-safe)'};">
             ${isOver ? '신규 대출 불가 (규제선 초과)' : (d.remainTxt || '-')}
           </div>
         </div>
       </div>
     </div>`;
 
-  // ━━━ [4] 개별 부채 DSR 기여도 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // ━━━ [4] 개별 부채 DSR 기여도 — 모바일 2줄 구조 ━━━━━━━━━━━━━━━━━━━━━━━
   let contribHtml = '';
   if (sortedLoans.length > 0) {
     const maxCont = Math.max(...sortedLoans.map(l => l.dsrCont ?? 0), 1);
 
     const rows = sortedLoans.map((l, i) => {
-      const contPct  = (l.dsrCont ?? 0);
-      const barW     = ((contPct / Math.max(maxCont, totalDSR)) * 100).toFixed(1);
-      const fillColor = i === 0
-        ? 'var(--danger, #e53e3e)'
-        : i === 1 ? 'var(--warn, #d97706)'
-        : 'var(--kb-yellow, #FFB800)';
+      const cont     = l.dsrCont ?? 0;
+      const barW     = ((cont / Math.max(maxCont, totalDSR)) * 100).toFixed(1);
+      const fillColor = i === 0 ? 'var(--rp-danger,#dc2626)'
+                      : i === 1 ? 'var(--rp-warn,#d97706)'
+                      : 'var(--rp-yellow,#FFB800)';
       const label  = CAT_LABELS[l.cat] || l.cat;
       const emoji  = CAT_EMOJI[l.cat]  || '📌';
       const annPmt = l.annPmt ?? 0;
-
-      // 이 부채를 완전히 정리했을 때 DSR 감소폭
-      const dsrDrop = contPct.toFixed(2);
+      // 스트레스 포함 금리 — SR 식별자가 숫자가 아닐 수 있으므로 rawSR만 표시
+      const rateStr = l.R ? `${l.R.toFixed(2)}%` : '-';
 
       return `
-        <div class="loan-contrib-item">
-          <div class="loan-contrib-header">
-            <div class="loan-contrib-name">
+        <div class="loan-item">
+          <div class="loan-item-header">
+            <div class="loan-item-name">
               <span class="rank-badge ${rankClass(i)}">${i+1}</span>
-              ${emoji} ${label}
+              <span>${emoji} ${label}</span>
             </div>
-            <div class="loan-contrib-pct" style="color:${fillColor};">${pct(contPct)}</div>
+            <div class="loan-item-pct" style="color:${fillColor};">${pct(cont)}</div>
           </div>
-          <div class="contrib-bar-bg">
-            <div class="contrib-bar-fill" style="width:${barW}%; background:${fillColor};"></div>
+          <div class="loan-bar-track">
+            <div class="loan-bar-fill" data-width="${barW}" style="background:${fillColor};"></div>
           </div>
-          <div class="loan-contrib-detail">
-            <span>원금 ${won(l.P)} | 금리 ${(l.R + (typeof l.SR === 'number' ? l.SR : 0)).toFixed(2)}%</span>
-            <span>연 상환 ${won(annPmt)} · DSR -${dsrDrop}%p 감소 가능</span>
+          <div class="loan-item-meta">
+            <div class="loan-meta-row">
+              <span class="loan-meta-chip">원금 ${won(l.P)}</span>
+              <span class="loan-meta-chip">금리 ${rateStr}</span>
+              <span class="loan-meta-chip">연 상환 ${won(annPmt)}</span>
+            </div>
+            <div class="loan-meta-row">
+              <span class="loan-meta-drop" style="color:${fillColor};">▼ 정리 시 DSR ${cont.toFixed(2)}%p 감소</span>
+            </div>
           </div>
         </div>`;
     }).join('');
@@ -351,10 +537,10 @@ function renderReport(d) {
       </div>`;
   }
 
-  // ━━━ [5] 역행 산출 / 상환 목표 (DSR 초과 시) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // ━━━ [5] 역행 산출 / 상환 목표 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   let reverseHtml = '';
   if (isOver && d.reqIncome) {
-    const top1 = sortedLoans[0];
+    const top1      = sortedLoans[0];
     const top1Label = top1 ? `${CAT_EMOJI[top1.cat]||'📌'} ${CAT_LABELS[top1.cat]||top1.cat}` : '-';
     const top1Pct   = top1 ? top1.dsrCont.toFixed(2) : '-';
 
@@ -362,47 +548,45 @@ function renderReport(d) {
       <div class="rp-card reverse-card">
         <div class="rp-card-title">⚠️ 역행 산출 — 규제선 통과 조건 (DSR ${d.targetDSR ?? 35}% 목표)</div>
 
-        <div class="reverse-tabs">
-          <div class="reverse-tab active-income">💰 소득 증빙 시나리오</div>
-          <div class="reverse-tab active-repay">📉 부채 상환 시나리오</div>
+        <div class="scenario-tabs">
+          <div class="scenario-tab tab-income">💰 소득 증빙 시나리오</div>
+          <div class="scenario-tab tab-repay">📉 부채 상환 시나리오</div>
         </div>
 
-        <div class="reverse-solution-grid">
-          <div class="reverse-solution-item highlight">
-            <div class="rs-label">필요 연소득 (증빙 목표)</div>
-            <div class="rs-value accent">${won(d.reqIncome)}</div>
+        <div class="rs-grid">
+          <div class="rs-item hl">
+            <div class="rs-label">필요 연소득<br>(증빙 목표)</div>
+            <div class="rs-value c-income">${won(d.reqIncome)}</div>
           </div>
-          <div class="reverse-solution-item">
-            <div class="rs-label">줄여야 할 연간 상환액</div>
-            <div class="rs-value" style="color:var(--danger);">${won(d.excessPmt ?? 0)}</div>
+          <div class="rs-item">
+            <div class="rs-label">줄여야 할<br>연간 상환액</div>
+            <div class="rs-value c-danger">${won(d.excessPmt ?? 0)}</div>
           </div>
-          <div class="reverse-solution-item" style="grid-column:1/-1;">
+          <div class="rs-item full">
             <div class="rs-label">추정 상환 목표 원금 (평균 상환비율 기준)</div>
-            <div class="rs-value" style="color:var(--danger); font-size:20px;">${won(d.estReducePrin ?? 0)}</div>
+            <div class="rs-value c-danger" style="font-size:20px;">${won(d.estReducePrin ?? 0)}</div>
           </div>
         </div>
 
-        <div class="reverse-tip">
-          💡 <b>우선 정리 추천:</b> DSR 기여도 <b>1순위</b>인<br>
-          &nbsp;&nbsp;&nbsp;<b>${top1Label}</b> (기여도 <b>${top1Pct}%p</b>)를 먼저 상환하면 DSR 감소 효율이 가장 높습니다.<br><br>
-          ※ 역행 산출값은 현재 부채 구조 기준 추정치이며, 실제 심사 결과와 다를 수 있습니다.
+        <div class="rs-tip">
+          💡 <b>우선 정리 추천:</b><br>
+          DSR 기여도 1순위인 <b>${top1Label}</b>(기여도 <b>${top1Pct}%p</b>)를 먼저 상환하면
+          DSR 감소 효율이 가장 높습니다.<br><br>
+          <span style="opacity:.7;">※ 역행 산출값은 현재 부채 구조 기준 추정치이며, 실제 심사 결과와 다를 수 있습니다.</span>
         </div>
       </div>`;
+
   } else if (!isOver) {
-    // ── 안정권: 원본 데이터로 직접 문구 생성 (recHtml 스냅샷 의존 제거) ───────
-    const dVal  = totalDSR.toFixed(1);
+    const dVal      = totalDSR.toFixed(1);
     const remainWon = d.remainTxt || '-';
-    let stableMsg;
-    if (totalDSR >= 36) {
-      stableMsg = `<b style="color:#d97706;">⚠️ DSR 경계 구간 — 현재 ${dVal}%</b><br>
-        <span style="font-size:12px;line-height:1.8;">규제선까지 여유 <b>${(40 - totalDSR).toFixed(1)}%p</b>. 변동금리 상승 시 초과 위험이 있습니다.<br>추가 대출 여력: <b>${remainWon}</b></span>`;
-    } else if (totalDSR >= 25) {
-      stableMsg = `<b style="color:#e5a800;">✅ 안정 구간 — 현재 ${dVal}%</b><br>
-        <span style="font-size:12px;line-height:1.8;">부채 구조 양호. 추가 대출 여력 <b>${remainWon}</b>.</span>`;
-    } else {
-      stableMsg = `<b style="color:#38a169;">💚 우량 구간 — 현재 ${dVal}%</b><br>
-        <span style="font-size:12px;line-height:1.8;">부채 건전성 매우 양호. 추가 여력 <b>${remainWon}</b>.</span>`;
-    }
+    let stableMsg = '';
+    if (totalDSR >= 36)
+      stableMsg = `<b style="color:var(--rp-warn);">⚠️ DSR 경계 구간 — 현재 ${dVal}%</b><br><span style="font-size:12.5px;">규제선까지 여유 <b>${(40 - totalDSR).toFixed(1)}%p</b>. 변동금리 상승 시 초과 위험이 있습니다.<br>추가 대출 여력: <b>${remainWon}</b></span>`;
+    else if (totalDSR >= 25)
+      stableMsg = `<b style="color:var(--rp-yellow-deep);">✅ 안정 구간 — 현재 ${dVal}%</b><br><span style="font-size:12.5px;">부채 구조 양호. 추가 대출 여력 <b>${remainWon}</b>.</span>`;
+    else
+      stableMsg = `<b style="color:var(--rp-safe);">💚 우량 구간 — 현재 ${dVal}%</b><br><span style="font-size:12.5px;">부채 건전성 매우 양호. 추가 여력 <b>${remainWon}</b>.</span>`;
+
     reverseHtml = `
       <div class="rp-card stable-card">
         <div class="rp-card-title">✅ 부채 건전성 진단</div>
@@ -410,44 +594,69 @@ function renderReport(d) {
       </div>`;
   }
 
-  // ━━━ [6] 종합 진단 의견 — 원본 데이터로 직접 생성 (recHtml 스냅샷 제거) ━━━
-  // ★ DOM 스냅샷(d.recHtml) 대신 reqIncome·excessPmt 원본값으로 렌더링
-  //    → 계산기와 리포트가 항상 동일한 수치를 표시합니다
+  // ━━━ [6] 종합 진단 의견 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   let recHtml = '';
   if (isOver && d.reqIncome) {
-    const fReq    = d.reqIncome.toLocaleString() + '원';
-    const fExcess = (d.excessPmt ?? 0).toLocaleString() + '원';
-    const dVal    = totalDSR.toFixed(1);
-    const overPp  = (totalDSR - 40).toFixed(1);
+    const dVal   = totalDSR.toFixed(1);
+    const overPp = (totalDSR - 40).toFixed(1);
     recHtml = `
       <div class="rp-card">
         <div class="rp-card-title">📋 종합 진단 의견</div>
         <div class="rec-box">
-          <b style="color:var(--danger);">⛔ DSR 규제선(40%) 초과 — 현재 ${dVal}% (초과 ${overPp}%p)</b><br>
-          <span style="font-size:12px;line-height:1.8;">
-            신규 대출 실행이 제한됩니다. 안정권(${d.targetDSR ?? 35}%) 진입을 위해<br>
-            · <b>연소득</b>이 <span style="color:var(--kb-yellow-deep);">${fReq}</span> 이상 증빙되거나,<br>
-            · 연간 원리금을 <span style="color:var(--kb-yellow-deep);">${fExcess}</span> 이상 줄여야 합니다.
+          <span class="rec-head" style="color:var(--rp-danger);">
+            ⛔ DSR 규제선(40%) 초과 — 현재 ${dVal}% (초과 ${overPp}%p)
           </span>
+          신규 대출 실행이 제한됩니다.<br>안정권(${d.targetDSR ?? 35}%) 진입을 위해 아래 조건 중 하나를 충족해야 합니다.
+          <div class="rec-row" style="margin-top:10px;">
+            <span class="rec-dot">·</span>
+            <span class="rec-label"><b>연소득</b>이</span>
+            <span class="rec-amount">${won(d.reqIncome)}</span>
+            <span class="rec-label">이상 증빙되거나,</span>
+          </div>
+          <div class="rec-row">
+            <span class="rec-dot">·</span>
+            <span class="rec-label">연간 원리금을</span>
+            <span class="rec-amount" style="background:rgba(220,38,38,.1); color:var(--rp-danger);">${won(d.excessPmt ?? 0)}</span>
+            <span class="rec-label">이상 줄여야 합니다.</span>
+          </div>
         </div>
       </div>`;
   }
 
-  // ━━━ [7] 푸터 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // ━━━ [7] 푸터 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   const footerHtml = `
     <div class="rp-footer">
       본 리포트는 입력값 기준 예상 수치로, 실제 금융기관 심사 결과와 다를 수 있습니다.<br>
       대출 실행 전 반드시 담당 금융기관에 확인하시기 바랍니다.<br><br>
-      <b>DSR 계산기</b> · 리포트 유효기간 ${expiryDate}까지
+      <b>KB DSR 계산기</b> · 리포트 유효기간 ${expiryFmt}까지
     </div>`;
 
-  // ━━━ 조합 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // ━━━ 조합 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   wrap.innerHTML = headerHtml + dsrCardHtml + summaryHtml + contribHtml + reverseHtml + recHtml + footerHtml;
+
+  // ━━━ 애니메이션 — DOM 삽입 후 실행 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  requestAnimationFrame(() => {
+    // ① D-day 카운트업 (0 → daysLeft)
+    const ddayEl = document.getElementById('ddayNum');
+    if (ddayEl) countUp(ddayEl, daysLeft, '', 700);
+
+    // ② DSR 수치 카운트업 (0.00 → totalDSR)
+    const dsrEl = document.getElementById('dsrBig');
+    if (dsrEl) countUp(dsrEl, totalDSR, '%', 900);
+
+    // ③ DSR 바 애니메이션
+    const barEl = document.getElementById('dsrBar');
+    if (barEl) setTimeout(() => { barEl.style.width = barPct + '%'; }, 100);
+
+    // ④ 기여도 바 애니메이션 (순차 지연)
+    document.querySelectorAll('.loan-bar-fill').forEach((el, i) => {
+      setTimeout(() => { el.style.width = (el.dataset.width || '0') + '%'; }, 200 + i * 80);
+    });
+  });
 }
 
-// ── 진입점 ─────────────────────────────────────────────────────────────────
+// ── 진입점 ──────────────────────────────────────────────────────────────────
 (function () {
-  // 다크모드 반영
   const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
   document.body.classList.toggle('dark', isDark);
   document.body.classList.toggle('white', !isDark);
@@ -456,12 +665,8 @@ function renderReport(d) {
   if (!hash) { renderError('⚠️', '리포트 데이터 없음', '올바른 링크로 접속해 주세요.'); return; }
 
   let data;
-  try {
-    data = JSON.parse(decodeURIComponent(escape(atob(hash))));
-  } catch {
-    renderError('🚫', '리포트를 읽을 수 없습니다', '링크가 손상되었거나 형식이 올바르지 않습니다.');
-    return;
-  }
+  try { data = JSON.parse(decodeURIComponent(escape(atob(hash)))); }
+  catch { renderError('🚫', '리포트를 읽을 수 없습니다', '링크가 손상되었거나 형식이 올바르지 않습니다.'); return; }
 
   renderReport(data);
 })();
