@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<!-- share.html — 1회성 앱 설치 링크 게이트
+  · 인라인 스타일 → css/share.css 로 분리
+  · 로직 → js/share.js (변경 없음)
+  ★ 캐시 갱신: ?v= 값을 올려주세요 -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>DSR 계산기 - 접속 안내</title>
+<link rel="stylesheet" href="./css/common.css" media="all">
+<link rel="stylesheet" href="./css/share.css" media="all">
+<link rel="manifest" href="app_main.json">
+</head>
+<body>
+<div class="share-container">
+
+  <!-- 로딩 카드 (초기 표시) -->
+  <div class="share-card active" id="cardLoading">
+    <div class="spinner"></div>
+    <p class="share-title" style="margin-bottom:6px;">링크를 확인하는 중...</p>
+    <p class="share-desc" style="margin-bottom:0;">잠시만 기다려 주세요.</p>
+  </div>
+
+  <!-- 정상 접속 카드 -->
+  <div class="share-card" id="cardMain">
+    <div class="icon-box">📲</div>
+    <h2 class="share-title">KB DSR 계산기 접속 안내</h2>
+    <div class="expiry-badge" id="expiryBadge">⏱ 유효기간 확인 중</div>
+    <p class="share-desc">
+      현재 접속하신 링크는 <strong>발급 후 24시간 동안만 유효한 1회성 임시 링크</strong>입니다.<br><br>
+      향후 지속적인 사용을 원하신다면 아래 버튼을 눌러<br>
+      기기에 앱을 즉시 설치(홈 화면 추가)하시기 바랍니다.<br>
+      <span style="font-size:11px; color:var(--text-muted); display:block; margin-top:8px;">
+        * 설치 시 링크 유효기간과 관계없이 영구 사용 가능
+      </span>
+    </p>
+    <button class="btn-install" id="btnInstall">⬇️ 기기에 앱 설치하기 (권장)</button>
+    <button class="btn-onetime" id="btnOneTime">설치하지 않고 1회성 접속하기</button>
+  </div>
+
+  <!-- 에러: 만료 -->
+  <div class="share-card" id="cardExpired">
+    <div class="icon-box">⏰</div>
+    <h2 class="share-title">유효기간 만료</h2>
+    <p class="share-desc">해당 링크는 보안상의 이유로 유효기간(24시간)이 만료되어 폐기되었습니다.<br>담당자에게 새로운 링크를 요청해주세요.</p>
+  </div>
+
+  <!-- 에러: 이미 사용됨 -->
+  <div class="share-card" id="cardUsed">
+    <div class="icon-box">🔒</div>
+    <h2 class="share-title">이미 사용된 링크입니다</h2>
+    <p class="share-desc">이 링크는 <strong>1회만 사용 가능</strong>합니다.<br>다른 기기에서 접속하셨다면<br>담당자에게 새로운 링크를 요청해주세요.</p>
+  </div>
+
+  <!-- 에러: 서명 위변조 / 형식 오류 -->
+  <div class="share-card" id="cardInvalid">
+    <div class="icon-box">🚫</div>
+    <h2 class="share-title">유효하지 않은 링크입니다</h2>
+    <p class="share-desc">링크가 변조되었거나 올바르지 않습니다.<br>담당자에게 문의해 주세요.</p>
+  </div>
+
+</div>
+<script src="./js/share.js"></script>
+</body>
+</html>
