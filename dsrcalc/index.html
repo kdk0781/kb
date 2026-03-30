@@ -40,25 +40,49 @@
 		<link rel="icon" type="image/png" href="../ico/favicon-light.png">
 		<link rel="manifest" href="app_main.json">
 		<!-- 스타일시트 -->
-		<link rel="stylesheet" href="./css/common.css?v=2603300006" media="all">
-		<link rel="stylesheet" href="./css/modal.css?v=2603300006" media="all">
+		<link rel="stylesheet" href="./css/common.css?v=2603302000" media="all">
+		<link rel="stylesheet" href="./css/modal.css?v=2603302000" media="all">
 		<title>DSR 계산기</title>
 	</head>
 	<body>
 
 	<!-- ── 로딩 오버레이 ─────────────────────────────────────────────────────── -->
-	<div id="loadingOverlay" class="loading-overlay" style="display:none;" aria-live="polite" role="status">
-	  <div class="loading-spinner-wrap"><div class="loading-emoji">📊</div></div>
-	  <div class="loading-text">
-		로딩 중 <span class="loading-dots">
-		  <span>.</span><span>.</span><span>.</span>
-		  <span>.</span><span>.</span><span>.</span>
-		</span>
+	  <div id="loadingOverlay" class="loading-overlay" style="display:none;" aria-live="polite" role="status">
+
+		<!-- 이중 링 스피너 -->
+		<div class="loading-spinner-wrap">
+		  <div class="loading-emoji">📊</div>
+		</div>
+
+		<!-- 로딩 텍스트 + 움직이는 점 -->
+		<div class="loading-text">
+		  로딩 중
+		  <span class="loading-dots">
+			<span>.</span><span>.</span><span>.</span>
+			<span>.</span><span>.</span><span>.</span>
+		  </span>
+		</div>
+
+		<!-- 3단계 진행 표시 (interest 페이지 스타일) -->
+		<div class="loading-steps-wrap">
+		  <div id="ls1" class="loading-step">
+			<span class="ls-icon">⚙️</span>
+			<span class="ls-text">서비스 워커 업데이트</span>
+		  </div>
+		  <div id="ls2" class="loading-step">
+			<span class="ls-icon">🗑️</span>
+			<span class="ls-text">브라우저 캐시 삭제</span>
+		  </div>
+		  <div id="ls3" class="loading-step">
+			<span class="ls-icon">🔄</span>
+			<span class="ls-text">최신 금리 불러오기</span>
+		  </div>
+		</div>
+
+		<div class="loading-sub">KB 금리 정보를 최신 상태로 갱신합니다</div>
 	  </div>
-	  <div class="loading-sub">
-		페이지를 로딩중 입니다<br>기존 데이터값이 남아있으면<br>캐시 삭제 해주세요.
-	  </div>
-	</div>
+
+
 
 	<!-- ── Partials 플레이스홀더 ─────────────────────────────────────────────── -->
 	<!-- js/loader.js 가 fetch 로 읽어 innerHTML 로 자동 주입합니다 -->
@@ -252,16 +276,16 @@
 	 10. admin.js     — 관리자 기능
 	 11. app.js       — 진입점 (마지막)
 	-->
-	<script src="./js/loader.js?v=2603300006"></script>
-	<script src="./js/kb_rates.js?v=2603300006"></script>
-	<script src="./js/config.js?v=2603300006"></script>
-	<script src="./js/utils.js?v=2603300006"></script>
-	<script src="./js/modal.js?v=2603300006"></script>
-	<script src="./js/ui.js?v=2603300006"></script>
-	<script src="./js/calc.js?v=2603300006"></script>
-	<script src="./js/schedule.js?v=2603300006"></script>
-	<script src="./js/report.js?v=2603300006"></script>
-	<script src="./js/admin.js?v=2603300006"></script>
-	<script src="./js/app.js?v=2603300006"></script>
+	<script src="./js/loader.js?v=2603302000"></script>
+	<script src="./js/kb_rates.js?v=2603302000"></script>
+	<script src="./js/config.js?v=2603302000"></script>
+	<script src="./js/utils.js?v=2603302000"></script>
+	<script src="./js/modal.js?v=2603302000"></script>
+	<script src="./js/ui.js?v=2603302000"></script>
+	<script src="./js/calc.js?v=2603302000"></script>
+	<script src="./js/schedule.js?v=2603302000"></script>
+	<script src="./js/report.js?v=2603302000"></script>
+	<script src="./js/admin.js?v=2603302000"></script>
+	<script src="./js/app.js?v=2603302000"></script>
 	</body>
 </html>
