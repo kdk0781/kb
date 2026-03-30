@@ -1,5 +1,5 @@
 /* =============================================================================
-   KB 금리 로더 — kb_rates.js  VER 2026.06
+   금리 로더 — kb_rates.js  VER 2026.06
    ─────────────────────────────────────────────────────────────────────────────
    📋 동작 방식
    ・ https://kdk0781.github.io/kb/interest/script.js 에서 r 객체를 파싱합니다.
@@ -84,7 +84,7 @@ async function applyKBRatesToConfig() {
     v_6_12:   r.stress_v_6_12,
   };
 
-  console.log(`[KB금리] 적용 완료 (캐시키: ${_getCacheKey()})`, {
+  console.log(`[금리] 적용 완료 (캐시키: ${_getCacheKey()})`, {
     '5년변동':    r['5년변동'],
     '5년혼합':    r['5년혼합'],
     '6,12개월':   r['6_12변동'],
@@ -102,7 +102,7 @@ async function clearKBRatesCache() {
   _cleanOldCacheKeys(key); // 구버전 키도 함께 정리
   _ratesMem    = null;
   _cacheTimeMs = 0;
-  console.log(`[KB금리] 캐시 삭제 완료 (키: ${key})`);
+  console.log(`[금리] 캐시 삭제 완료 (키: ${key})`);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -119,7 +119,7 @@ async function _loadRates() {
     const c = JSON.parse(localStorage.getItem(cacheKey) || 'null');
     if (c && Date.now() - c.t < _KB_CACHE_MS) {
       _ratesMem = c.d; _cacheTimeMs = c.t;
-      console.log(`[KB금리] 캐시 사용 (키: ${cacheKey})`);
+      console.log(`[금리] 캐시 사용 (키: ${cacheKey})`);
       return _ratesMem;
     }
   } catch {}
@@ -152,10 +152,10 @@ async function _fetchAndParse(cacheKey) {
     } catch {}
   }
 
-  if (!text) { console.warn('[KB금리] script.js 로드 실패 — 폴백값 사용'); return null; }
+  if (!text) { console.warn('[금리] script.js 로드 실패 — 폴백값 사용'); return null; }
 
   const rates = _parseScript(text);
-  if (!rates) { console.warn('[KB금리] 파싱 실패 — 폴백값 사용'); return null; }
+  if (!rates) { console.warn('[금리] 파싱 실패 — 폴백값 사용'); return null; }
 
   _ratesMem = rates; _cacheTimeMs = Date.now();
   try {
@@ -163,7 +163,7 @@ async function _fetchAndParse(cacheKey) {
     _cleanOldCacheKeys(cacheKey); // 구버전 키 정리
   } catch {}
 
-  console.log(`[KB금리] 파싱 성공 → 캐시 저장 (키: ${cacheKey})`);
+  console.log(`[금리] 파싱 성공 → 캐시 저장 (키: ${cacheKey})`);
   return rates;
 }
 
@@ -216,7 +216,7 @@ function _parseScript(text) {
       _raw: { mor5, ncofix, scofix, primeOn, m5, m5_cycle, m5_mix, v_6_12 }
     };
   } catch (e) {
-    console.warn('[KB금리] 계산 오류:', e);
+    console.warn('[금리] 계산 오류:', e);
     return null;
   }
 }

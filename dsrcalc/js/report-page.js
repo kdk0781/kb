@@ -205,7 +205,7 @@ function renderReport(d) {
   const headerHtml = `
     <div class="rp-header">
       <div class="rp-header-glow"></div>
-      <div class="rp-logo">KB DSR 진단 리포트</div>
+      <div class="rp-logo">DSR 진단 리포트</div>
       <div class="rp-title">📊 DSR 종합 진단 결과</div>
       <div class="rp-meta">발급일: ${createdFmt}</div>
       <div class="rp-countdown-wrap">
@@ -482,7 +482,7 @@ function renderReport(d) {
     <div class="rp-footer">
       본 리포트는 입력값 기준 예상 수치로, 실제 금융기관 심사 결과와 다를 수 있습니다.<br>
       대출 실행 전 반드시 담당 금융기관에 확인하시기 바랍니다.<br><br>
-      <b>KB DSR 계산기</b> · 리포트 유효기간 ${expiryFmt}까지
+      <b>DSR 계산기</b> · 리포트 유효기간 ${expiryFmt}까지
     </div>`;
 
   // ━━━ 조합 + 렌더 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

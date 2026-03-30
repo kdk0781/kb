@@ -1,10 +1,10 @@
 /* =============================================================================
    js/ui.js — UI 렌더링 & 인터랙션
    · 시스템 테마 적용 (applySystemTheme)
-   · KB 금리 셀렉트 동기화 (_syncAllRateSelects)
+   · 금리 셀렉트 동기화 (_syncAllRateSelects)
    · 금리 경고 배너 (markRateWarning, clearRateWarnings)
    · 부채 항목 동적 추가/제거 (addLoan, removeLoan)
-   · KB 담보 금리 자동 적용 (applyKbRate, applyPolicy)
+   · 담보 금리 자동 적용 (applyKbRate, applyPolicy)
    · 공지 팝업 (initNotice, closeNotice, closeNoticeForever)
    · 사용자/관리자 가이드 모달 (openGuide, closeGuide)
    · 의존: config.js, utils.js

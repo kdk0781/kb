@@ -1,7 +1,7 @@
 /* =============================================================================
    js/app.js — 앱 진입점 (window.onload)
    · partials 주입 완료 후 초기화 시작
-   · KB 금리 로드 → 스케줄 최대 높이 설정 → 부채 항목 1개 추가
+   · 금리 로드 → 스케줄 최대 높이 설정 → 부채 항목 1개 추가
    · 하드 새로고침 (캐시 초기화 포함)
    · URL 세탁 (_r 파라미터 제거)
    · 의존: 모든 다른 JS 파일들 (마지막에 로드되어야 함)
@@ -54,7 +54,7 @@ window.onload = async function () {
   // 관리자 세션 체크
   checkAdminAuth();
 
-  // KB 금리 자동 로드
+  // 금리 자동 로드
   if (typeof applyKBRatesToConfig === 'function') {
     _showLoading(true);
     try {

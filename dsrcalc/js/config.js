@@ -56,7 +56,7 @@ const APP_CONFIG = {
   REPORT_PAGE_PATH: 'report.html',
   SHORTENER_API: 'https://is.gd/create.php?format=simple&url=',
 
-  // ── KB 담보대출 유형별 금리 % (폴백값 — kb_rates.js 에서 자동 갱신) ────
+  // ── 담보대출 유형별 금리 % (폴백값 — kb_rates.js 에서 자동 갱신) ────
   KB_MORTGAGE_RATES: {
     mortgage_level: { '5년변동': 5.14, '5년혼합': 5.14, '6_12변동': 4.41, '직접입력': null },
     mortgage_prin:  { '5년변동': 5.14, '5년혼합': 5.14, '6_12변동': 4.41, '직접입력': null },
