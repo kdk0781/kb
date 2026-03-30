@@ -108,4 +108,4 @@ js/report-page.js const _RPT_SIGN_KEY = 'KB_DSR_OTL_SIGN_2026';
 
 ---
 
-*KB DSR 계산기 © 2026*
+*DSR 계산기 © 2026*
