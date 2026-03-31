@@ -361,17 +361,15 @@ async function _doShare(limit, count) {
     const msg = `📊 <b>진단 리포트 링크가 복사되었습니다!</b><br><span style="font-size:12px;line-height:1.8;display:block;margin-top:8px;">• <b>${expDate}</b>까지만 유효합니다.<br>• 오늘 남은 발급 횟수: <b>${remaining}회</b><br><br>📌 <b>고객 안내 문구가 함께 복사됩니다.</b></span>`;
     // ★ 고객에게 전달할 메시지 (URL + 안내 문구 함께 복사)
     const customerMsg = shortUrl + '\n\n' +
-      '[DSR 진단 리포트 안내]\n' +
-      '링크 클릭 후 TinyURL 중간 화면이 나타나면\n' +
-      '화면 상단 파란색 버튼을 클릭하시면\n' +
-      '리포트 페이지로 이동합니다. (정상 링크)\n' +
+      '[DSR 진단 리포트]\n' +
+      'Preview 를 클릭하거나 10초 뒤 페이지가 자동 이동됩니다.\n' +
       `유효기간: ${expDate}까지`;
 
     if (navigator.share && /Mobi|Android/i.test(navigator.userAgent)) {
       // 모바일: URL + 안내 문구를 네이티브 공유 시트로 전송
       navigator.share({
         title: 'DSR 진단 리포트',
-        text:  '[DSR 진단 리포트 안내]\nTinyURL 중간 화면이 나타나면 상단 파란 버튼을 클릭하세요.',
+        text:  '[DSR 진단 리포트]\nPreview 를 클릭하거나 10초 뒤 페이지가 자동 이동됩니다.',
         url:   shortUrl
       }).catch(err => { if (err.name !== 'AbortError') _forceCopy(customerMsg, msg); });
     } else {
