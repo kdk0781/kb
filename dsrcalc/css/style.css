@@ -11,8 +11,6 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 button, input, select, textarea { font: inherit; }
 button { cursor: pointer; border: none; background: none; }
 table  { border-collapse: collapse; width: 100%; }
-a {text-decoration:none; color:inherit; transition:0.3s;}
-a:hover,a:focus {text-decoration:none;}
 
 /* ── KB 브랜드 토큰 — 라이트 ────────────────────────────────────────────── */
 :root {
@@ -465,24 +463,75 @@ body.white .loading-text { color: var(--kb-yellow-deep); }
   font-size: 11.5px; color: rgba(255,255,255,.55);
   text-align: center; line-height: 1.6;
 }
+body.white .loading-sub { color: var(--text-muted); }
 
-.loading-steps-wrap {
-  display: flex; flex-direction: column; gap: 6px;
-  width: 220px; margin: 2px 0;
+/* ── 단계별 로딩 카드 ─────────────────────────────────────────────────── */
+.loading-steps {
+  display: flex; flex-direction: column; gap: 10px;
+  width: 100%; max-width: 280px;
 }
 
 .loading-step {
-  display: flex; align-items: center; gap: 10px;
-  padding: 8px 12px;
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,255,255,.1);
-  border-radius: 8px;
-  font-size: 12px; font-weight: 600;
-  color: rgba(255,255,255,.35);
-  transition: all .3s ease;
+  display: flex; align-items: center; gap: 12px;
+  background: rgba(255,255,255,.07);
+  border: 1.5px solid rgba(255,255,255,.1);
+  border-radius: 12px; padding: 13px 16px;
+  transition: background .3s, border-color .3s, transform .25s;
+  opacity: .45;
+}
+body.white .loading-step {
+  background: rgba(26,43,90,.05);
+  border-color: rgba(26,43,90,.12);
 }
 
-body.white .loading-sub { color: var(--text-muted); }
+/* 활성 단계 */
+.loading-step.active {
+  background: rgba(255,184,28,.15);
+  border-color: var(--kb-yellow);
+  opacity: 1;
+  transform: scale(1.02);
+  box-shadow: 0 2px 16px rgba(255,184,28,.2);
+}
+body.white .loading-step.active {
+  background: rgba(255,184,28,.12);
+  box-shadow: 0 2px 12px rgba(229,162,0,.18);
+}
+
+/* 완료 단계 */
+.loading-step.done {
+  background: rgba(255,255,255,.04);
+  border-color: rgba(255,255,255,.08);
+  opacity: .6;
+}
+body.white .loading-step.done {
+  background: rgba(26,43,90,.03);
+  border-color: rgba(26,43,90,.08);
+}
+
+.lstep-icon {
+  font-size: 18px; line-height: 1;
+  flex-shrink: 0;
+  filter: grayscale(1);
+  transition: filter .3s;
+}
+.loading-step.active .lstep-icon { filter: grayscale(0); }
+.loading-step.done   .lstep-icon { filter: grayscale(0) opacity(.7); }
+
+.lstep-label {
+  font-size: 13px; font-weight: 700;
+  color: rgba(255,255,255,.6);
+  transition: color .3s;
+}
+body.white .lstep-label { color: var(--text-secondary); }
+.loading-step.active .lstep-label { color: #fff; }
+body.white .loading-step.active .lstep-label { color: var(--kb-navy); }
+
+/* 완료 체크 (done 시 label 뒤에 ✓ 표시) */
+.loading-step.done .lstep-label::after {
+  content: ' ✓';
+  color: var(--kb-yellow);
+  font-size: 12px;
+}
 
 /* ── FAB 새로고침 (새로운 그라데이션 디자인) ─────────────────────────────── */
 .refresh-btn {
