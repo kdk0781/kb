@@ -201,29 +201,14 @@ function _buildReportData(phone = null) {
   };
 }
 
-// ─── URL 단축 — 다중 fallback ────────────────────────────────────────────────
-// 이유: is.gd 가 CORS / 일시적 오류로 실패 시 원본 URL 전송됨
-//   → 단축 실패해도 URL-safe base64 덕분에 링크는 정상 작동
-async function _shortenUrl(longUrl) {
-  if (longUrl.includes('#')) return longUrl; // fragment 포함 시 단축 불가
-
-  // 단축 서비스 목록 (순서대로 시도)
-  const services = [
-    u => fetch('https://is.gd/create.php?format=simple&url=' + encodeURIComponent(u), { signal: AbortSignal.timeout(4000) }),
-    u => fetch('https://v.gd/create.php?format=simple&url='  + encodeURIComponent(u), { signal: AbortSignal.timeout(4000) }),
-    u => fetch('https://tinyurl.com/api-create.php?url='     + encodeURIComponent(u), { signal: AbortSignal.timeout(4000) }),
-  ];
-
-  for (const fn of services) {
-    try {
-      const r = await fn(longUrl);
-      if (!r.ok) continue;
-      const s = (await r.text()).trim();
-      if (s.startsWith('http')) return s;
-    } catch { /* 다음 서비스로 */ }
-  }
-  return longUrl; // 모든 서비스 실패 시 원본 반환 (URL-safe b64 덕에 동작함)
-}
+// ─── 외부 단축 서비스 미사용 — 직접 URL 공유 ────────────────────────────────
+// 이유: TinyURL 등 단축 서비스는 SMS 수신 시 광고 중간 페이지를 표시함
+//   → 스팸처럼 보임, 사용자 신뢰도 하락
+// 해결: v3 URL-safe base64 압축으로 URL 을 충분히 단축
+//   → 5개 대출 최악 케이스도 ~1250자 (SMS 안전 기준 1600자 이하)
+//   → 외부 서비스 없이 직접 공유 → 광고 없음, CORS 오류 없음
+// 이 함수는 하위 호환을 위해 남겨두되 입력 URL 그대로 반환
+function _shortenUrl(longUrl) { return Promise.resolve(longUrl); }
 
 // ─── JSON → URL-safe Base64 압축 (v3) ────────────────────────────────────────
 // 핵심 버그 수정: btoa() 의 '+','/' → URL에서 오작동
@@ -347,7 +332,8 @@ async function _doShare(limit, count) {
     const encoded = _compressReportData(data);
     const base    = window.location.href.replace(/[^/]*(\?.*)?$/, '');
     const longUrl = `${base}${_C.REPORT_PAGE_PATH}?st=${stToken}&d=${encoded}`;
-    const shortUrl= await _shortenUrl(longUrl);
+    // _shortenUrl 은 longUrl 그대로 반환 (외부 단축 서비스 미사용)
+    const shortUrl = longUrl;
 
     const newCount  = _incCopyCount(), remaining = limit + 1 - newCount;
     const expDate   = new Date(data.expiry).toLocaleDateString('ko-KR', { month:'long', day:'numeric' });

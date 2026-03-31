@@ -3,7 +3,7 @@
    · checkAdminAuth       : 세션 확인 → 관리자 UI 표시
    · generateAdminShareLink: HMAC OTL 토큰으로 앱 설치 링크 생성
    · adminLogout / closeLogoutModal / proceedAdminLogout
-   · 의존: config.js, report.js (_otlIssue, _shortenUrl, _forceCopy, showAlert)
+   · 의존: config.js, report.js (_otlIssue, _forceCopy, showAlert)
    ============================================================================= */
 
 function checkAdminAuth() {
@@ -43,7 +43,8 @@ async function generateAdminShareLink() {
 
     const encodedPayload = await _otlIssue(currentUrl, SHARE_LINK_TTL_MS);
     const longShareUrl   = `${baseUrl}share.html?t=${encodedPayload}`;
-    const shortUrl       = await _shortenUrl(longShareUrl);
+    // 외부 단축 서비스 미사용 — 앱 설치 링크는 길이가 짧아 직접 공유 가능
+    const shortUrl = longShareUrl;
 
     const msg = `🔗 <b>계산기 앱 설치 링크가 복사되었습니다.</b><br><br>` +
                 `<span style="font-size:12px; display:block; margin-top:8px;">` +
