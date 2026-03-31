@@ -39,7 +39,7 @@ function rankClass(i) { return ['rank-1','rank-2','rank-3'][i] ?? 'rank-n'; }
 function countdownColor(msLeft) {
   if (msLeft < 86400000)      return '#dc2626'; // 1일 미만: 빨간색
   if (msLeft < 3 * 86400000) return '#d97706'; // 3일 미만: 노란색
-  return '#FFB800';                              // 여유: KB 노란색
+  return '#16a34a';                              // 3일 이상: 초록색
 }
 
 // ─── 관리자 기기 판별 ─────────────────────────────────────────────────────────
@@ -242,7 +242,21 @@ function renderReport(d) {
       </div>`;
   }
 
-  // ━━━ [2] 요약 그리드 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // ━━━ [2] DSR 종합 카드 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  const dsrCardHtml = `
+    <div class="rp-card">
+      <div class="rp-card-title">종합 DSR 지수 (스트레스 금리 반영)</div>
+      <div class="dsr-big" id="dsrBig" style="color:${color};">0.00%</div>
+      <div class="dsr-label">연소득 대비 연간 원리금 상환 비율</div>
+      <div class="dsr-bar-track"><div class="dsr-bar-fill" id="dsrBar" style="background:${color};"></div></div>
+      <div class="dsr-legend">
+        <span>0%</span>
+        <span style="color:${color};font-weight:700;">현재 ${pct(totalDSR)}</span>
+        <span>규제선 40%</span>
+      </div>
+    </div>`;
+
+  // ━━━ [3] 요약 그리드 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   const summaryHtml = `
     <div class="rp-card">
       <div class="rp-card-title">한도 분석 요약</div>
@@ -266,7 +280,7 @@ function renderReport(d) {
       </div>
     </div>`;
 
-  // ━━━ [3] 부채 상세 내역 (원리금균등 + 원금균등 둘 다 표시) ━━━━━━━━━━━━━━
+  // ━━━ [4] 부채 상세 내역 (원리금균등 + 원금균등 둘 다 표시) ━━━━━━━━━━━━━━
   let loanDetailHtml = '';
   if (d.loans && d.loans.length > 0) {
     const rows = d.loans.map((l, idx) => {
@@ -325,20 +339,6 @@ function renderReport(d) {
         ${rows}
       </div>`;
   }
-
-  // ━━━ [4] DSR 종합 카드 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  const dsrCardHtml = `
-    <div class="rp-card">
-      <div class="rp-card-title">종합 DSR 지수 (스트레스 금리 반영)</div>
-      <div class="dsr-big" id="dsrBig" style="color:${color};">0.00%</div>
-      <div class="dsr-label">연소득 대비 연간 원리금 상환 비율</div>
-      <div class="dsr-bar-track"><div class="dsr-bar-fill" id="dsrBar" style="background:${color};"></div></div>
-      <div class="dsr-legend">
-        <span>0%</span>
-        <span style="color:${color};font-weight:700;">현재 ${pct(totalDSR)}</span>
-        <span>규제선 40%</span>
-      </div>
-    </div>`;
 
   // ━━━ [5] 개별 DSR 기여도 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   let contribHtml = '';
@@ -481,12 +481,12 @@ function renderReport(d) {
     <div class="rp-footer">
       본 리포트는 입력값 기준 예상 수치로, 실제 금융기관 심사 결과와 다를 수 있습니다.<br>
       대출 실행 전 반드시 담당 금융기관에 확인하시기 바랍니다.<br><br>
-      <b>DSR 계산기</b> · 리포트 유효기간 ${expiryFmt}까지
+      <b>KB DSR 계산기</b> · 리포트 유효기간 ${expiryFmt}까지
     </div>`;
 
   // ━━━ 조합 + 렌더 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   wrap.innerHTML = noticeHtml + headerHtml + consultantHtml +
-                   summaryHtml + loanDetailHtml + dsrCardHtml + 
+                   dsrCardHtml + summaryHtml + loanDetailHtml +
                    contribHtml + reverseHtml + recHtml + footerHtml;
 
   // ── 애니메이션 ───────────────────────────────────────────────────────────
