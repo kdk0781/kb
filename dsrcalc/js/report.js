@@ -201,14 +201,24 @@ function _buildReportData(phone = null) {
   };
 }
 
-// ─── 외부 단축 서비스 미사용 — 직접 URL 공유 ────────────────────────────────
-// 이유: TinyURL 등 단축 서비스는 SMS 수신 시 광고 중간 페이지를 표시함
-//   → 스팸처럼 보임, 사용자 신뢰도 하락
-// 해결: v3 URL-safe base64 압축으로 URL 을 충분히 단축
-//   → 5개 대출 최악 케이스도 ~1250자 (SMS 안전 기준 1600자 이하)
-//   → 외부 서비스 없이 직접 공유 → 광고 없음, CORS 오류 없음
-// 이 함수는 하위 호환을 위해 남겨두되 입력 URL 그대로 반환
-function _shortenUrl(longUrl) { return Promise.resolve(longUrl); }
+// ─── URL 단축 (TinyURL) ──────────────────────────────────────────────────────
+// ★ SMS 문자 전송 시 TinyURL 중간 페이지가 표시됩니다
+//   고객에게 공지문구를 함께 안내해 주세요 (공유 메시지에 자동 포함)
+async function _shortenUrl(longUrl) {
+  if (longUrl.includes('#')) return longUrl;
+  try {
+    const r = await fetch(
+      'https://tinyurl.com/api-create.php?url=' + encodeURIComponent(longUrl),
+      { signal: AbortSignal.timeout(5000) }
+    );
+    if (!r.ok) throw new Error();
+    const s = (await r.text()).trim();
+    if (s.startsWith('http')) return s;
+    throw new Error();
+  } catch {
+    return longUrl; // 단축 실패 시 원본 URL (URL-safe b64 덕에 정상 작동)
+  }
+}
 
 // ─── JSON → URL-safe Base64 압축 (v3) ────────────────────────────────────────
 // 핵심 버그 수정: btoa() 의 '+','/' → URL에서 오작동
@@ -332,8 +342,7 @@ async function _doShare(limit, count) {
     const encoded = _compressReportData(data);
     const base    = window.location.href.replace(/[^/]*(\?.*)?$/, '');
     const longUrl = `${base}${_C.REPORT_PAGE_PATH}?st=${stToken}&d=${encoded}`;
-    // _shortenUrl 은 longUrl 그대로 반환 (외부 단축 서비스 미사용)
-    const shortUrl = longUrl;
+    const shortUrl = await _shortenUrl(longUrl);
 
     const newCount  = _incCopyCount(), remaining = limit + 1 - newCount;
     const expDate   = new Date(data.expiry).toLocaleDateString('ko-KR', { month:'long', day:'numeric' });
@@ -349,13 +358,25 @@ async function _doShare(limit, count) {
       }
     }
 
-    const msg = `📊 <b>진단 리포트 링크가 복사되었습니다!</b><br><span style="font-size:12px;line-height:1.8;display:block;margin-top:8px;">• <b>${expDate}</b>까지만 유효합니다.<br>• 오늘 남은 발급 횟수: <b>${remaining}회</b></span>`;
+    const msg = `📊 <b>진단 리포트 링크가 복사되었습니다!</b><br><span style="font-size:12px;line-height:1.8;display:block;margin-top:8px;">• <b>${expDate}</b>까지만 유효합니다.<br>• 오늘 남은 발급 횟수: <b>${remaining}회</b><br><br>📌 <b>고객 안내 문구가 함께 복사됩니다.</b></span>`;
+    // ★ 고객에게 전달할 메시지 (URL + 안내 문구 함께 복사)
+    const customerMsg = shortUrl + '\n\n' +
+      '[DSR 진단 리포트 안내]\n' +
+      '링크 클릭 후 TinyURL 중간 화면이 나타나면\n' +
+      '화면 상단 파란색 버튼을 클릭하시면\n' +
+      '리포트 페이지로 이동합니다. (정상 링크)\n' +
+      `유효기간: ${expDate}까지`;
 
     if (navigator.share && /Mobi|Android/i.test(navigator.userAgent)) {
-      navigator.share({ title:'DSR 진단 리포트', text:'고객님의 DSR 진단 리포트가 준비되었습니다. 아래 링크를 확인해주세요.', url: shortUrl })
-        .catch(err => { if (err.name !== 'AbortError') _forceCopy(shortUrl, msg); });
+      // 모바일: URL + 안내 문구를 네이티브 공유 시트로 전송
+      navigator.share({
+        title: 'DSR 진단 리포트',
+        text:  '[DSR 진단 리포트 안내]\nTinyURL 중간 화면이 나타나면 상단 파란 버튼을 클릭하세요.',
+        url:   shortUrl
+      }).catch(err => { if (err.name !== 'AbortError') _forceCopy(customerMsg, msg); });
     } else {
-      _forceCopy(shortUrl, msg);
+      // PC: URL + 안내 문구를 함께 클립보드에 복사
+      _forceCopy(customerMsg, msg);
     }
   } catch {
     showAlert('링크 생성 중 오류가 발생했습니다.', null, '⚠️');
