@@ -1,7 +1,7 @@
 /* =============================================================================
    js/app.js — 앱 진입점 (window.onload)
    · partials 주입 완료 후 초기화 시작
-   · 금리 로드 → 스케줄 최대 높이 설정 → 부채 항목 1개 추가
+   · KB 금리 로드 → 스케줄 최대 높이 설정 → 부채 항목 1개 추가
    · 하드 새로고침 (캐시 초기화 포함)
    · URL 세탁 (_r 파라미터 제거)
    · 의존: 모든 다른 JS 파일들 (마지막에 로드되어야 함)
@@ -54,7 +54,7 @@ window.onload = async function () {
   // 관리자 세션 체크
   checkAdminAuth();
 
-  // 금리 자동 로드
+  // KB 금리 자동 로드
   if (typeof applyKBRatesToConfig === 'function') {
     _showLoading(true);
     try {
@@ -75,22 +75,67 @@ function _showLoading(visible) {
 }
 
 // ─── 하드 새로고침 ────────────────────────────────────────────────────────────
+// ── 단계 카드 활성/완료 헬퍼 ────────────────────────────────────────────────
+function _lstepActive(id, subText) {
+  // 이전 단계 done 처리
+  const steps = ['lstep1','lstep2','lstep3'];
+  const idx   = steps.indexOf(id);
+  steps.slice(0, idx).forEach(sid => {
+    const el = document.getElementById(sid);
+    if (el) { el.classList.remove('active'); el.classList.add('done'); }
+  });
+  // 현재 단계 active
+  const cur = document.getElementById(id);
+  if (cur) cur.classList.add('active');
+  // 서브 텍스트 업데이트
+  const sub = document.getElementById('loadingSub');
+  if (sub && subText) sub.textContent = subText;
+}
+
 async function hardRefresh() {
   const overlay = document.getElementById('loadingOverlay');
   overlay.style.display = 'flex';
   document.body.style.overflow = 'hidden';
+
+  // 모든 단계 초기화
+  ['lstep1','lstep2','lstep3'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('active','done');
+  });
+
   try {
-    localStorage.removeItem('kb_rates_v2');
-    if ('caches' in window) {
-      const cacheNames = await caches.keys();
-      await Promise.all(cacheNames.map(name => caches.delete(name)));
-    }
+    // ① 서비스 워커 업데이트
+    _lstepActive('lstep1', 'Service Worker를 최신 버전으로 업데이트합니다.');
     if ('serviceWorker' in navigator) {
       const registrations = await navigator.serviceWorker.getRegistrations();
       await Promise.all(registrations.map(r => r.unregister()));
     }
-    await new Promise(r => setTimeout(r, 800));
-    const ts  = Date.now();
+    await new Promise(r => setTimeout(r, 500));
+
+    // ② 브라우저 캐시 삭제
+    _lstepActive('lstep2', '브라우저 캐시를 초기화합니다.');
+    localStorage.removeItem('kb_rates_v2');
+    if (typeof clearKBRatesCache === 'function') await clearKBRatesCache();
+    if ('caches' in window) {
+      const cacheNames = await caches.keys();
+      await Promise.all(cacheNames.map(name => caches.delete(name)));
+    }
+    await new Promise(r => setTimeout(r, 500));
+
+    // ③ 최신 금리 불러오기
+    _lstepActive('lstep3', 'KB 금리 정보를 최신 상태로 갱신합니다.');
+    await new Promise(r => setTimeout(r, 700));
+
+    // 완료 후 리로드
+    ['lstep1','lstep2','lstep3'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.classList.remove('active'); el.classList.add('done'); }
+    });
+    const sub = document.getElementById('loadingSub');
+    if (sub) sub.textContent = '완료! 새로고침합니다.';
+    await new Promise(r => setTimeout(r, 400));
+
+    const ts = Date.now();
     const url = new URL(window.location.href);
     url.searchParams.set('_r', ts);
     window.location.replace(url.toString());

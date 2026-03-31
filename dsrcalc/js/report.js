@@ -198,14 +198,40 @@ function _buildReportData(phone = null) {
 }
 
 // ─── URL 단축 ─────────────────────────────────────────────────────────────────
+// ★ fragment(#) 는 HTTP 스펙상 서버에 전달되지 않으므로 단축 불가
+//   → 데이터를 ?d= 쿼리스트링으로 이동한 뒤 단축합니다
 async function _shortenUrl(longUrl) {
   try {
+    // fragment 가 포함된 경우 단축 요청에서 제외 (fallback: 원본 반환)
+    if (longUrl.includes('#')) return longUrl;
     const r = await fetch(_C.SHORTENER_API + encodeURIComponent(longUrl));
     if (!r.ok) throw new Error();
     const s = (await r.text()).trim();
     if (s.startsWith('http')) return s;
     throw new Error();
   } catch { return longUrl; }
+}
+
+// ─── JSON → 압축 Base64 (키 단축으로 URL 길이 ~30% 절감) ─────────────────────
+// 복원은 report-page.js 의 _expandData() 에서 수행
+function _compressReportData(d) {
+  const compact = {
+    v:   d.v,
+    ic:  d.income,
+    ls:  (d.loans || []).map(l => ({
+      c:  l.cat, p: l.P, r: l.R, sk: l.SR, n: l.n, rt: l.rt,
+      ap: l.annPmt, dc: l.dsrCont,
+      ml: l.monthlyLevel, mp: l.monthlyPrin1
+    })),
+    dt:  d.dsrText,  rt_: d.remainTxt, mp_: d.maxPTxt, ml_: d.maxLTxt,
+    ds:  d.dsr,      io:  d.isOver,    tp:  d.totalAnnPayment,
+    ri:  d.reqIncome, ep: d.excessPmt, erp: d.estReducePrin, td: d.targetDSR,
+    ct:  d.consultant,
+    rn:  d.reportNonce,
+    ex:  d.expiry,   ca:  d.createdAt,
+    _v:  2  // 압축 버전 마커 (report-page.js 에서 구분)
+  };
+  return btoa(unescape(encodeURIComponent(JSON.stringify(compact))));
 }
 
 // ─── 클립보드 복사 ────────────────────────────────────────────────────────────
@@ -275,9 +301,13 @@ async function _doShare(limit, count) {
   try {
     const data    = _buildReportData(phone);
     const stToken = await _generateReportShareToken(data.reportNonce, data.expiry);
-    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+    // ★ 핵심 변경: #fragment → ?d= 쿼리스트링
+    //   · iOS SMS / Android MMS 에서 # 이후 URL 이 잘리는 문제 해결
+    //   · is.gd 등 단축 서비스가 fragment 를 서버에 전송하지 않는 HTTP 스펙 문제 해결
+    //   · JSON 키 단축으로 URL 길이 ~30% 절감 (5개 대출도 SMS 안전 1500자 이내)
+    const encoded = _compressReportData(data);
     const base    = window.location.href.replace(/[^/]*(\?.*)?$/, '');
-    const longUrl = `${base}${_C.REPORT_PAGE_PATH}?st=${stToken}#${encoded}`;
+    const longUrl = `${base}${_C.REPORT_PAGE_PATH}?st=${stToken}&d=${encoded}`;
     const shortUrl= await _shortenUrl(longUrl);
 
     const newCount  = _incCopyCount(), remaining = limit + 1 - newCount;

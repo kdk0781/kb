@@ -7,8 +7,7 @@
    ─────────────────────────────────────────────────────────────────────────────
    ★ 리포트 유효기간 변경: js/config.js 의 REPORT_LINK_EXPIRY_DAYS 수정
       3일  → 3   /  7일 → 7 (현재)  /  14일 → 14
-   ★ _RPT_SIGN_KEY 는 js/report.js 의 _OTL_SIGN_KEY 와 동일해야 합니다.
-   조합 + 렌더 - 순서변경 가능
+   ★ _RPT_SIGN_KEY 는 js/report.js 의 _OTL_SIGN_KEY 와 동일해야 합니다
    ============================================================================= */
 
 const _RPT_SIGN_KEY  = 'KB_DSR_OTL_SIGN_2026';
@@ -205,7 +204,7 @@ function renderReport(d) {
   const headerHtml = `
     <div class="rp-header">
       <div class="rp-header-glow"></div>
-      <div class="rp-logo">DSR 진단 리포트</div>
+      <div class="rp-logo">KB DSR 진단 리포트</div>
       <div class="rp-title">📊 DSR 종합 진단 결과</div>
       <div class="rp-meta">발급일: ${createdFmt}</div>
       <div class="rp-countdown-wrap">
@@ -243,7 +242,21 @@ function renderReport(d) {
       </div>`;
   }
 
-  // ━━━ [2] 요약 그리드 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // ━━━ [2] DSR 종합 카드 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  const dsrCardHtml = `
+    <div class="rp-card">
+      <div class="rp-card-title">종합 DSR 지수 (스트레스 금리 반영)</div>
+      <div class="dsr-big" id="dsrBig" style="color:${color};">0.00%</div>
+      <div class="dsr-label">연소득 대비 연간 원리금 상환 비율</div>
+      <div class="dsr-bar-track"><div class="dsr-bar-fill" id="dsrBar" style="background:${color};"></div></div>
+      <div class="dsr-legend">
+        <span>0%</span>
+        <span style="color:${color};font-weight:700;">현재 ${pct(totalDSR)}</span>
+        <span>규제선 40%</span>
+      </div>
+    </div>`;
+
+  // ━━━ [3] 요약 그리드 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   const summaryHtml = `
     <div class="rp-card">
       <div class="rp-card-title">한도 분석 요약</div>
@@ -267,7 +280,7 @@ function renderReport(d) {
       </div>
     </div>`;
 
-  // ━━━ [3] 부채 상세 내역 (원리금균등 + 원금균등 둘 다 표시) ━━━━━━━━━━━━━━
+  // ━━━ [4] 부채 상세 내역 (원리금균등 + 원금균등 둘 다 표시) ━━━━━━━━━━━━━━
   let loanDetailHtml = '';
   if (d.loans && d.loans.length > 0) {
     const rows = d.loans.map((l, idx) => {
@@ -326,20 +339,6 @@ function renderReport(d) {
         ${rows}
       </div>`;
   }
-  // ━━━ [4] DSR 종합 카드 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  const dsrCardHtml = `
-    <div class="rp-card">
-      <div class="rp-card-title">종합 DSR 지수 (스트레스 금리 반영)</div>
-      <div class="dsr-big" id="dsrBig" style="color:${color};">0.00%</div>
-      <div class="dsr-label">연소득 대비 연간 원리금 상환 비율</div>
-      <div class="dsr-bar-track"><div class="dsr-bar-fill" id="dsrBar" style="background:${color};"></div></div>
-      <div class="dsr-legend">
-        <span>0%</span>
-        <span style="color:${color};font-weight:700;">현재 ${pct(totalDSR)}</span>
-        <span>규제선 40%</span>
-      </div>
-    </div>`;
-
 
   // ━━━ [5] 개별 DSR 기여도 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   let contribHtml = '';
@@ -482,12 +481,12 @@ function renderReport(d) {
     <div class="rp-footer">
       본 리포트는 입력값 기준 예상 수치로, 실제 금융기관 심사 결과와 다를 수 있습니다.<br>
       대출 실행 전 반드시 담당 금융기관에 확인하시기 바랍니다.<br><br>
-      <b>DSR 계산기</b> · 리포트 유효기간 ${expiryFmt}까지
+      <b>KB DSR 계산기</b> · 리포트 유효기간 ${expiryFmt}까지
     </div>`;
 
   // ━━━ 조합 + 렌더 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   wrap.innerHTML = noticeHtml + headerHtml + consultantHtml +
-                   summaryHtml + loanDetailHtml + dsrCardHtml + 
+                   dsrCardHtml + summaryHtml + loanDetailHtml +
                    contribHtml + reverseHtml + recHtml + footerHtml;
 
   // ── 애니메이션 ───────────────────────────────────────────────────────────
@@ -538,7 +537,9 @@ async function checkAccess(d) {
 
   // 이미 이 기기에 바인딩되어 있으면 다회 접속 허용
   if (_rptIsGranted(nonce)) {
-    history.replaceState(null, '', location.pathname + location.hash);
+    // st= 파라미터 제거 (보안), d= 는 유지 (데이터)
+    const cleanSearch = location.search.replace(/[?&]st=[^&]*/g, '').replace(/^&/, '?').replace(/^$/, '');
+    history.replaceState(null, '', location.pathname + cleanSearch);
     return { ok: true };
   }
 
@@ -633,7 +634,7 @@ function _rptRenderSchTable(id, type) {
 
   const trs = rows.map(rv => `
     <tr>
-      <td class="ld-td-center">${rv.i}회</td>
+      <td class="ld-td-center">${rv.i}</td>
       <td>${w(rv.principal)}</td>
       <td>${w(rv.interest)}</td>
       <td class="ld-td-total"><b>${w(rv.payment)}</b></td>
@@ -655,6 +656,32 @@ function _rptRenderSchTable(id, type) {
     </table>`;
 }
 
+// ─── 압축 데이터 복원 (_v:2 마커 기준) ──────────────────────────────────────
+// report.js 의 _compressReportData() 에 대응
+function _expandData(raw) {
+  try {
+    const d = JSON.parse(decodeURIComponent(escape(atob(raw))));
+    if (d._v !== 2) return d; // 구형 비압축 데이터: 그대로 반환 (하위 호환)
+
+    // 압축 키 → 원본 키 복원
+    return {
+      v:               d.v,
+      income:          d.ic,
+      loans:           (d.ls || []).map(l => ({
+        cat:           l.c,  P: l.p,  R: l.r,  SR: l.sk, n: l.n, rt: l.rt,
+        annPmt:        l.ap, dsrCont: l.dc,
+        monthlyLevel:  l.ml, monthlyPrin1: l.mp
+      })),
+      dsrText:         d.dt,  remainTxt: d.rt_, maxPTxt: d.mp_, maxLTxt: d.ml_,
+      dsr:             d.ds,  isOver: d.io, totalAnnPayment: d.tp,
+      reqIncome:       d.ri,  excessPmt: d.ep, estReducePrin: d.erp, targetDSR: d.td,
+      consultant:      d.ct,
+      reportNonce:     d.rn,
+      expiry:          d.ex,  createdAt: d.ca
+    };
+  } catch { return null; }
+}
+
 // ─── 진입점 ───────────────────────────────────────────────────────────────────
 (async function () {
   const applyTheme = isDark => {
@@ -664,11 +691,17 @@ function _rptRenderSchTable(id, type) {
   applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches);
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => applyTheme(e.matches));
 
-  const hash = location.hash.slice(1);
-  if (!hash) { renderError('⚠️', '리포트 데이터 없음', '올바른 링크로 접속해 주세요.'); return; }
+  // ★ 핵심: ?d= 쿼리스트링 우선 파싱 (신규) → #hash 하위 호환 (구형)
+  //   · iOS/Android SMS 에서 # 이후가 잘리는 문제 해결
+  //   · is.gd 단축 서비스가 fragment 를 버리는 HTTP 스펙 문제 해결
+  const params  = new URLSearchParams(location.search);
+  const rawData = params.get('d') || location.hash.slice(1);
+  if (!rawData) { renderError('⚠️', '리포트 데이터 없음', '올바른 링크로 접속해 주세요.'); return; }
+
   let d;
-  try { d = JSON.parse(decodeURIComponent(escape(atob(hash)))); }
-  catch { renderError('🚫', '리포트를 읽을 수 없습니다', '링크가 손상되었거나 형식이 올바르지 않습니다.'); return; }
+  try { d = _expandData(rawData); }
+  catch { d = null; }
+  if (!d) { renderError('🚫', '리포트를 읽을 수 없습니다', '링크가 손상되었거나 형식이 올바르지 않습니다.'); return; }
 
   if (Date.now() > d.expiry) {
     renderError('⏰', '리포트 유효기간 만료', '이 리포트는 7일간 유효합니다.<br>담당자에게 새로운 리포트를 요청해 주세요.');
