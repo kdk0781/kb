@@ -155,7 +155,12 @@ async function validateToken() {
 
   // ── Case B: 토큰 있음 ─────────────────────────────────────────────────────
   let token;
-  try { token = JSON.parse(decodeURIComponent(escape(atob(raw)))); }
+  try {
+    // URL-safe base64 복원 후 파싱
+    const rawB64 = raw.replace(/-/g, '+').replace(/_/g, '/');
+    const rawPad = rawB64.length % 4 ? rawB64 + '='.repeat(4 - rawB64.length % 4) : rawB64;
+    token = JSON.parse(decodeURIComponent(escape(atob(rawPad))));
+  }
   catch { _showCard('cardInvalid'); return; }
 
   const { url, exp, nonce, sig } = token;

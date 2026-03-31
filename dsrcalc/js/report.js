@@ -25,13 +25,17 @@ async function _otlSign(payload) {
 async function _otlIssue(targetUrl, ttlMs) {
   const payload = { url: targetUrl, exp: Date.now() + ttlMs, nonce: crypto.randomUUID().slice(0, 12) };
   const sig     = await _otlSign(payload);
-  return btoa(unescape(encodeURIComponent(JSON.stringify({ ...payload, sig }))));
+  // URL-safe base64 ('+','/' → '-','_')
+  return btoa(unescape(encodeURIComponent(JSON.stringify({ ...payload, sig }))))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
 }
 
 async function _generateReportShareToken(reportNonce, exp) {
   const payload = { nonce: reportNonce, exp };
   const sig     = await _otlSign(payload);
-  return btoa(unescape(encodeURIComponent(JSON.stringify({ ...payload, sig }))));
+  // URL-safe base64
+  return btoa(unescape(encodeURIComponent(JSON.stringify({ ...payload, sig }))))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
 }
 
 // ─── 일일 발급 카운터 ─────────────────────────────────────────────────────────
@@ -197,41 +201,76 @@ function _buildReportData(phone = null) {
   };
 }
 
-// ─── URL 단축 ─────────────────────────────────────────────────────────────────
-// ★ fragment(#) 는 HTTP 스펙상 서버에 전달되지 않으므로 단축 불가
-//   → 데이터를 ?d= 쿼리스트링으로 이동한 뒤 단축합니다
+// ─── URL 단축 — 다중 fallback ────────────────────────────────────────────────
+// 이유: is.gd 가 CORS / 일시적 오류로 실패 시 원본 URL 전송됨
+//   → 단축 실패해도 URL-safe base64 덕분에 링크는 정상 작동
 async function _shortenUrl(longUrl) {
-  try {
-    // fragment 가 포함된 경우 단축 요청에서 제외 (fallback: 원본 반환)
-    if (longUrl.includes('#')) return longUrl;
-    const r = await fetch(_C.SHORTENER_API + encodeURIComponent(longUrl));
-    if (!r.ok) throw new Error();
-    const s = (await r.text()).trim();
-    if (s.startsWith('http')) return s;
-    throw new Error();
-  } catch { return longUrl; }
+  if (longUrl.includes('#')) return longUrl; // fragment 포함 시 단축 불가
+
+  // 단축 서비스 목록 (순서대로 시도)
+  const services = [
+    u => fetch('https://is.gd/create.php?format=simple&url=' + encodeURIComponent(u), { signal: AbortSignal.timeout(4000) }),
+    u => fetch('https://v.gd/create.php?format=simple&url='  + encodeURIComponent(u), { signal: AbortSignal.timeout(4000) }),
+    u => fetch('https://tinyurl.com/api-create.php?url='     + encodeURIComponent(u), { signal: AbortSignal.timeout(4000) }),
+  ];
+
+  for (const fn of services) {
+    try {
+      const r = await fn(longUrl);
+      if (!r.ok) continue;
+      const s = (await r.text()).trim();
+      if (s.startsWith('http')) return s;
+    } catch { /* 다음 서비스로 */ }
+  }
+  return longUrl; // 모든 서비스 실패 시 원본 반환 (URL-safe b64 덕에 동작함)
 }
 
-// ─── JSON → 압축 Base64 (키 단축으로 URL 길이 ~30% 절감) ─────────────────────
-// 복원은 report-page.js 의 _expandData() 에서 수행
+// ─── JSON → URL-safe Base64 압축 (v3) ────────────────────────────────────────
+// 핵심 버그 수정: btoa() 의 '+','/' → URL에서 오작동
+//   URLSearchParams.get('d') 가 '+' 를 공백으로 자동 변환 → atob 실패
+//   → URL-safe base64: '+' → '-', '/' → '_', '=' 패딩 제거
+// v3 추가 최적화:
+//   · rt (한글 금리유형 레이블) 제거 — cat 에서 렌더링 시 복원
+//   · dt (dsrText) 제거 — ds 값으로 재생성
+//   · rt_, mp_, ml_ 를 숫자로 저장 (한글 "원" 제거)
+//   · dc 소수점 2자리 반올림
+//   · ca 날짜만 저장, ex 초 단위
 function _compressReportData(d) {
+  // 숫자 추출 헬퍼 (한글 포함 문자열 → 숫자)
+  const _n = s => typeof s === 'number' ? s : parseInt(String(s).replace(/[^0-9]/g, '')) || 0;
+
   const compact = {
     v:   d.v,
     ic:  d.income,
     ls:  (d.loans || []).map(l => ({
-      c:  l.cat, p: l.P, r: l.R, sk: l.SR, n: l.n, rt: l.rt,
-      ap: l.annPmt, dc: l.dsrCont,
-      ml: l.monthlyLevel, mp: l.monthlyPrin1
+      c:  l.cat, p: l.P, r: l.R, sk: l.SR, n: l.n,
+      ap: l.annPmt,
+      dc: Math.round((l.dsrCont || 0) * 100) / 100,  // 소수점 2자리
+      ml: l.monthlyLevel,
+      mp: l.monthlyPrin1
+      // rt(한글 레이블) 제거 — 렌더링 시 cat 으로 복원
     })),
-    dt:  d.dsrText,  rt_: d.remainTxt, mp_: d.maxPTxt, ml_: d.maxLTxt,
-    ds:  d.dsr,      io:  d.isOver,    tp:  d.totalAnnPayment,
-    ri:  d.reqIncome, ep: d.excessPmt, erp: d.estReducePrin, td: d.targetDSR,
-    ct:  d.consultant,
+    // dt(dsrText) 제거 — ds.toFixed(2)+'%' 로 복원
+    rt_: _n(d.remainTxt),   // 숫자만 저장
+    mp_: _n(d.maxPTxt),
+    ml_: _n(d.maxLTxt),
+    ds:  d.dsr,
+    io:  d.isOver,
+    tp:  d.totalAnnPayment,
+    ri:  d.reqIncome,
+    ep:  d.excessPmt,
+    erp: d.estReducePrin,
+    td:  d.targetDSR,
+    ct:  d.consultant ? { ph: d.consultant.phone } : null,
     rn:  d.reportNonce,
-    ex:  d.expiry,   ca:  d.createdAt,
-    _v:  2  // 압축 버전 마커 (report-page.js 에서 구분)
+    ex:  Math.floor(d.expiry / 1000),         // ms → 초 (3자리 절감)
+    ca:  d.createdAt.slice(0, 10),             // "2026-03-31" 날짜만
+    _v:  3
   };
-  return btoa(unescape(encodeURIComponent(JSON.stringify(compact))));
+
+  // ★ URL-safe base64: '+' → '-', '/' → '_', '=' 패딩 제거
+  return btoa(unescape(encodeURIComponent(JSON.stringify(compact))))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
 }
 
 // ─── 클립보드 복사 ────────────────────────────────────────────────────────────

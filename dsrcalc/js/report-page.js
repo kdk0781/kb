@@ -524,7 +524,12 @@ async function checkAccess(d) {
 
   // ── Case B: st 토큰 있음 ─────────────────────────────────────────────────
   let token;
-  try { token = JSON.parse(decodeURIComponent(escape(atob(st)))); }
+  try {
+    // URL-safe base64 복원 후 파싱
+    const stB64 = st.replace(/-/g, '+').replace(/_/g, '/');
+    const stPad = stB64.length % 4 ? stB64 + '='.repeat(4 - stB64.length % 4) : stB64;
+    token = JSON.parse(decodeURIComponent(escape(atob(stPad))));
+  }
   catch { return { ok: false, reason: 'invalid' }; }
 
   const { nonce, exp, sig } = token;
@@ -656,30 +661,79 @@ function _rptRenderSchTable(id, type) {
     </table>`;
 }
 
-// ─── 압축 데이터 복원 (_v:2 마커 기준) ──────────────────────────────────────
-// report.js 의 _compressReportData() 에 대응
+// ─── 압축 데이터 복원 — URL-safe base64 + v2/v3/legacy 완전 호환 ─────────────
+// ★ 핵심 버그 수정: URLSearchParams 는 '+' 를 공백으로 자동 변환
+//   → v3: URL-safe base64 ('+' → '-', '/' → '_') → 복원 후 atob
+//   → v2: 공백이 포함된 채로 들어올 수 있음 → 공백 → '+' 복원 후 atob
+//   → legacy: #hash 방식의 구형 포맷 → 그대로 atob
 function _expandData(raw) {
-  try {
-    const d = JSON.parse(decodeURIComponent(escape(atob(raw))));
-    if (d._v !== 2) return d; // 구형 비압축 데이터: 그대로 반환 (하위 호환)
+  // 파싱 시도 헬퍼
+  const _try = str => {
+    try { return JSON.parse(decodeURIComponent(escape(atob(str)))); }
+    catch { return null; }
+  };
 
-    // 압축 키 → 원본 키 복원
+  // ① v3 URL-safe base64: '-' → '+', '_' → '/', 패딩 복원
+  const b64safe = raw.replace(/-/g, '+').replace(/_/g, '/');
+  const pad = b64safe.length % 4 ? b64safe + '='.repeat(4 - b64safe.length % 4) : b64safe;
+  let d = _try(pad);
+
+  // ② v2 fallback: URLSearchParams 가 '+' → ' ' 로 변환한 경우
+  if (!d) {
+    const b64fixed = raw.replace(/ /g, '+');
+    d = _try(b64fixed);
+  }
+
+  // ③ legacy fallback: 원본 그대로
+  if (!d) d = _try(raw);
+
+  if (!d) return null;
+
+  // ─── v3 포맷 복원 ─────────────────────────────────────────────────────
+  if (d._v === 3) {
+    const f = v => v ? Math.round(v).toLocaleString() + '원' : '-';
     return {
-      v:               d.v,
-      income:          d.ic,
-      loans:           (d.ls || []).map(l => ({
-        cat:           l.c,  P: l.p,  R: l.r,  SR: l.sk, n: l.n, rt: l.rt,
-        annPmt:        l.ap, dsrCont: l.dc,
-        monthlyLevel:  l.ml, monthlyPrin1: l.mp
+      v:             d.v,
+      income:        d.ic,
+      loans:         (d.ls || []).map(l => ({
+        cat:         l.c,  P: l.p,  R: l.r,  SR: l.sk, n: l.n,
+        annPmt:      l.ap, dsrCont: l.dc,
+        monthlyLevel: l.ml, monthlyPrin1: l.mp
       })),
-      dsrText:         d.dt,  remainTxt: d.rt_, maxPTxt: d.mp_, maxLTxt: d.ml_,
-      dsr:             d.ds,  isOver: d.io, totalAnnPayment: d.tp,
-      reqIncome:       d.ri,  excessPmt: d.ep, estReducePrin: d.erp, targetDSR: d.td,
-      consultant:      d.ct,
-      reportNonce:     d.rn,
-      expiry:          d.ex,  createdAt: d.ca
+      dsrText:       d.ds.toFixed(2) + '%',   // dt 제거 → ds 로 재생성
+      remainTxt:     f(d.rt_),                // 숫자 → 포맷 문자열
+      maxPTxt:       f(d.mp_),
+      maxLTxt:       f(d.ml_),
+      dsr:           d.ds,  isOver: d.io,  totalAnnPayment: d.tp,
+      reqIncome:     d.ri,  excessPmt: d.ep, estReducePrin: d.erp, targetDSR: d.td,
+      consultant:    d.ct ? { phone: d.ct.ph } : null,
+      reportNonce:   d.rn,
+      expiry:        d.ex * 1000,             // 초 → ms
+      createdAt:     d.ca + 'T00:00:00.000Z'  // 날짜 → ISO
     };
-  } catch { return null; }
+  }
+
+  // ─── v2 포맷 복원 (하위 호환) ─────────────────────────────────────────
+  if (d._v === 2) {
+    return {
+      v:             d.v,
+      income:        d.ic,
+      loans:         (d.ls || []).map(l => ({
+        cat:         l.c,  P: l.p,  R: l.r,  SR: l.sk, n: l.n, rt: l.rt,
+        annPmt:      l.ap, dsrCont: l.dc,
+        monthlyLevel: l.ml, monthlyPrin1: l.mp
+      })),
+      dsrText:       d.dt,  remainTxt: d.rt_, maxPTxt: d.mp_, maxLTxt: d.ml_,
+      dsr:           d.ds,  isOver: d.io,  totalAnnPayment: d.tp,
+      reqIncome:     d.ri,  excessPmt: d.ep, estReducePrin: d.erp, targetDSR: d.td,
+      consultant:    d.ct,
+      reportNonce:   d.rn,
+      expiry:        d.ex,  createdAt: d.ca
+    };
+  }
+
+  // ─── legacy 비압축 포맷 ────────────────────────────────────────────────
+  return d;
 }
 
 // ─── 진입점 ───────────────────────────────────────────────────────────────────
