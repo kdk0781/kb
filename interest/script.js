@@ -1,6 +1,13 @@
 /* ======================================================
-   KB 금리표 · script.js  v0781_7
+   KB 금리표 · script.js  v260401
    ====================================================== */
+
+/* ======================================================
+   0. 앱 버전 — sw.js의 VERSION과 반드시 동일하게 유지
+      배포 시 두 파일 모두 같이 올릴 것
+      버전이 바뀌면 → 이번 주 공지 닫기 설정이 초기화됨
+   ====================================================== */
+const APP_VERSION = '260401';
 
 /* ======================================================
    1. 금리 데이터
@@ -146,12 +153,12 @@ function renderContent() {
                     <div class="price-box ${isBest ? 'target' : ''}">
                         <span class="label">전자계약 O</span>
                         <span class="value">${onVal.toFixed(2)}<small>%</small></span>
-                        <span class="formula">${i.b} + ${i.a} − ${r.base.primeOn.toFixed(2)}</span>
+                        <span class="formula">${i.b} + ${i.a} − 1.10</span>
                     </div>
                     <div class="price-box">
                         <span class="label">전자계약 X</span>
                         <span class="value">${offVal.toFixed(2)}<small>%</small></span>
-                        <span class="formula">${i.b} + ${i.a} − ${r.base.primeOff.toFixed(2)}</span>
+                        <span class="formula">${i.b} + ${i.a} − 0.90</span>
                     </div>
                 </div>
             </article>`;
@@ -245,19 +252,31 @@ const sleep = ms => new Promise(res => setTimeout(res, ms));
 /* ======================================================
    6. 공지사항 팝업
    ====================================================== */
-const NOTICE_KEY = 'kb_notice_next_monday';
+const NOTICE_KEY   = 'kb_notice_next_monday';
+const VERSION_KEY  = 'kb_notice_version';   // 마지막으로 공지를 본 버전 저장
 
 function showNotice() {
     const overlay = document.getElementById('notice-overlay');
     if (!overlay) return;
 
-    const stored = localStorage.getItem(NOTICE_KEY);
-    if (stored && isSameWeek(new Date(), new Date(parseInt(stored)))) {
-        return; // 이번 주 이미 닫음
-    }
-    localStorage.removeItem(NOTICE_KEY);
+    const stored        = localStorage.getItem(NOTICE_KEY);
+    const lastSeenVer   = localStorage.getItem(VERSION_KEY);
 
-    // display:flex 상태에서 opacity 트랜지션으로 부드럽게 표시
+    // ── 버전이 바뀌었으면 → 닫기 설정 무조건 초기화하고 공지 표시
+    if (lastSeenVer !== APP_VERSION) {
+        localStorage.removeItem(NOTICE_KEY);
+        localStorage.setItem(VERSION_KEY, APP_VERSION);
+        console.log(`공지: 새 버전(${APP_VERSION}) 감지 → 공지 초기화`);
+        // 공지 표시로 진행
+    } else {
+        // ── 같은 버전이면 주간 닫기 설정 존중
+        if (stored && isSameWeek(new Date(), new Date(parseInt(stored)))) {
+            console.log('공지: 이번 주 닫기 유지');
+            return;
+        }
+        localStorage.removeItem(NOTICE_KEY);
+    }
+
     requestAnimationFrame(() => {
         overlay.classList.add('active');
     });
