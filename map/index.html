@@ -3,21 +3,19 @@
 <head>
 	<meta charset="UTF-8">
 	<title>시세표</title>
-	<link rel="stylesheet" type="text/css" href="./css/common.css" media="all" />
+	<link rel="stylesheet" type="text/css" href="./css/common.css?v=2">" media="all" />
 </head>
 <body>
 
 <div class="container">
     <div class="page-header">
-        <h1>📊 아파트 시세 조회 </h1>
+        <h1>🏢 프리미엄 아파트 시세 조회</h1>
         <div id="statusMessage" class="status-msg">데이터를 준비 중입니다...</div>
     </div>
     
     <div class="controls">
-        <div class="tabs">
-            <button class="tab-btn active">전체 시세표</button>
-        </div>
         <div class="search-box">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
             <input type="text" id="searchInput" placeholder="지역, 아파트명 검색 (예: 중산동 호반)" autocomplete="off">
         </div>
     </div>
@@ -32,6 +30,6 @@
     <div id="pagination" class="pagination"></div>
 </div>
 
-<script src="./js/app.js"></script>
+<script src="js/app.js?v=2"></script>
 </body>
 </html>
