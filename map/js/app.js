@@ -4,20 +4,20 @@ let filteredData = [];
 let currentPage = 1;
 const rowsPerPage = 50; 
 
-// 사용자가 요청한 고정 헤더
+// 고정 헤더 항목
 const currentHeaders = ['지역', '아파트', '공급면적', '전용면적', '하한가', '일반가', '상한가'];
 
+// 데이터 소스
 const filePaths = {
     '전체데이터': 'excel/map.csv'
 };
 
-// 아파트별 고유 색상 지정을 위한 맵퍼
+// 아파트 색상 그룹화를 위한 변수
 let aptColorMap = {};
 let colorCounter = 0;
 
 function getAptColorClass(aptName) {
     if (aptColorMap[aptName] === undefined) {
-        // 5가지 색상(0~4)을 순환하며 배정
         aptColorMap[aptName] = `apt-group-${colorCounter % 5}`;
         colorCounter++;
     }
@@ -27,6 +27,7 @@ function getAptColorClass(aptName) {
 document.addEventListener("DOMContentLoaded", () => {
     loadData('전체데이터');
 
+    // 검색 이벤트 (AND 조건 실시간 필터)
     document.getElementById('searchInput').addEventListener('input', function(e) {
         const keyword = e.target.value.trim();
         filterData(keyword);
@@ -53,7 +54,7 @@ function loadData(fileKey) {
         })
         .catch(error => {
             console.error(error);
-            statusMsg.textContent = "데이터를 불러오지 못했습니다. excel 폴더에 map.csv 파일이 있는지 확인해주세요.";
+            statusMsg.textContent = "오류: excel 폴더에 map.csv 파일이 존재하는지 확인해주세요.";
             statusMsg.style.color = "red";
         });
 }
@@ -62,7 +63,7 @@ function parseCSV(csv) {
     const lines = csv.split(/\r\n|\n/);
     const parsedData = [];
 
-    // 파싱 시작 전 색상 초기화
+    // 파싱 시 초기화
     aptColorMap = {};
     colorCounter = 0;
 
@@ -70,6 +71,7 @@ function parseCSV(csv) {
         const currentLine = lines[i].trim();
         if (!currentLine) continue; 
 
+        // 불필요 행 스킵
         if (currentLine.includes('전국은행연합회') || 
             currentLine.includes('조견표') || 
             currentLine.includes('절대 수정 금지') ||
@@ -83,8 +85,10 @@ function parseCSV(csv) {
         if (col.length < 11) continue;
         if (!col[0] || col[0] === '') continue;
 
+        // 지역 병합 (시도 시군구 읍면동)
         const regionStr = `${col[0]} ${col[1]} ${col[2]}`.replace(/\s+/g, ' ').trim();
         
+        // 금액 콤마 포맷팅
         const formatPrice = (val) => {
             const num = parseFloat(val);
             return isNaN(num) || num === 0 ? '-' : num.toLocaleString();
@@ -106,7 +110,8 @@ function parseCSV(csv) {
     currentData = parsedData;
     filteredData = parsedData;
     currentPage = 1;
-    renderPage();
+    renderHeader(); // 헤더 렌더링
+    renderPage();   // 데이터 렌더링
 }
 
 function filterData(keyword) {
@@ -114,7 +119,6 @@ function filterData(keyword) {
         filteredData = currentData;
     } else {
         const searchTerms = keyword.toLowerCase().split(/\s+/);
-        
         filteredData = currentData.filter(row => {
             const targetStr = `${row['지역']} ${row['아파트']}`.toLowerCase();
             return searchTerms.every(term => targetStr.includes(term));
@@ -127,12 +131,26 @@ function filterData(keyword) {
     statusMsg.textContent = keyword ? `검색 결과: ${filteredData.length.toLocaleString()}건` : `총 ${currentData.length.toLocaleString()}건의 데이터가 있습니다.`;
 }
 
+// 💡 table의 thead 역할을 하는 div 렌더링
+function renderHeader() {
+    const listHeader = document.getElementById('listHeader');
+    listHeader.innerHTML = '';
+
+    currentHeaders.forEach(headerText => {
+        const cell = document.createElement('div');
+        cell.className = 'list-cell';
+        cell.textContent = headerText;
+        listHeader.appendChild(cell);
+    });
+}
+
+// 💡 table의 tbody 역할을 하는 div 렌더링
 function renderPage() {
-    const container = document.getElementById('tableContainer');
-    container.innerHTML = '';
+    const listBody = document.getElementById('listBody');
+    listBody.innerHTML = '';
 
     if (filteredData.length === 0) {
-        container.innerHTML = '<div style="padding:40px; text-align:center; color:#6c757d;">검색 결과가 없습니다.</div>';
+        listBody.innerHTML = '<div style="padding:40px; text-align:center; color:#6c757d;">검색 결과가 없습니다.</div>';
         renderPagination(0);
         return;
     }
@@ -141,41 +159,28 @@ function renderPage() {
     const endIndex = startIndex + rowsPerPage;
     const pageData = filteredData.slice(startIndex, endIndex);
 
-    const table = document.createElement('table');
-    
-    const thead = document.createElement('thead');
-    const headerRow = document.createElement('tr');
-    currentHeaders.forEach(headerText => {
-        const th = document.createElement('th');
-        th.textContent = headerText;
-        headerRow.appendChild(th);
-    });
-    thead.appendChild(headerRow);
-    table.appendChild(thead);
-
-    const tbody = document.createElement('tbody');
+    // tr, td 대신 div로 행과 셀 생성
     pageData.forEach(rowObj => {
-        const tr = document.createElement('tr');
-        
-        // 💡 핵심: 아파트명에 따라 색상 클래스(apt-group-0 ~ 4) 부여
-        tr.className = getAptColorClass(rowObj['아파트']);
+        const row = document.createElement('div');
+        row.className = `list-row ${getAptColorClass(rowObj['아파트'])}`;
 
         currentHeaders.forEach(header => {
-            const td = document.createElement('td');
-            td.textContent = rowObj[header];
-            td.setAttribute('data-label', header);
-            tr.appendChild(td);
+            const cell = document.createElement('div');
+            cell.className = 'list-cell';
+            cell.textContent = rowObj[header];
+            cell.setAttribute('data-label', header); // 모바일에서 라벨로 사용됨
+            row.appendChild(cell);
         });
-        tbody.appendChild(tr);
+        listBody.appendChild(row);
     });
-    table.appendChild(tbody);
-    container.appendChild(table);
 
-    document.querySelector('.table-wrapper').scrollTo({ top: 0, behavior: 'smooth' });
+    // 스크롤 상단 이동 (클래스명 변경됨)
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     
     renderPagination(Math.ceil(filteredData.length / rowsPerPage));
 }
 
+// 페이지네이션 렌더링
 function renderPagination(totalPages) {
     const pagination = document.getElementById('pagination');
     pagination.innerHTML = '';
