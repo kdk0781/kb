@@ -1,11 +1,16 @@
 /* =========================================
-   1. 공통 및 초기화
+   1. 공통 및 초기화 (밝은 모드 기본)
    ========================================= */
 :root {
-    --bg-color: #f4f7f9; --text-main: #1a1f24; --text-muted: #73808b;
-    --card-bg: #ffffff; --border-color: #e2e8f0; 
-    --primary-color: #facc15; --primary-dark: #eab308;
-    --header-bg: #1e293b; --header-text: #ffffff;
+    --bg-color: #f4f7f9; 
+    --text-main: #1a1f24; 
+    --text-muted: #73808b;
+    --card-bg: #ffffff; 
+    --border-color: #e2e8f0; 
+    --primary-color: #facc15; 
+    --primary-dark: #eab308;
+    --header-bg: #1e293b; 
+    --header-text: #ffffff;
     --highlight-bg: #fefce8;
     --price-color: #ef4444;
 }
@@ -20,40 +25,38 @@
     }
 }
 
-/* 스티키 헤더가 자연스럽게 덮히도록 body의 padding을 제거하고 container로 이동 */
-body { font-family: 'Pretendard', sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 0; }
+body { font-family: 'Pretendard', -apple-system, sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 0; }
 .container { max-width: 1200px; margin: 0 auto; padding: 0 20px 20px 20px; }
 
 /* =========================================
-   2. 컨트롤(검색창) - ⭐️ 상단 스티키 고정
+   2. 상단 고정(Sticky) 검색창
    ========================================= */
 .controls { 
     position: sticky; 
     top: 0; 
     z-index: 100; 
-    background-color: var(--bg-color); /* 스크롤 시 배경 덮기 */
+    background-color: var(--bg-color); /* 뒤에 있는 리스트가 스크롤될 때 가려주기 위함 */
     padding: 20px 0 15px 0; 
 }
-.search-box { position: relative; width: 100%; max-width: 400px; }
-.search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; color: var(--text-muted); }
-.search-box input { width: 100%; padding: 14px 14px 14px 40px; border: 1px solid var(--border-color); border-radius: 12px; background-color: var(--card-bg); color: var(--text-main); font-size: 1rem; box-sizing: border-box; outline: none; transition: 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+.search-box { position: relative; width: 100%; max-width: 400px; margin-bottom: 8px; }
+.search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; color: var(--text-muted); }
+.search-box input { width: 100%; padding: 14px 14px 14px 44px; border: 1px solid var(--border-color); border-radius: 12px; background-color: var(--card-bg); color: var(--text-main); font-size: 1rem; box-sizing: border-box; outline: none; transition: 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
 .search-box input:focus { border-color: var(--primary-dark); box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.2); }
+.status-msg { font-size: 0.85rem; color: var(--text-muted); padding-left: 4px; }
 
 /* =========================================
-   3. PC 레이아웃 (데이터 그리드)
+   3. PC 레이아웃 (그리드 헤더 고정)
    ========================================= */
 .list-wrapper { 
     background-color: var(--card-bg); 
     border-radius: 12px; 
     border: 1px solid var(--border-color); 
     box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
-    /* overflow: hidden 삭제 (스티키 기능을 위해 필수) */
 }
 
-/* ⭐️ 헤더 - 검색창 바로 아래 스티키 고정 */
 .list-header { 
     position: sticky; 
-    top: 83px; /* 검색창 영역 높이만큼 띄움 */
+    top: 100px; /* PC 검색창 영역 높이만큼 띄움 */
     z-index: 90; 
     background-color: var(--header-bg); 
     color: var(--header-text); 
@@ -91,7 +94,6 @@ body { font-family: 'Pretendard', sans-serif; background-color: var(--bg-color);
     .list-wrapper { border: none; background: transparent; box-shadow: none; }
     .list-header { display: none; }
     
-    /* 모바일/태블릿에서는 검색창의 width 제한 해제 */
     .search-box { max-width: 100%; }
 
     .list-row {
@@ -120,6 +122,7 @@ body { font-family: 'Pretendard', sans-serif; background-color: var(--bg-color);
     .cell-area-sup::before { content: "공급면적"; font-size: 0.75rem; color: var(--text-muted); font-weight: 500; margin-bottom: 2px; }
     .cell-area-ex::before { content: "전용면적"; font-size: 0.75rem; color: var(--text-muted); font-weight: 500; margin-bottom: 2px; }
 
+    /* 가격 카드화 */
     .cell-price-low, .cell-price-mid, .cell-price-high { display: flex; flex-direction: column; align-items: center; justify-content: center; background: #f8fafc; padding: 12px 8px; border-radius: 8px; text-align: center; }
     .cell-price-low { grid-area: low; }
     .cell-price-mid { grid-area: mid; background: #fff1f2; }
