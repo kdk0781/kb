@@ -1,5 +1,5 @@
 /* ─────────────────────────────────────────────
-아파트 시세표 | app.js  v4.0
+아파트 시세표 | app.js  v5.0
 최적화 포인트
 ① searchKey를 파싱 시점 1회 생성 (검색마다 rowsText 재조합 제거)
 ② 시/도 지역 칩 필터 (지역별 즉시 좁히기)
@@ -8,6 +8,8 @@
 ⑤ 결과 카운트 표시
 ⑥ 정렬 기능 (기본/가나다/가격 낮은순/높은순)
 ⑦ ㎡ ↔ 평 단위 토글 (CSS class 방식, 재렌더링 없음)
+⑧ 규제지역 배지 (투기지역/투기과열지구/조정대상지역)
+⑨ 비동기 청크 파싱 + 상태기계 CSV 파서 (무한로딩 방지)
 ───────────────────────────────────────────── */
 
 let allGroups     = [];
@@ -276,6 +278,16 @@ return fields;
 CHUNK_SIZE 행씩 처리 후 yieldFrame()으로 브라우저에 제어권 반환
 → 스피너 애니메이션 유지, 진행률 표시 가능 */
 async function parseCSV(csv) {
+try {
+await _parseCSVInner(csv);
+} catch (err) {
+console.error(’[parseCSV]’, err);
+// 내부 예외도 스플래시 에러로 표시 (무한 로딩 방지)
+showSplashError();
+}
+}
+
+async function _parseCSVInner(csv) {
 const CHUNK_SIZE = 800; // 한 번에 처리할 행 수
 const lines = csv.split(/\r\n|\n/);
 const total = lines.length;
