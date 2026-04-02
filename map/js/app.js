@@ -94,28 +94,37 @@ function parseCSV(csv) {
     const lines = csv.split(/\r\n|\n/);
     const flatData = [];
     
-    // 💡 날짜 추출 로직: 처음 10줄 이내에서 날짜 패턴(YYYY.MM.DD)을 자동으로 찾아냅니다.
-    let baseDate = "";
+    // 💡 날짜 추출 고도화: 한 줄에서 시작 날짜와 끝 날짜를 모두 찾아 [시작~끝] 포맷으로 만듭니다.
+    let baseDateText = "";
     for (let i = 0; i < Math.min(10, lines.length); i++) {
-        // 정규식을 통해 날짜 형태 추출 (예: 2024-10-25, 2024.10.25, 2024년 10월 25일)
-        const match = lines[i].match(/(20\d{2})[-.년\s]+([0-1]?\d)[-.월\s]+([0-3]?\d)[일]?/);
-        if (match) {
+        const regex = /(20\d{2})[-.년\s]+([0-1]?\d)[-.월\s]+([0-3]?\d)[일]?/g;
+        let match;
+        let dates = [];
+        
+        while ((match = regex.exec(lines[i])) !== null) {
             const year = match[1];
             const month = match[2].padStart(2, '0');
             const day = match[3].padStart(2, '0');
-            baseDate = `${year}.${month}.${day}`;
+            dates.push(`${year}.${month}.${day}`);
+        }
+        
+        if (dates.length >= 2) {
+            baseDateText = `[${dates[0]}~${dates[1]}]`;
+            break;
+        } else if (dates.length === 1) {
+            baseDateText = `[${dates[0]}]`;
             break;
         }
     }
     
-    // 날짜를 찾았다면 화면에 표시
     const dateLabel = document.getElementById('baseDateLabel');
-    if (baseDate) {
-        dateLabel.textContent = `* ${baseDate} 기준 시세`;
+    if (baseDateText) {
+        dateLabel.textContent = baseDateText;
     } else {
-        dateLabel.style.display = 'none'; // 못 찾으면 영역을 숨김
+        dateLabel.style.display = 'none';
     }
 
+    // 엑셀 파싱
     for (let i = 0; i < lines.length; i++) {
         const currentLine = lines[i].trim();
         if (!currentLine) continue; 
