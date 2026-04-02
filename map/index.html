@@ -6,17 +6,29 @@
 	<link rel="stylesheet" type="text/css" href="common.css" media="all" />
 </head>
 <body>
+
 <div class="container">
-    <h2>📊 지역별 시세표 자동 연동</h2>
+    <div class="page-header">
+        <h1>📊 지역별 아파트 시세 조회</h1>
+        <div id="statusMessage" class="status-msg">데이터를 준비 중입니다...</div>
+    </div>
     
-    <div class="tab-container">
-        <button class="tab-btn active" onclick="loadExcelData('서울경기인천')">서울/경기/인천</button>
-        <button class="tab-btn" onclick="loadExcelData('그외지역')">그 외 지역</button>
+    <div class="controls">
+        <div class="tabs">
+            <button class="tab-btn active" onclick="loadRegion('서울경기인천')">서울/경기/인천</button>
+            <button class="tab-btn" onclick="loadRegion('그외지역')">그 외 지역</button>
+        </div>
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="동, 아파트명 검색 (예: 중산동)" autocomplete="off">
+        </div>
     </div>
 
-    <div id="statusMessage" class="status-msg">데이터를 불러오는 중입니다...</div>
-    
-    <div id="tableContainer">
+    <div class="table-wrapper">
+        <div id="tableContainer">
+            </div>
+    </div>
+
+    <div id="pagination" class="pagination">
         </div>
 </div>
 
