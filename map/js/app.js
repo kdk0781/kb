@@ -32,10 +32,11 @@ function loadData() {
             const decoder = new TextDecoder('euc-kr');
             const csvText = decoder.decode(buffer);
             parseCSV(csvText);
-            console.log(`데이터 로드 성공: 총 ${currentData.length}건`);
+            document.getElementById('statusMessage').innerHTML = `총 <b>${currentData.length.toLocaleString()}</b>건의 실거래 시세가 있습니다.`;
         })
         .catch(error => {
-            console.error("데이터를 불러오지 못했습니다. 경로를 확인해주세요.", error);
+            console.error("오류:", error);
+            document.getElementById('statusMessage').textContent = "데이터를 불러오지 못했습니다. 경로를 확인해주세요.";
         });
 }
 
@@ -61,14 +62,17 @@ function parseCSV(csv) {
 
         const regionStr = `${col[0]} ${col[1]} ${col[2]}`.replace(/\s+/g, ' ').trim();
         
+        // ⭐️ 콤마(,) 제거 후 숫자로 변환하여 정상적인 금액 노출
         const formatPrice = (val) => {
-            const num = parseFloat(val);
+            const cleanVal = val.replace(/,/g, ''); // 원본 데이터의 콤마 제거
+            const num = parseFloat(cleanVal);
             if (isNaN(num) || num === 0) return '-';
-            return num.toLocaleString('ko-KR') + '만원';
+            return num.toLocaleString('ko-KR') + '만원'; // 정상적으로 만원 단위 포맷팅
         };
 
         const formatArea = (val) => {
-            const num = parseFloat(val);
+            const cleanVal = val.replace(/,/g, '');
+            const num = parseFloat(cleanVal);
             return isNaN(num) ? val : num.toString() + '㎡';
         };
 
@@ -155,10 +159,7 @@ function renderPagination(totalPages) {
 
     let startPage = Math.max(1, currentPage - 2);
     let endPage = Math.min(totalPages, startPage + 4);
-    
-    if (endPage - startPage < 4) {
-        startPage = Math.max(1, endPage - 4);
-    }
+    if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
 
     if (currentPage > 1) {
         const prevBtn = document.createElement('button');
