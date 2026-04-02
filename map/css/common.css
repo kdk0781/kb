@@ -166,7 +166,7 @@ body {
 .meta-row {
     display: flex; align-items: center;
     justify-content: space-between;
-    padding: 6px 2px;
+    padding: 6px 2px 0;
 }
 
 .result-count {
@@ -349,11 +349,66 @@ body {
 .empty-state small { font-size: 0.85rem; }
 
 
-/* ── 무한스크롤 센티넬 ── */
+/* ── ㎡ / 평 단위 토글 ── */
+
+/* 기본: ㎡ 표시 */
+.u-pyeong { display: none !important; }
+.u-sqm    { display: inline !important; }
+
+/* 평형 모드: body.pyeong-mode 클래스로 전환 */
+body.pyeong-mode .u-pyeong { display: inline !important; }
+body.pyeong-mode .u-sqm    { display: none !important; }
+
+/* 단위 토글 버튼 */
+.unit-toggle-btn {
+    display: flex; align-items: center;
+    gap: 0;
+    background: var(--card-bg);
+    border: 1.5px solid var(--border-color);
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    font-family: inherit;
+    padding: 0;
+    transition: border-color 0.2s;
+}
+.unit-toggle-btn:focus { outline: none; border-color: var(--primary-dark); }
+
+.u-label-sqm,
+.u-label-pyeong {
+    padding: 6px 11px;
+    font-size: 0.82rem; font-weight: 700;
+    color: var(--text-muted);
+    transition: background 0.18s, color 0.18s;
+    user-select: none;
+    line-height: 1;
+}
+.u-label-sqm.active,
+.u-label-pyeong.active {
+    background: var(--chip-active-bg);
+    color: var(--chip-active-text);
+}
+/* 구분선 */
+.unit-toggle-btn .u-sep {
+    width: 1px; height: 18px;
+    background: var(--border-color);
+    flex-shrink: 0;
+}
+
+/* 아코디언 헤더 단위 배지 */
+.header-unit-badge {
+    display: inline-block;
+    font-size: 0.72rem; font-weight: 700;
+    background: var(--primary-color);
+    color: #1a1f24;
+    padding: 1px 6px; border-radius: 5px;
+    margin-left: 4px;
+    vertical-align: middle;
+}
 #scrollSentinel { height: 40px; width: 100%; margin-top: 16px; }
 
 
-/* ── 반응형 (모바일) ── */
+/* ── 무한스크롤 센티넬 ── */
 @media screen and (max-width: 768px) {
     .accordion-btn { padding: 18px 16px; }
 
