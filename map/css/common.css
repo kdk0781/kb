@@ -166,7 +166,7 @@ body {
 .meta-row {
     display: flex; align-items: center;
     justify-content: space-between;
-    padding: 10px 2px;
+    padding: 6px 2px 0;
 }
 
 .result-count {
@@ -406,6 +406,62 @@ body.pyeong-mode .u-sqm    { display: none !important; }
     vertical-align: middle;
 }
 #scrollSentinel { height: 40px; width: 100%; margin-top: 16px; }
+
+
+/* ══════════════════════════════════════
+   규제지역 배지 (2025.10.16 기준)
+   A = 투기지역+투기과열+조정 (서울 강남3구+용산)
+   B = 투기과열+조정 (서울 나머지+경기 12곳)
+══════════════════════════════════════ */
+
+.reg-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 5px;
+}
+
+.reg-badge {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 800;
+    padding: 2px 7px;
+    border-radius: 5px;
+    letter-spacing: -0.2px;
+    white-space: nowrap;
+}
+
+/* 투기지역 — 빨간 (가장 강한 규제) */
+.reg-badge.reg-A {
+    background: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+    border: 1px solid rgba(239, 68, 68, 0.28);
+}
+
+/* 투기과열지구 — 주황 */
+.reg-badge.reg-B {
+    background: rgba(234, 88, 12, 0.09);
+    color: #c2410c;
+    border: 1px solid rgba(234, 88, 12, 0.22);
+}
+
+/* 조정대상지역 — 파랑 */
+.reg-badge.reg-C {
+    background: rgba(37, 99, 235, 0.07);
+    color: #1d4ed8;
+    border: 1px solid rgba(37, 99, 235, 0.18);
+}
+
+/* 다크모드 */
+@media (prefers-color-scheme: dark) {
+    .reg-badge.reg-A { background: rgba(239,68,68,0.18); color: #fca5a5; border-color: rgba(239,68,68,0.35); }
+    .reg-badge.reg-B { background: rgba(234,88,12,0.18); color: #fdba74; border-color: rgba(234,88,12,0.32); }
+    .reg-badge.reg-C { background: rgba(37,99,235,0.15); color: #93c5fd; border-color: rgba(37,99,235,0.28); }
+}
+
+/* 카드 좌측 컬러 테두리 — 규제 강도 시각화 */
+.group-item.has-reg.zone-A { border-left: 3px solid rgba(239, 68, 68, 0.55); }
+.group-item.has-reg.zone-B { border-left: 3px solid rgba(234, 88, 12, 0.45); }
 
 
 /* ── 무한스크롤 센티넬 ── */
