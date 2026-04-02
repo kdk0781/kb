@@ -1,1 +1,25 @@
+<!DOCTYPE HTML>
+<html lang="ko">
+<head>
+	<meta charset="UTF-8">
+	<title>시세표</title>
+	<link rel="stylesheet" type="text/css" href="common.css" media="all" />
+</head>
+<body>
+<div class="container">
+    <h2>📊 지역별 시세표 자동 연동</h2>
+    
+    <div class="tab-container">
+        <button class="tab-btn active" onclick="loadExcelData('서울경기인천')">서울/경기/인천</button>
+        <button class="tab-btn" onclick="loadExcelData('그외지역')">그 외 지역</button>
+    </div>
 
+    <div id="statusMessage" class="status-msg">데이터를 불러오는 중입니다...</div>
+    
+    <div id="tableContainer">
+        </div>
+</div>
+
+<script src="js/app.js"></script>
+</body>
+</html>
