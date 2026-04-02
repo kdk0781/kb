@@ -1,5 +1,5 @@
 /* ─────────────────────────────────────────────
-   아파트 시세표 | app.js  v3.0
+   아파트 시세표 | app.js  v4.0
    최적화 포인트
    ① searchKey를 파싱 시점 1회 생성 (검색마다 rowsText 재조합 제거)
    ② 시/도 지역 칩 필터 (지역별 즉시 좁히기)
@@ -7,12 +7,14 @@
    ④ 면적 타입 suffix 배지 (T=테라스, P=펜트하우스, C=코너 등)
    ⑤ 결과 카운트 표시
    ⑥ 정렬 기능 (기본/가나다/가격 낮은순/높은순)
+   ⑦ ㎡ ↔ 평 단위 토글 (CSS class 방식, 재렌더링 없음)
 ───────────────────────────────────────────── */
 
 let allGroups     = [];
 let filteredGroups = [];
 let activeRegion  = '전체';
 let activeSort    = 'default';
+let areaUnit      = 'sqm';   // 'sqm' | 'pyeong'
 let loadedCount   = 0;
 const LOAD_STEP   = 20;
 let searchDebounceTimer = null;
@@ -87,6 +89,15 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('sortSelect').addEventListener('change', (e) => {
         activeSort = e.target.value;
         applyFilters();
+    });
+
+    // ㎡ ↔ 평 단위 토글 (CSS class만 변경 → 재렌더링 없음)
+    document.getElementById('unitToggleBtn').addEventListener('click', () => {
+        areaUnit = areaUnit === 'sqm' ? 'pyeong' : 'sqm';
+        document.body.classList.toggle('pyeong-mode', areaUnit === 'pyeong');
+        const btn = document.getElementById('unitToggleBtn');
+        btn.querySelector('.u-label-sqm').classList.toggle('active', areaUnit === 'sqm');
+        btn.querySelector('.u-label-pyeong').classList.toggle('active', areaUnit === 'pyeong');
     });
 
     setupScrollObserver();
@@ -171,6 +182,17 @@ function parseCSV(csv) {
         // 소수점 2자리까지, 끝 0 제거
         return n % 1 === 0 ? String(n) : n.toFixed(2).replace(/\.?0+$/, '');
     };
+    // ㎡ → 평 변환 (소수점 1자리)
+    const toPyeong = (sqmStr, csvPyeong) => {
+        // CSV의 col[7]에 이미 계산된 구 평형(정수)이 있으면 우선 사용
+        if (csvPyeong) {
+            const p = parseFloat(csvPyeong.replace(/,/g, ''));
+            if (!isNaN(p) && p > 0) return p + '평';
+        }
+        const n = parseFloat(sqmStr.replace(/,/g, ''));
+        if (isNaN(n)) return '-';
+        return (n / 3.3058).toFixed(1) + '평';
+    };
     // 면적 suffix 추출 (숫자·점·쉼표 이후 문자열)
     const getSuffix = (val) => {
         const raw = val.trim().replace(/^[\d.,]+/, '');
@@ -206,10 +228,12 @@ function parseCSV(csv) {
         const apt     = col[3].trim();
         if (!apt) continue;
 
-        // col[4] = 주택형(공급), col[5] = 전용, col[6] = 주택형(clean), col[7] = 평형
-        const areaSuffix = getSuffix(col[4]);
-        const supply  = toArea(col[6] || col[4]);
-        const excl    = toArea(col[5]);
+        // col[4] = 주택형(공급), col[5] = 전용, col[6] = 주택형(clean), col[7] = 구평형
+        const areaSuffix   = getSuffix(col[4]);
+        const supply       = toArea(col[6] || col[4]);
+        const excl         = toArea(col[5]);
+        const supplyPyeong = toPyeong(col[6] || col[4], col[7]); // CSV 구평형 우선
+        const exclPyeong   = toPyeong(col[5], '');               // 전용은 직접 계산
         const low     = toPrice(col[8]);
         const mid     = toPrice(col[9]);
         const high    = toPrice(col[10]);
@@ -220,6 +244,7 @@ function parseCSV(csv) {
             지역: `${sido} ${sigungu} ${dong}`.replace(/\s+/g, ' '),
             아파트: apt,
             공급면적: supply, 전용면적: excl,
+            공급평형: supplyPyeong, 전용평형: exclPyeong,
             suffix: areaSuffix,
             하한가: low, 일반가: mid, 상한가: high,
             일반가Raw: midRaw,
@@ -332,12 +357,16 @@ function createGroupHTML(g) {
             ? `<span class="area-suffix">${row.suffix}</span>`
             : '';
 
+        // ㎡ / 평 양쪽 렌더링 → CSS로 show/hide (재렌더 불필요)
         rowsHTML += `
         <div class="inner-row">
             <div class="inner-area">
-                <span class="area-val">${row.공급면적}㎡</span>
-                <span class="area-divider">/</span>
-                <span class="area-val exclusive">${row.전용면적}㎡</span>
+                <span class="area-val u-sqm">${row.공급면적}㎡</span>
+                <span class="area-divider u-sqm">/</span>
+                <span class="area-val exclusive u-sqm">${row.전용면적}㎡</span>
+                <span class="area-val u-pyeong">${row.공급평형}</span>
+                <span class="area-divider u-pyeong">/</span>
+                <span class="area-val exclusive u-pyeong">${row.전용평형}</span>
                 ${suffixBadge}
             </div>
             <div class="inner-prices">
@@ -375,7 +404,11 @@ function createGroupHTML(g) {
         </div>
         <div class="accordion-content">
             <div class="content-header">
-                <span class="header-area">면적 (공급 / 전용)</span>
+                <span class="header-area">
+                    면적 (공급 / 전용)
+                    <span class="header-unit-badge u-sqm">㎡</span>
+                    <span class="header-unit-badge u-pyeong">평</span>
+                </span>
                 <span class="header-unit">(단위: 만원)</span>
             </div>
             ${rowsHTML}
