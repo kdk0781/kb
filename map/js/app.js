@@ -14,10 +14,11 @@ document.addEventListener("DOMContentLoaded", () => {
     loadData();
     setupScrollObserver();
 
+    // 💡 클릭 이벤트 감지 대상을 accordion-btn으로 변경
     document.getElementById('listBody').addEventListener('click', function(e) {
-        const header = e.target.closest('.group-header');
-        if (header) {
-            const groupItem = header.parentElement;
+        const btn = e.target.closest('.accordion-btn');
+        if (btn) {
+            const groupItem = btn.parentElement;
             const isActive = groupItem.classList.contains('active');
 
             document.querySelectorAll('.group-item.active').forEach(item => {
@@ -125,14 +126,14 @@ function filterData(keyword) {
 function createGroupHTML(group) {
     let html = `
         <div class="group-item">
-            <div class="group-header">
+            <div class="accordion-btn">
                 <div class="group-title-wrap">
                     <span class="group-apt">${group.아파트}</span>
                     <span class="group-region">${group.지역}</span>
                 </div>
                 <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
             </div>
-            <div class="group-content">
+            <div class="accordion-content">
     `;
     group.rows.forEach(row => {
         html += `
