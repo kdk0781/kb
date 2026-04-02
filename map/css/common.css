@@ -85,7 +85,7 @@ body { font-family: 'Pretendard', -apple-system, sans-serif; background-color: v
     .inner-row { flex-direction: column; align-items: flex-start; gap: 14px; padding: 20px; }
     /* 모바일에서는 면적 사이 간격을 더 넓게(30px) 잡음 */
     .inner-area { width: 100%; justify-content: flex-start; gap: 30px; border-bottom: 1px dashed var(--border-color); padding-bottom: 12px; }
-    .inner-prices { justify-content: space-between; background: var(--hover-bg); padding: 16px 12px; border-radius: 8px; width: calc(100% - 24px); }
+    .inner-prices { justify-content: space-between; background: var(--hover-bg); padding: 16px 12px; border-radius: 8px; width: calc(100% - 24px); text-align:center;}
     .price-box { align-items: center; width: auto; }
 }
 
