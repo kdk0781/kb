@@ -13,7 +13,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <link rel="stylesheet" href="css/common.css?v=30">
+    <link rel="stylesheet" href="css/common.css?v=31">
 </head>
 <body>
 
@@ -56,10 +56,16 @@
         <!-- 지역 칩 필터 (파싱 후 동적 생성) -->
         <div id="regionFilter" class="region-filter"></div>
 
-        <!-- 결과 수 + 정렬 + 기준일 -->
+        <!-- 결과 수 + 단위 토글 + 정렬 + 기준일 -->
         <div class="meta-row">
             <span id="resultCount" class="result-count"></span>
             <div style="display:flex; align-items:center; gap:8px;">
+                <!-- ㎡ / 평 단위 토글 -->
+                <button id="unitToggleBtn" class="unit-toggle-btn" title="면적 단위 전환">
+                    <span class="u-label-sqm active">㎡</span>
+                    <span class="u-sep"></span>
+                    <span class="u-label-pyeong">평</span>
+                </button>
                 <select id="sortSelect" class="sort-select">
                     <option value="default">기본순</option>
                     <option value="name">가나다순</option>
@@ -78,6 +84,6 @@
 
 </div>
 
-<script src="js/app.js?v=30"></script>
+<script src="js/app.js?v=31"></script>
 </body>
 </html>
