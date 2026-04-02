@@ -1,91 +1,135 @@
-// 페이지가 열리면 기본적으로 첫 번째 탭의 데이터를 자동으로 불러옵니다.
-document.addEventListener("DOMContentLoaded", () => {
-    loadExcelData('서울경기인천');
-});
+// 전역 상태 변수
+let currentData = [];       // 현재 불러온 전체 데이터
+let filteredData = [];      // 검색으로 필터링된 데이터
+let currentHeaders = [];    // CSV 컬럼 헤더
+let currentPage = 1;
+const rowsPerPage = 50;     // 한 페이지에 보여줄 줄 수
 
-// 파일 경로 매핑 (excel 폴더 안의 파일명과 정확히 일치해야 함)
 const filePaths = {
-    '서울경기인천': 'excel/map.csv',
-    '그외지역': 'excel/map.csv'
+    '서울경기인천': 'map.csv',
+    '그외지역': 'map.csv'
 };
 
-function loadExcelData(regionKey) {
+document.addEventListener("DOMContentLoaded", () => {
+    loadRegion('서울경기인천');
+
+    // 검색창 입력 이벤트 리스너 (실시간 검색)
+    document.getElementById('searchInput').addEventListener('input', function(e) {
+        const keyword = e.target.value.toLowerCase().trim();
+        filterData(keyword);
+    });
+});
+
+function loadRegion(regionKey) {
     const statusMsg = document.getElementById('statusMessage');
-    const container = document.getElementById('tableContainer');
+    const searchInput = document.getElementById('searchInput');
     
-    // 버튼 활성화 상태 변경
+    // 버튼 UI 업데이트
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     event && event.target ? event.target.classList.add('active') : document.querySelector('.tab-btn').classList.add('active');
 
     statusMsg.textContent = "데이터를 불러오는 중입니다...";
-    container.innerHTML = '';
+    document.getElementById('tableContainer').innerHTML = '';
+    document.getElementById('pagination').innerHTML = '';
+    searchInput.value = ''; // 탭 변경 시 검색어 초기화
 
     const filePath = filePaths[regionKey];
 
-    // Fetch API를 사용하여 excel 폴더의 파일을 자동으로 읽어옵니다.
     fetch(filePath)
         .then(response => {
-            if (!response.ok) {
-                throw new Error("파일을 찾을 수 없거나 서버 오류입니다.");
-            }
-            // 엑셀에서 저장한 CSV의 한글(EUC-KR) 깨짐을 방지하기 위해 arrayBuffer로 받습니다.
+            if (!response.ok) throw new Error("파일 로드 실패");
             return response.arrayBuffer();
         })
         .then(buffer => {
-            // EUC-KR 인코딩으로 텍스트 디코딩
             const decoder = new TextDecoder('euc-kr');
             const csvText = decoder.decode(buffer);
             
-            processData(csvText);
-            statusMsg.textContent = `${regionKey} 데이터를 성공적으로 불러왔습니다.`;
+            parseCSV(csvText);
+            statusMsg.textContent = `[${regionKey}] 총 ${currentData.length.toLocaleString()}건의 데이터가 있습니다.`;
         })
         .catch(error => {
-            console.error("데이터 로드 실패:", error);
-            statusMsg.textContent = `오류 발생: 파일을 불러오지 못했습니다. (경로: ${filePath})`;
+            console.error(error);
+            statusMsg.textContent = "데이터를 불러오지 못했습니다. 파일 경로를 확인해주세요.";
             statusMsg.style.color = "red";
         });
 }
 
-function processData(csv) {
+// CSV 데이터를 JSON 배열로 변환
+function parseCSV(csv) {
     const lines = csv.split(/\r\n|\n/);
-    const ESTIMATED_ROWS_ABOVE_HEADER = 5; // 상단 안내문구 5줄 무시
+    const ESTIMATED_ROWS_ABOVE_HEADER = 5; 
 
-    if (lines.length <= ESTIMATED_ROWS_ABOVE_HEADER) {
-        document.getElementById('tableContainer').innerHTML = '<p>데이터가 부족합니다.</p>';
-        return;
-    }
+    if (lines.length <= ESTIMATED_ROWS_ABOVE_HEADER) return;
 
-    // 헤더 행 파싱 (6번째 줄)
-    const headers = lines[ESTIMATED_ROWS_ABOVE_HEADER].split(',').map(h => h.trim().replace(/"/g, ''));
-    const jsonData = [];
-
-    // 데이터 행 파싱 (7번째 줄부터 끝까지)
+    // 헤더 파싱
+    currentHeaders = lines[ESTIMATED_ROWS_ABOVE_HEADER].split(',').map(h => h.trim().replace(/"/g, ''));
+    
+    const parsedData = [];
     for (let i = ESTIMATED_ROWS_ABOVE_HEADER + 1; i < lines.length; i++) {
         const currentLine = lines[i].trim();
         if (!currentLine) continue;
 
         const obj = {};
-        // 쉼표 분리 (따옴표 안의 쉼표는 무시하는 정규식)
         const currentLineArr = currentLine.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
 
-        headers.forEach((header, index) => {
+        let isEmptyRow = true;
+        currentHeaders.forEach((header, index) => {
             let value = currentLineArr[index] || '';
-            obj[header] = value.replace(/^"|"$/g, '').trim();
+            value = value.replace(/^"|"$/g, '').trim();
+            obj[header] = value;
+            if (value && value !== '0.0') isEmptyRow = false; // 빈 데이터 행 걸러내기
         });
-        jsonData.push(obj);
+        
+        if (!isEmptyRow) parsedData.push(obj);
     }
 
-    renderTable(headers, jsonData);
+    currentData = parsedData;
+    filteredData = parsedData;
+    currentPage = 1;
+    renderPage();
 }
 
-function renderTable(headers, data) {
+// 검색어 필터링
+function filterData(keyword) {
+    if (!keyword) {
+        filteredData = currentData;
+    } else {
+        filteredData = currentData.filter(row => {
+            // 행의 모든 값 중 하나라도 검색어를 포함하면 반환
+            return Object.values(row).some(value => 
+                String(value).toLowerCase().includes(keyword)
+            );
+        });
+    }
+    currentPage = 1;
+    renderPage();
+    
+    const statusMsg = document.getElementById('statusMessage');
+    statusMsg.textContent = `검색 결과: ${filteredData.length.toLocaleString()}건`;
+}
+
+// 특정 페이지의 데이터 렌더링
+function renderPage() {
     const container = document.getElementById('tableContainer');
+    container.innerHTML = '';
+
+    if (filteredData.length === 0) {
+        container.innerHTML = '<div style="padding:20px; text-align:center;">검색 결과가 없습니다.</div>';
+        renderPagination(0);
+        return;
+    }
+
+    // 현재 페이지에 해당하는 데이터 자르기
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    const endIndex = startIndex + rowsPerPage;
+    const pageData = filteredData.slice(startIndex, endIndex);
+
     const table = document.createElement('table');
     
-    // thead 생성
+    // thead
     const thead = document.createElement('thead');
     const headerRow = document.createElement('tr');
-    headers.forEach(headerText => {
+    currentHeaders.forEach(headerText => {
         const th = document.createElement('th');
         th.textContent = headerText;
         headerRow.appendChild(th);
@@ -93,18 +137,71 @@ function renderTable(headers, data) {
     thead.appendChild(headerRow);
     table.appendChild(thead);
 
-    // tbody 생성
+    // tbody
     const tbody = document.createElement('tbody');
-    data.forEach(rowObj => {
+    pageData.forEach(rowObj => {
         const tr = document.createElement('tr');
-        headers.forEach(header => {
+        currentHeaders.forEach(header => {
             const td = document.createElement('td');
-            td.textContent = rowObj[header];
-            td.setAttribute('data-label', header); // 모바일 카드형 라벨용
+            // 숫자 형식에 콤마 추가 (금액 등)
+            let value = rowObj[header];
+            if (!isNaN(value) && value !== '') {
+                // 필요시 Number(value).toLocaleString() 처리 가능
+            }
+            td.textContent = value;
+            td.setAttribute('data-label', header);
             tr.appendChild(td);
         });
         tbody.appendChild(tr);
     });
     table.appendChild(tbody);
     container.appendChild(table);
+
+    // 스크롤 상단으로 이동 (부드럽게)
+    document.querySelector('.table-wrapper').scrollTo({ top: 0, behavior: 'smooth' });
+    
+    renderPagination(Math.ceil(filteredData.length / rowsPerPage));
+}
+
+// 페이지네이션 버튼 렌더링
+function renderPagination(totalPages) {
+    const pagination = document.getElementById('pagination');
+    pagination.innerHTML = '';
+
+    if (totalPages <= 1) return;
+
+    // 모바일에서는 페이징 버튼이 너무 많으면 복잡하므로 5개씩만 표시
+    let startPage = Math.max(1, currentPage - 2);
+    let endPage = Math.min(totalPages, startPage + 4);
+    
+    if (endPage - startPage < 4) {
+        startPage = Math.max(1, endPage - 4);
+    }
+
+    // 이전 버튼
+    if (currentPage > 1) {
+        const prevBtn = document.createElement('button');
+        prevBtn.className = 'page-btn';
+        prevBtn.textContent = '◀';
+        prevBtn.onclick = () => { currentPage--; renderPage(); };
+        pagination.appendChild(prevBtn);
+    }
+
+    // 숫자 버튼
+    for (let i = startPage; i <= endPage; i++) {
+        const btn = document.createElement('button');
+        btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+        btn.textContent = i;
+        btn.onclick = () => { currentPage = i; renderPage(); };
+        pagination.appendChild(btn);
+    }
+
+    // 다음 버튼
+    if (currentPage < totalPages) {
+        const nextBtn = document.createElement('button');
+        nextBtn.className = 'page-btn';
+        nextBtn.textContent = '▶';
+        nextBtn.onclick = () => { currentPage++; renderPage(); };
+        pagination.appendChild(nextBtn);
+    }
 }
