@@ -6,8 +6,8 @@ let currentPage = 1;
 const rowsPerPage = 50;     // 한 페이지에 보여줄 줄 수
 
 const filePaths = {
-    '서울경기인천': 'map.csv',
-    '그외지역': 'map.csv'
+    '서울경기인천': 'excel/map.csv',
+    '그외지역': 'excel/map.csv'
 };
 
 document.addEventListener("DOMContentLoaded", () => {
