@@ -54,10 +54,7 @@ body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
 .group-apt { font-size: 1.3rem; font-weight: 800; color: var(--text-main); letter-spacing: -0.5px; }
 .group-region { font-size: 0.9rem; color: var(--text-muted); font-weight: 500; }
 
-/* 💡 아코디언 우측 영역 (단위 텍스트 + 화살표) */
 .accordion-right { display: flex; align-items: center; gap: 8px; }
-.unit-label { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; background: var(--hover-bg); padding: 4px 8px; border-radius: 6px; }
-
 .chevron { width: 24px; height: 24px; stroke: var(--text-muted); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
 .group-item.active .chevron { transform: rotate(180deg); stroke: var(--text-main); }
 
@@ -70,31 +67,38 @@ body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 /* =========================================
-   4. 내부 데이터 (중앙 정렬 가독성 극대화)
+   4. 내부 데이터 (면적, 단위, 가격 표기 영역)
    ========================================= */
+/* 💡 새로 추가된 콘텐츠 헤더 (면적 / 단위:만원) */
+.content-header { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    padding: 12px 20px; 
+    background-color: var(--hover-bg); 
+    border-bottom: 1px solid var(--border-color);
+}
+.header-area, .header-unit { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; }
+
 .inner-row { padding: 18px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
 .inner-row:last-child { border-bottom: none; }
 .inner-row:hover { background: var(--hover-bg); }
 
-/* 💡 면적 중앙 정렬 */
 .inner-area { display: flex; align-items: center; justify-content: center; gap: 8px; min-width: 140px; }
 .area-val { font-size: 1.1rem; font-weight: 700; color: var(--text-main); }
 .area-val.exclusive { font-size: 0.95rem; font-weight: 500; color: var(--text-muted); }
 .area-divider { color: #cbd5e1; font-weight: 300; font-size: 1.1rem; }
 
 .inner-prices { display: flex; gap: 24px; width: 100%; justify-content: flex-end; }
-/* 💡 가격 요소들 중앙 정렬 (flex-end -> center) */
 .price-box { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100px; text-align: center; }
 .price-label { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; font-weight: 600;}
 
 .price-val { font-size: 1.05rem !important; font-weight: 600; color: var(--text-main); }
 .price-box.mid .price-val { color: var(--price-color) !important; font-weight: 700 !important; }
 
-/* 💡 모바일 환경에서 완벽한 중앙 정렬 */
 @media screen and (max-width: 768px) {
     .inner-row { flex-direction: column; align-items: center; gap: 14px; padding: 20px; text-align: center; }
     .inner-area { width: 100%; justify-content: center; border-bottom: 1px dashed var(--border-color); padding-bottom: 12px; }
-    /* 가격 3개를 등간격으로 배치하고 각 요소 중앙 정렬 */
     .inner-prices { justify-content: space-around; background: var(--hover-bg); padding: 16px 12px; border-radius: 12px; width: calc(100% - 24px); }
     .price-box { align-items: center; width: auto; }
 }
