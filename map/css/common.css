@@ -166,7 +166,7 @@ body {
 .meta-row {
     display: flex; align-items: center;
     justify-content: space-between;
-    padding: 6px 2px 0;
+    padding: 6px 2px;
 }
 
 .result-count {
