@@ -1,1 +1,125 @@
+/* =========================================
+           1. 시스템 테마 설정 (다크/라이트 모드)
+           ========================================= */
+        :root {
+            --bg-color: #f4f7f6;
+            --text-color: #333333;
+            --card-bg: #ffffff;
+            --border-color: #dddddd;
+            --header-bg: #4CAF50;
+            --header-text: #ffffff;
+            --hover-bg: #f1f1f1;
+            --btn-bg: #e0e0e0;
+            --btn-active: #4CAF50;
+        }
 
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #121212;
+                --text-color: #e0e0e0;
+                --card-bg: #1e1e1e;
+                --border-color: #333333;
+                --header-bg: #2e7d32;
+                --header-text: #ffffff;
+                --hover-bg: #2c2c2c;
+                --btn-bg: #333333;
+                --btn-active: #2e7d32;
+            }
+        }
+
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* 탭 버튼 스타일 */
+        .tab-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            background-color: var(--btn-bg);
+            color: var(--text-color);
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .tab-btn.active {
+            background-color: var(--btn-active);
+            color: #fff;
+        }
+
+        .status-msg {
+            margin-bottom: 15px;
+            font-size: 0.9em;
+            color: #888;
+        }
+
+        /* =========================================
+           2. PC/모바일 반응형 테이블 디자인
+           ========================================= */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: var(--header-bg);
+            color: var(--header-text);
+            white-space: nowrap;
+        }
+
+        tr:hover {
+            background-color: var(--hover-bg);
+        }
+
+        /* 모바일 대응 (768px 이하 카드형 레이아웃) */
+        @media screen and (max-width: 768px) {
+            table, thead, tbody, th, td, tr { display: block; }
+            thead tr { display: none; }
+            tr {
+                margin-bottom: 15px;
+                border: 1px solid var(--border-color);
+                border-radius: 8px;
+            }
+            td {
+                border-bottom: 1px solid var(--border-color);
+                position: relative;
+                padding-left: 50%;
+                text-align: right;
+            }
+            td:last-child { border-bottom: 0; }
+            td::before {
+                content: attr(data-label);
+                position: absolute;
+                left: 15px;
+                width: 45%;
+                white-space: nowrap;
+                text-align: left;
+                font-weight: bold;
+                color: var(--header-bg);
+            }
+        }
