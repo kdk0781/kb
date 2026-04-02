@@ -1,20 +1,14 @@
-let currentData = [];
 let groupedData = []; 
 let filteredGroups = []; 
 
-let currentPage = 1;
-const groupsPerPage = 15; 
-let isSearching = false;  
-let searchPage = 1;       
-const searchPerPage = 20; 
-let scrollObserver = null;
+let loadedCount = 0;      
+const loadStep = 20;      
 let searchDebounceTimer;  
+let scrollObserver = null;
 
 document.addEventListener("DOMContentLoaded", () => {
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js')
-            .then(reg => console.log('Service Worker 등록 완료'))
-            .catch(err => console.log('Service Worker 등록 실패', err));
+        navigator.serviceWorker.register('sw.js').catch(err => console.log(err));
     }
 
     document.getElementById('hardRefreshBtn').addEventListener('click', async () => {
@@ -66,8 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('searchInput').addEventListener('input', function(e) {
         clearTimeout(searchDebounceTimer);
         searchDebounceTimer = setTimeout(() => {
-            const keyword = e.target.value.trim();
-            filterData(keyword);
+            filterData(e.target.value.trim());
         }, 300); 
     });
 });
@@ -80,10 +73,8 @@ function loadData() {
         })
         .then(buffer => {
             const decoder = new TextDecoder('euc-kr');
-            const csvText = decoder.decode(buffer);
-            parseCSV(csvText);
+            parseCSV(decoder.decode(buffer));
             
-            // 💡 데이터 렌더링이 완료된 후 오버레이를 부드럽게 숨김
             setTimeout(() => {
                 const splash = document.getElementById('splashOverlay');
                 if (splash) splash.classList.add('hide');
@@ -91,7 +82,6 @@ function loadData() {
         })
         .catch(error => {
             console.error("오류:", error);
-            // 에러가 나도 로딩 화면에서 탈출할 수 있도록 숨김 처리
             const splash = document.getElementById('splashOverlay');
             if (splash) {
                 splash.innerHTML = '<div class="splash-text" style="color:red;">데이터를 불러올 수 없습니다.</div>';
@@ -107,10 +97,26 @@ function parseCSV(csv) {
     for (let i = 0; i < lines.length; i++) {
         const currentLine = lines[i].trim();
         if (!currentLine) continue; 
-        if (currentLine.includes('전국은행연합회') || currentLine.includes('조견표') || currentLine.includes('절대 수정 금지') || currentLine.includes('대출상담사') || currentLine.includes('시도,시군구,읍면동')) continue;
+        
+        // 💡 핵심 고도화: 엑셀의 '제목 행(헤더)' 및 안내 문구 완벽 필터링
+        if (
+            currentLine.includes('전국은행연합회') || 
+            currentLine.includes('조견표') || 
+            currentLine.includes('절대 수정 금지') || 
+            currentLine.includes('대출상담사') || 
+            currentLine.includes('시도,시군구') || 
+            currentLine.includes('시/도') ||       // "시/도 시/군/구" 제거
+            currentLine.includes('공급면적') ||     // "공급면적" 타이틀 제거
+            currentLine.includes('하한가')          // "하한가" 타이틀 제거
+        ) {
+            continue;
+        }
 
         const col = currentLine.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.replace(/^"|"$/g, '').trim());
         if (col.length < 11 || !col[0]) continue;
+
+        // 💡 2차 방어: 아파트 이름 칸에 '아파트'라는 제목이 들어간 경우 스킵
+        if (col[3] === '아파트' || col[3] === '단지명') continue;
 
         const regionStr = `${col[0]} ${col[1]} ${col[2]}`.replace(/\s+/g, ' ').trim();
         const aptName = col[3];
@@ -119,7 +125,6 @@ function parseCSV(csv) {
             const num = parseFloat(val.replace(/,/g, ''));
             return (isNaN(num) || num === 0) ? '-' : num.toLocaleString('ko-KR');
         };
-
         const formatArea = (val) => {
             const num = parseFloat(val.replace(/,/g, ''));
             return isNaN(num) ? val : num.toString();
@@ -137,17 +142,13 @@ function parseCSV(csv) {
 
     groupedData = Array.from(map.values());
     filteredGroups = groupedData;
-    isSearching = false;
-    currentPage = 1;
-    renderPage();   
+    renderInitial();   
 }
 
 function filterData(keyword) {
     if (!keyword) {
-        isSearching = false;
         filteredGroups = groupedData;
     } else {
-        isSearching = true; 
         const searchTerms = keyword.toLowerCase().split(/\s+/);
         filteredGroups = groupedData.filter(group => {
             const groupText = `${group.지역} ${group.아파트}`.toLowerCase();
@@ -155,8 +156,7 @@ function filterData(keyword) {
             return searchTerms.every(term => (groupText + ' ' + rowsText).includes(term));
         });
     }
-    
-    currentPage = 1; searchPage = 1; renderPage();
+    renderInitial();
 }
 
 function createGroupHTML(group) {
@@ -196,80 +196,51 @@ function createGroupHTML(group) {
     return html + `</div></div>`;
 }
 
-function renderPage() {
+function renderInitial() {
     const listBody = document.getElementById('listBody');
-    const pagination = document.getElementById('pagination');
     const sentinel = document.getElementById('scrollSentinel');
     
     listBody.innerHTML = '';
+    loadedCount = 0; 
 
     if (filteredGroups.length === 0) {
         listBody.innerHTML = '<div style="padding:60px; text-align:center; color:#94a3b8; font-weight:500;">조건에 맞는 시세 정보가 없습니다.</div>';
-        pagination.style.display = 'none';
         sentinel.style.display = 'none';
         return;
     }
 
-    let groupsToRender = [];
-    if (isSearching) {
-        groupsToRender = filteredGroups.slice(0, searchPerPage);
-        pagination.style.display = 'none';
-        sentinel.style.display = 'block'; 
-    } else {
-        const startIndex = (currentPage - 1) * groupsPerPage;
-        groupsToRender = filteredGroups.slice(startIndex, startIndex + groupsPerPage);
-        pagination.style.display = 'flex';
-        sentinel.style.display = 'none'; 
-        renderPagination(Math.ceil(filteredGroups.length / groupsPerPage));
-    }
-
-    listBody.innerHTML = groupsToRender.map(createGroupHTML).join('');
-    if (!isSearching) window.scrollTo({ top: 0, behavior: 'smooth' });
+    loadMore(); 
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function appendSearchPage() {
-    const startIndex = (searchPage - 1) * searchPerPage;
-    const groupsToRender = filteredGroups.slice(startIndex, startIndex + searchPerPage);
+function loadMore() {
+    const listBody = document.getElementById('listBody');
+    const sentinel = document.getElementById('scrollSentinel');
+    
+    const nextCount = Math.min(loadedCount + loadStep, filteredGroups.length);
+    const groupsToRender = filteredGroups.slice(loadedCount, nextCount);
+    
     if (groupsToRender.length > 0) {
         const html = groupsToRender.map(createGroupHTML).join('');
-        document.getElementById('listBody').insertAdjacentHTML('beforeend', html);
+        listBody.insertAdjacentHTML('beforeend', html);
+    }
+    
+    loadedCount = nextCount;
+    
+    if (loadedCount >= filteredGroups.length) {
+        sentinel.style.display = 'none';
+    } else {
+        sentinel.style.display = 'block';
     }
 }
 
 function setupScrollObserver() {
     const sentinel = document.getElementById('scrollSentinel');
     scrollObserver = new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting && isSearching) {
-            if (searchPage * searchPerPage < filteredGroups.length) {
-                searchPage++; appendSearchPage();
-            }
+        if (entries[0].isIntersecting) {
+            loadMore();
         }
     }, { rootMargin: "200px" }); 
+
     if (sentinel) scrollObserver.observe(sentinel);
-}
-
-function renderPagination(totalPages) {
-    const pagination = document.getElementById('pagination');
-    pagination.innerHTML = '';
-    if (totalPages <= 1) return;
-
-    let startPage = Math.max(1, currentPage - 2);
-    let endPage = Math.min(totalPages, startPage + 4);
-    if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
-
-    if (currentPage > 1) {
-        const btn = document.createElement('button'); btn.className = 'page-btn'; btn.textContent = '◀';
-        btn.onclick = () => { currentPage--; renderPage(); };
-        pagination.appendChild(btn);
-    }
-    for (let i = startPage; i <= endPage; i++) {
-        const btn = document.createElement('button'); btn.className = `page-btn ${i === currentPage ? 'active' : ''}`; btn.textContent = i;
-        btn.onclick = () => { currentPage = i; renderPage(); };
-        pagination.appendChild(btn);
-    }
-    if (currentPage < totalPages) {
-        const btn = document.createElement('button'); btn.className = 'page-btn'; btn.textContent = '▶';
-        btn.onclick = () => { currentPage++; renderPage(); };
-        pagination.appendChild(btn);
-    }
 }
