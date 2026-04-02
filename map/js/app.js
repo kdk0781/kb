@@ -32,11 +32,10 @@ function loadData() {
             const decoder = new TextDecoder('euc-kr');
             const csvText = decoder.decode(buffer);
             parseCSV(csvText);
-            document.getElementById('statusMessage').innerHTML = `총 <b>${currentData.length.toLocaleString()}</b>건의 실거래 시세가 있습니다.`;
+            // 상태 메시지 출력 부분 삭제 완료
         })
         .catch(error => {
             console.error("오류:", error);
-            document.getElementById('statusMessage').textContent = "데이터를 불러오지 못했습니다. 경로를 확인해주세요.";
         });
 }
 
@@ -62,12 +61,11 @@ function parseCSV(csv) {
 
         const regionStr = `${col[0]} ${col[1]} ${col[2]}`.replace(/\s+/g, ' ').trim();
         
-        // ⭐️ 콤마(,) 제거 후 숫자로 변환하여 정상적인 금액 노출
         const formatPrice = (val) => {
-            const cleanVal = val.replace(/,/g, ''); // 원본 데이터의 콤마 제거
+            const cleanVal = val.replace(/,/g, '');
             const num = parseFloat(cleanVal);
             if (isNaN(num) || num === 0) return '-';
-            return num.toLocaleString('ko-KR') + '만원'; // 정상적으로 만원 단위 포맷팅
+            return num.toLocaleString('ko-KR') + '만원';
         };
 
         const formatArea = (val) => {
