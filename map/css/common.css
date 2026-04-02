@@ -1,5 +1,5 @@
 /* =========================================
-   1. 공통 및 초기화 (밝은 모드)
+   1. 공통 및 초기화
    ========================================= */
 :root {
     --bg-color: #f4f7f9; 
@@ -9,137 +9,90 @@
     --border-color: #e2e8f0; 
     --primary-color: #facc15; 
     --primary-dark: #eab308;
-    
-    /* ⭐️ 라이트 모드용 밝은 헤더 색상으로 수정 */
-    --header-bg: #f8fafc; 
-    --header-text: #475569;
-    
     --highlight-bg: #fefce8;
     --price-color: #ef4444;
+    --hover-bg: #f8fafc;
 }
 
-/* 다크 모드 */
 @media (prefers-color-scheme: dark) {
     :root {
         --bg-color: #0f172a; --text-main: #f1f5f9; --text-muted: #94a3b8;
         --card-bg: #1e293b; --border-color: #334155; 
-        
-        /* ⭐️ 다크 모드용 어두운 헤더 색상 */
-        --header-bg: #0f172a; 
-        --header-text: #f1f5f9;
-        
         --highlight-bg: #272e3f;
         --price-color: #f87171;
+        --hover-bg: #0f172a;
     }
 }
 
 body { font-family: 'Pretendard', -apple-system, sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 0; }
-.container { max-width: 1200px; margin: 0 auto; padding: 0 20px 20px 20px; }
+.container { max-width: 1000px; margin: 0 auto; padding: 0 20px 20px 20px; }
 
 /* =========================================
-   2. 상단 고정(Sticky) 검색창
+   2. 검색창 (Sticky)
    ========================================= */
-.controls { 
-    position: sticky; 
-    top: 0; 
-    z-index: 100; 
-    background-color: var(--bg-color); 
-    padding: 20px 0 15px 0; 
-}
-.search-box { position: relative; width: 100%; max-width: 400px; }
-.search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; color: var(--text-muted); }
-.search-box input { width: 100%; padding: 14px 14px 14px 44px; border: 1px solid var(--border-color); border-radius: 12px; background-color: var(--card-bg); color: var(--text-main); font-size: 1rem; box-sizing: border-box; outline: none; transition: 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+.controls { position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 20px 0 15px 0; }
+.search-box { position: relative; width: 100%; max-width: 100%; margin-bottom: 8px; }
+.search-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; color: var(--text-muted); }
+.search-box input { width: 100%; padding: 15px 15px 15px 48px; border: 1px solid var(--border-color); border-radius: 12px; background-color: var(--card-bg); color: var(--text-main); font-size: 1.05rem; font-weight: 500; box-sizing: border-box; outline: none; transition: 0.3s; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
 .search-box input:focus { border-color: var(--primary-dark); box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.2); }
 
 /* =========================================
-   3. PC 레이아웃 (그리드 헤더 고정)
+   3. 아코디언 리스트 래퍼
    ========================================= */
-.list-wrapper { 
-    background-color: var(--card-bg); 
-    border-radius: 12px; 
-    border: 1px solid var(--border-color); 
-    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+.list-wrapper { display: flex; flex-direction: column; gap: 12px; }
+
+/* 그룹 아이템 (아파트 1개 단위) */
+.group-item { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.02); transition: 0.3s; }
+.group-item.active { border-color: var(--text-muted); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+
+/* 탭 헤더 (클릭 영역) */
+.group-header { padding: 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; transition: 0.2s; background: var(--card-bg); }
+.group-header:hover { background: var(--hover-bg); }
+
+.group-title-wrap { display: flex; flex-direction: column; gap: 4px; }
+.group-apt { font-size: 1.25rem; font-weight: 800; color: var(--text-main); letter-spacing: -0.5px; }
+.group-region { font-size: 0.85rem; color: var(--text-muted); font-weight: 500; }
+
+.chevron { width: 24px; height: 24px; stroke: var(--text-muted); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+.group-item.active .chevron { transform: rotate(180deg); stroke: var(--text-main); }
+
+/* 펼쳐지는 내부 콘텐츠 (평형 및 가격 정보) */
+.group-content { display: none; border-top: 1px solid var(--border-color); background: var(--card-bg); }
+.group-item.active .group-content { display: block; animation: slideDown 0.3s ease-out forwards; }
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
-.list-header { 
-    position: sticky; 
-    top: 85px; 
-    z-index: 90; 
-    background-color: var(--header-bg); 
-    color: var(--header-text); 
-    font-weight: 700; 
-    padding: 14px 0; 
-    font-size: 0.95rem; 
-    border-top-left-radius: 11px; 
-    border-top-right-radius: 11px; 
-    border-bottom: 1px solid var(--border-color); /* 구분선 추가 */
+/* 내부 데이터 열 (PC) */
+.inner-row { padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+.inner-row:last-child { border-bottom: none; }
+.inner-row:hover { background: var(--hover-bg); }
+
+.inner-area { display: flex; gap: 16px; min-width: 180px; font-weight: 700; color: var(--text-main); font-size: 1.05rem;}
+.area-label { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; margin-right: 4px; vertical-align: middle; }
+
+.inner-prices { display: flex; gap: 24px; width: 100%; justify-content: flex-end; }
+.price-box { display: flex; flex-direction: column; align-items: flex-end; width: 100px; }
+.price-label { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; font-weight: 600;}
+.price-val { font-size: 1.05rem; font-weight: 600; color: var(--text-main); }
+.price-box.mid .price-val { color: var(--price-color); font-weight: 800; font-size: 1.15rem; } /* 일반가 강조 */
+
+/* =========================================
+   4. 모바일 내부 콘텐츠 반응형
+   ========================================= */
+@media screen and (max-width: 768px) {
+    .inner-row { flex-direction: column; align-items: flex-start; gap: 14px; padding: 20px; }
+    .inner-area { width: 100%; justify-content: flex-start; border-bottom: 1px dashed var(--border-color); padding-bottom: 10px; }
+    .inner-prices { justify-content: space-between; background: var(--hover-bg); padding: 16px 12px; border-radius: 8px; width: calc(100% - 24px); }
+    .price-box { align-items: center; width: auto; }
 }
 
-.list-header, .list-row { display: grid; grid-template-columns: 2fr 2.5fr 1fr 1fr 1.2fr 1.2fr 1.2fr; align-items: center; }
-.list-header .list-cell { padding: 0 16px; border: none; }
-
-.list-row { border-bottom: 1px solid var(--border-color); transition: all 0.2s ease; padding: 12px 0; background-color: var(--card-bg); }
-.list-row:last-child { border-bottom: none; border-bottom-left-radius: 11px; border-bottom-right-radius: 11px; }
-.list-row:hover { background-color: var(--highlight-bg); transform: translateY(-1px); }
-
-.list-cell { padding: 0 16px; font-size: 0.95rem; color: var(--text-main); word-break: keep-all; }
-
-.cell-price-low, .cell-price-high { color: var(--text-muted); font-weight: 500; text-align: right; }
-.cell-price-mid { color: var(--price-color); font-weight: 800; font-size: 1.05rem; text-align: right; }
-.cell-area-sup, .cell-area-ex { text-align: center; }
-
-/* 페이지네이션 */
+/* =========================================
+   5. 페이지네이션
+   ========================================= */
 .pagination { display: flex; justify-content: center; gap: 8px; margin-top: 30px; }
 .page-btn { padding: 8px 14px; border: 1px solid var(--border-color); background-color: var(--card-bg); color: var(--text-main); border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; }
 .page-btn:hover { background-color: var(--border-color); }
 .page-btn.active { background-color: var(--text-main); color: var(--card-bg); border-color: var(--text-main); }
-
-/* =========================================
-   4. 모바일 & 태블릿(1024px 이하) 레이아웃
-   ========================================= */
-@media screen and (max-width: 1024px) {
-    .list-wrapper { border: none; background: transparent; box-shadow: none; }
-    .list-header { display: none; }
-    
-    .search-box { max-width: 100%; }
-
-    .list-row {
-        display: grid;
-        grid-template-areas: 
-            "apt apt apt"
-            "region region region"
-            "area-s area-e ."
-            "low mid high";
-        grid-template-columns: 1fr 1fr 1fr;
-        gap: 12px;
-        background-color: var(--card-bg);
-        margin-bottom: 16px;
-        padding: 20px;
-        border: 1px solid var(--border-color);
-        border-radius: 16px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.04);
-    }
-    
-    .list-cell { padding: 0; text-align: left; }
-    
-    .cell-apt { grid-area: apt; font-size: 1.25rem; font-weight: 800; letter-spacing: -0.5px; }
-    .cell-region { grid-area: region; font-size: 0.85rem; color: var(--text-muted); margin-top: -8px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; }
-    
-    .cell-area-sup, .cell-area-ex { display: flex; flex-direction: column; font-size: 1rem; font-weight: 700; text-align: left; }
-    .cell-area-sup::before { content: "공급면적"; font-size: 0.75rem; color: var(--text-muted); font-weight: 500; margin-bottom: 2px; }
-    .cell-area-ex::before { content: "전용면적"; font-size: 0.75rem; color: var(--text-muted); font-weight: 500; margin-bottom: 2px; }
-
-    .cell-price-low, .cell-price-mid, .cell-price-high { display: flex; flex-direction: column; align-items: center; justify-content: center; background: #f8fafc; padding: 12px 8px; border-radius: 8px; text-align: center; }
-    .cell-price-low { grid-area: low; }
-    .cell-price-mid { grid-area: mid; background: #fff1f2; }
-    .cell-price-high { grid-area: high; }
-
-    @media (prefers-color-scheme: dark) {
-        .cell-price-low, .cell-price-high { background: #334155; }
-        .cell-price-mid { background: rgba(239, 68, 68, 0.15); }
-    }
-
-    .cell-price-low::before { content: "하한가"; font-size: 0.75rem; color: var(--text-muted); font-weight: 500; margin-bottom: 4px; }
-    .cell-price-mid::before { content: "일반가"; font-size: 0.8rem; color: var(--price-color); font-weight: 700; margin-bottom: 4px; }
-    .cell-price-high::before { content: "상한가"; font-size: 0.75rem; color: var(--text-muted); font-weight: 500; margin-bottom: 4px; }
-}
