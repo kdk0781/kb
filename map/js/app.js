@@ -3,7 +3,6 @@ let filteredData = [];
 let currentPage = 1;
 const rowsPerPage = 50; 
 
-// 구조화된 컬럼 설정 (CSS 연동을 위한 클래스 매핑)
 const columns = [
     { key: '지역', class: 'cell-region' },
     { key: '아파트', class: 'cell-apt' },
@@ -24,10 +23,6 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function loadData() {
-    const statusMsg = document.getElementById('statusMessage');
-    statusMsg.textContent = "데이터를 불러오는 중입니다...";
-
-    // 파일 경로 확인 필수
     fetch('excel/map.csv')
         .then(response => {
             if (!response.ok) throw new Error("파일 로드 실패");
@@ -37,12 +32,10 @@ function loadData() {
             const decoder = new TextDecoder('euc-kr');
             const csvText = decoder.decode(buffer);
             parseCSV(csvText);
-            statusMsg.innerHTML = `총 <b>${currentData.length.toLocaleString()}</b>건의 실거래 시세가 있습니다.`;
+            console.log(`데이터 로드 성공: 총 ${currentData.length}건`);
         })
         .catch(error => {
-            console.error(error);
-            statusMsg.textContent = "오류: excel 폴더에 map.csv 파일이 존재하는지 확인해주세요.";
-            statusMsg.style.color = "#ef4444";
+            console.error("데이터를 불러오지 못했습니다. 경로를 확인해주세요.", error);
         });
 }
 
@@ -68,15 +61,12 @@ function parseCSV(csv) {
 
         const regionStr = `${col[0]} ${col[1]} ${col[2]}`.replace(/\s+/g, ' ').trim();
         
-        // ⭐️ 핵심 로직: 숫자 포맷팅 및 '만원' 단위 추가
         const formatPrice = (val) => {
             const num = parseFloat(val);
             if (isNaN(num) || num === 0) return '-';
-            // 44000 -> 44,000만원
             return num.toLocaleString('ko-KR') + '만원';
         };
 
-        // 면적의 불필요한 소수점 제거 (예: 111.0 -> 111)
         const formatArea = (val) => {
             const num = parseFloat(val);
             return isNaN(num) ? val : num.toString() + '㎡';
@@ -146,7 +136,6 @@ function renderPage() {
 
         columns.forEach(col => {
             const cell = document.createElement('div');
-            // 각 항목별로 CSS 전용 클래스 매핑
             cell.className = `list-cell ${col.class}`;
             cell.textContent = rowObj[col.key];
             row.appendChild(cell);
