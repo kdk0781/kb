@@ -11,6 +11,34 @@ let scrollObserver = null;
 let searchDebounceTimer;  
 
 document.addEventListener("DOMContentLoaded", () => {
+    // 💡 1. PWA 서비스 워커 등록
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js')
+            .then(reg => console.log('Service Worker 등록 완료'))
+            .catch(err => console.log('Service Worker 등록 실패', err));
+    }
+
+    // 💡 2. 강력 새로고침 버튼 로직 (캐시 및 스토리지 폭파)
+    document.getElementById('hardRefreshBtn').addEventListener('click', async () => {
+        const btnSpan = document.querySelector('#hardRefreshBtn span');
+        btnSpan.textContent = '업데이트 중...';
+        try {
+            if ('serviceWorker' in navigator) {
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                for (let reg of registrations) await reg.unregister();
+            }
+            if ('caches' in window) {
+                const cacheNames = await caches.keys();
+                await Promise.all(cacheNames.map(name => caches.delete(name)));
+            }
+            localStorage.clear(); sessionStorage.clear();
+            window.location.reload(true);
+        } catch (e) {
+            window.location.reload(true);
+        }
+    });
+
+    // 기존 데이터 로딩 및 이벤트
     loadData();
     setupScrollObserver();
 
@@ -29,8 +57,8 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!isActive) {
                 setTimeout(() => {
                     const rect = groupItem.getBoundingClientRect();
-                    if (rect.top < 100 || rect.bottom > window.innerHeight) {
-                        const topPos = groupItem.getBoundingClientRect().top + window.scrollY - 100;
+                    if (rect.top < 120 || rect.bottom > window.innerHeight) {
+                        const topPos = groupItem.getBoundingClientRect().top + window.scrollY - 120;
                         window.scrollTo({ top: topPos, behavior: 'smooth' });
                     }
                 }, 300);
@@ -48,7 +76,8 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function loadData() {
-    fetch('excel/map.csv')
+    // 💡 파일명이 최신 캐시를 무시하도록 쿼리를 붙임
+    fetch('excel/map.csv?t=' + new Date().getTime())
         .then(response => {
             if (!response.ok) throw new Error("파일 로드 실패");
             return response.arrayBuffer();
@@ -117,12 +146,9 @@ function filterData(keyword) {
         });
     }
     
-    currentPage = 1; 
-    searchPage = 1;
-    renderPage();
+    currentPage = 1; searchPage = 1; renderPage();
 }
 
-// 💡 탭 내부 최상단에 면적 / (단위: 만원) 헤더가 노출되도록 구조 변경
 function createGroupHTML(group) {
     let html = `
         <div class="group-item">
@@ -137,7 +163,7 @@ function createGroupHTML(group) {
             </div>
             <div class="accordion-content">
                 <div class="content-header">
-                    <span class="header-area">면적</span>
+                    <span class="header-area">면적 (공급/전용)</span>
                     <span class="header-unit">(단위: 만원)</span>
                 </div>
     `;
@@ -175,7 +201,6 @@ function renderPage() {
     }
 
     let groupsToRender = [];
-    
     if (isSearching) {
         groupsToRender = filteredGroups.slice(0, searchPerPage);
         pagination.style.display = 'none';
@@ -195,7 +220,6 @@ function renderPage() {
 function appendSearchPage() {
     const startIndex = (searchPage - 1) * searchPerPage;
     const groupsToRender = filteredGroups.slice(startIndex, startIndex + searchPerPage);
-    
     if (groupsToRender.length > 0) {
         const html = groupsToRender.map(createGroupHTML).join('');
         document.getElementById('listBody').insertAdjacentHTML('beforeend', html);
@@ -207,12 +231,10 @@ function setupScrollObserver() {
     scrollObserver = new IntersectionObserver((entries) => {
         if (entries[0].isIntersecting && isSearching) {
             if (searchPage * searchPerPage < filteredGroups.length) {
-                searchPage++;
-                appendSearchPage();
+                searchPage++; appendSearchPage();
             }
         }
     }, { rootMargin: "200px" }); 
-
     if (sentinel) scrollObserver.observe(sentinel);
 }
 
