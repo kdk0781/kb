@@ -67,15 +67,25 @@ document.addEventListener('DOMContentLoaded', () => {
         item.classList.toggle('active', !wasActive);
 
         if (!wasActive) {
+            // 아코디언 애니메이션(280ms) 완료 후 위치 측정
             setTimeout(() => {
+                const stickyEl = document.querySelector('.sticky-header');
+                // 스티키 헤더의 실제 하단 픽셀 위치 (동적 측정)
+                const headerBottom = stickyEl
+                    ? stickyEl.getBoundingClientRect().bottom
+                    : 130;
+                const GAP = 10; // 헤더 아래 여백
+
                 const rect = item.getBoundingClientRect();
-                if (rect.top < 130 || rect.bottom > window.innerHeight) {
+
+                // 카드 상단이 헤더 하단 + 여백보다 위에 있을 때만 스크롤
+                if (rect.top < headerBottom + GAP) {
                     window.scrollTo({
-                        top: item.getBoundingClientRect().top + window.scrollY - 130,
+                        top: window.scrollY + rect.top - headerBottom - GAP,
                         behavior: 'smooth',
                     });
                 }
-            }, 300);
+            }, 320);
         }
     });
 
@@ -103,6 +113,18 @@ document.addEventListener('DOMContentLoaded', () => {
     setupScrollObserver();
     loadData();
 });
+
+/* ── 스티키 헤더 높이 → scroll-padding-top 동기화 ──
+   아코디언 외에도 브라우저 앵커 이동 등에서 헤더 아래로 정확히 위치시킴 */
+function syncScrollPadding() {
+    const el = document.querySelector('.sticky-header');
+    if (!el) return;
+    const h = el.offsetHeight;
+    document.documentElement.style.setProperty('scroll-padding-top', (h + 10) + 'px');
+}
+
+// 지역 칩 생성 후 / 화면 크기 변경 시 재측정
+window.addEventListener('resize', syncScrollPadding, { passive: true });
 
 
 /* ══════════════ 데이터 로딩 ══════════════ */
@@ -281,6 +303,9 @@ function parseCSV(csv) {
     /* ── 지역 칩 생성 ── */
     const regions = ['전체', ...new Set(allGroups.map(g => g.시도).sort())];
     buildRegionChips(regions);
+
+    // 칩 생성 후 헤더 최종 높이로 scroll-padding-top 확정
+    requestAnimationFrame(syncScrollPadding);
 
     filteredGroups = allGroups;
     renderInitial();
