@@ -2,35 +2,30 @@ let currentData = [];
 let groupedData = []; 
 let filteredGroups = []; 
 
-// 💡 페이징 및 무한 스크롤용 상태 변수
 let currentPage = 1;
-const groupsPerPage = 15; // 기본 상태에서 1페이지당 아파트 수
+const groupsPerPage = 15; 
 let isSearching = false;  
-let searchPage = 1;       // 검색 시 무한 스크롤 페이지
-const searchPerPage = 20; // 검색 시 한 번에 불러올 렌더링 개수
+let searchPage = 1;       
+const searchPerPage = 20; 
 let scrollObserver = null;
-let searchDebounceTimer;  // 모바일 타이핑 버벅거림 방지 타이머
+let searchDebounceTimer;  
 
 document.addEventListener("DOMContentLoaded", () => {
     loadData();
     setupScrollObserver();
 
-    // 💡 1. 하나만 열리고 닫히는 아코디언 로직 적용
     document.getElementById('listBody').addEventListener('click', function(e) {
         const header = e.target.closest('.group-header');
         if (header) {
             const groupItem = header.parentElement;
             const isActive = groupItem.classList.contains('active');
 
-            // 클릭된 것을 제외한 열려있는 모든 아코디언을 먼저 닫음
             document.querySelectorAll('.group-item.active').forEach(item => {
                 if(item !== groupItem) item.classList.remove('active');
             });
 
-            // 클릭한 항목 토글 (닫혀있었으면 열고, 열려있었으면 닫음)
             groupItem.classList.toggle('active', !isActive);
             
-            // 아코디언 열릴 때 살짝 위로 스크롤 보정
             if (!isActive) {
                 setTimeout(() => {
                     const rect = groupItem.getBoundingClientRect();
@@ -43,10 +38,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // 💡 2. 모바일 타이핑 버벅거림 방지 (디바운스 기법 적용)
     document.getElementById('searchInput').addEventListener('input', function(e) {
         clearTimeout(searchDebounceTimer);
-        // 타이핑이 멈추고 300ms 후에만 검색 실행 (렌더링 과부하 방지)
         searchDebounceTimer = setTimeout(() => {
             const keyword = e.target.value.trim();
             filterData(keyword);
@@ -54,7 +47,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
-// CSV 데이터 로드
 function loadData() {
     fetch('excel/map.csv')
         .then(response => {
@@ -69,7 +61,6 @@ function loadData() {
         .catch(error => console.error("오류:", error));
 }
 
-// 데이터 파싱
 function parseCSV(csv) {
     const lines = csv.split(/\r\n|\n/);
     const flatData = [];
@@ -112,7 +103,6 @@ function parseCSV(csv) {
     renderPage();   
 }
 
-// 검색 필터
 function filterData(keyword) {
     if (!keyword) {
         isSearching = false;
@@ -127,13 +117,11 @@ function filterData(keyword) {
         });
     }
     
-    // 검색 시 초기화
     currentPage = 1; 
     searchPage = 1;
     renderPage();
 }
 
-// HTML 생성 도우미 함수
 function createGroupHTML(group) {
     let html = `
         <div class="group-item">
@@ -164,7 +152,6 @@ function createGroupHTML(group) {
     return html + `</div></div>`;
 }
 
-// 리스트 렌더링
 function renderPage() {
     const listBody = document.getElementById('listBody');
     const pagination = document.getElementById('pagination');
@@ -182,16 +169,14 @@ function renderPage() {
     let groupsToRender = [];
     
     if (isSearching) {
-        // 💡 3. 검색 시: 한 번에 수백개를 그려 뻗는 현상 방지 (무한 스크롤 적용)
         groupsToRender = filteredGroups.slice(0, searchPerPage);
         pagination.style.display = 'none';
-        sentinel.style.display = 'block'; // 스크롤 센서 켬
+        sentinel.style.display = 'block'; 
     } else {
-        // 기본 상태: 기존처럼 페이징 처리
         const startIndex = (currentPage - 1) * groupsPerPage;
         groupsToRender = filteredGroups.slice(startIndex, startIndex + groupsPerPage);
         pagination.style.display = 'flex';
-        sentinel.style.display = 'none'; // 스크롤 센서 끔
+        sentinel.style.display = 'none'; 
         renderPagination(Math.ceil(filteredGroups.length / groupsPerPage));
     }
 
@@ -199,7 +184,6 @@ function renderPage() {
     if (!isSearching) window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// 무한 스크롤 추가 렌더링 함수
 function appendSearchPage() {
     const startIndex = (searchPage - 1) * searchPerPage;
     const groupsToRender = filteredGroups.slice(startIndex, startIndex + searchPerPage);
@@ -210,23 +194,20 @@ function appendSearchPage() {
     }
 }
 
-// 무한 스크롤 옵저버 세팅 (화면 맨 밑으로 가면 다음 데이터 불러오기)
 function setupScrollObserver() {
     const sentinel = document.getElementById('scrollSentinel');
     scrollObserver = new IntersectionObserver((entries) => {
-        // 검색 중이고, 센서가 화면에 보이면
         if (entries[0].isIntersecting && isSearching) {
             if (searchPage * searchPerPage < filteredGroups.length) {
                 searchPage++;
-                appendSearchPage(); // 화면 버벅임 없이 다음 20개만 하단에 쏙 추가함
+                appendSearchPage();
             }
         }
-    }, { rootMargin: "200px" }); // 밑바닥에 닿기 200px 전부터 미리 로딩
+    }, { rootMargin: "200px" }); 
 
     if (sentinel) scrollObserver.observe(sentinel);
 }
 
-// 페이징 (기본 상태 전용)
 function renderPagination(totalPages) {
     const pagination = document.getElementById('pagination');
     pagination.innerHTML = '';
