@@ -5,8 +5,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // 파일 경로 매핑 (excel 폴더 안의 파일명과 정확히 일치해야 함)
 const filePaths = {
-    '서울경기인천': 'excel/시세표(서울,경기,인천).csv',
-    '그외지역': 'excel/시세표(그외지역).csv'
+    '서울경기인천': 'excel/map.csv',
+    '그외지역': 'excel/map.csv'
 };
 
 function loadExcelData(regionKey) {
