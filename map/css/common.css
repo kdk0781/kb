@@ -1,116 +1,152 @@
 /* =========================================
-           1. 테마 및 기본 색상
-           ========================================= */
-        :root {
-            --bg-color: #f8f9fa; --text-main: #212529; --text-muted: #6c757d;
-            --card-bg: #ffffff; --border-color: #dee2e6; --primary-color: #ffbc00;
-            --header-bg: #4b4a46; --header-text: #ffffff; --hover-bg: #f1f3f5;
+   1. 테마 및 기본 색상 설정
+   ========================================= */
+:root {
+    --bg-color: #f8f9fa; --text-main: #212529; --text-muted: #6c757d;
+    --card-bg: #ffffff; --border-color: #dee2e6; --primary-color: #ffbc00;
+    --header-bg: #4b4a46; --header-text: #ffffff; --hover-bg: #f1f3f5;
 
-            /* 아파트별 구분용 파스텔 색상 (라이트 모드) */
-            --apt-bg-0: #e3f2fd; --apt-border-0: #2196f3;
-            --apt-bg-1: #f3e5f5; --apt-border-1: #9c27b0;
-            --apt-bg-2: #e8f5e9; --apt-border-2: #4caf50;
-            --apt-bg-3: #fff3e0; --apt-border-3: #ff9800;
-            --apt-bg-4: #ffebee; --apt-border-4: #f44336;
-        }
+    /* 아파트 그룹별 파스텔 톤 (라이트 모드) */
+    --apt-bg-0: #e3f2fd; --apt-border-0: #2196f3;
+    --apt-bg-1: #f3e5f5; --apt-border-1: #9c27b0;
+    --apt-bg-2: #e8f5e9; --apt-border-2: #4caf50;
+    --apt-bg-3: #fff3e0; --apt-border-3: #ff9800;
+    --apt-bg-4: #ffebee; --apt-border-4: #f44336;
+}
 
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --bg-color: #121212; --text-main: #e9ecef; --text-muted: #adb5bd;
-                --card-bg: #1e1e1e; --border-color: #343a40; --primary-color: #ffbc00;
-                --header-bg: #2b2a27; --header-text: #ffffff; --hover-bg: #343a40;
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-color: #121212; --text-main: #e9ecef; --text-muted: #adb5bd;
+        --card-bg: #1e1e1e; --border-color: #343a40; --primary-color: #ffbc00;
+        --header-bg: #2b2a27; --header-text: #ffffff; --hover-bg: #343a40;
 
-                /* 아파트별 구분용 색상 (다크 모드 - 눈 안 아프게 투명도 적용) */
-                --apt-bg-0: rgba(33, 150, 243, 0.15); --apt-border-0: #64b5f6;
-                --apt-bg-1: rgba(156, 39, 176, 0.15); --apt-border-1: #ba68c8;
-                --apt-bg-2: rgba(76, 175, 80, 0.15); --apt-border-2: #81c784;
-                --apt-bg-3: rgba(255, 152, 0, 0.15); --apt-border-3: #ffb74d;
-                --apt-bg-4: rgba(244, 67, 54, 0.15); --apt-border-4: #e57373;
-            }
-        }
+        /* 아파트 그룹별 톤 다운 (다크 모드) */
+        --apt-bg-0: rgba(33, 150, 243, 0.15); --apt-border-0: #64b5f6;
+        --apt-bg-1: rgba(156, 39, 176, 0.15); --apt-border-1: #ba68c8;
+        --apt-bg-2: rgba(76, 175, 80, 0.15); --apt-border-2: #81c784;
+        --apt-bg-3: rgba(255, 152, 0, 0.15); --apt-border-3: #ffb74d;
+        --apt-bg-4: rgba(244, 67, 54, 0.15); --apt-border-4: #e57373;
+    }
+}
 
-        body { font-family: 'Pretendard', sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 20px; }
-        .container { max-width: 1400px; margin: 0 auto; }
-        .page-header { margin-bottom: 24px; border-bottom: 2px solid var(--border-color); padding-bottom: 16px; }
-        h1 { margin: 0 0 8px 0; font-size: 1.5rem; color: var(--text-main); }
-        .controls { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 20px; }
-        .tabs { display: flex; gap: 8px; }
-        .tab-btn { padding: 10px 20px; border: 1px solid var(--border-color); border-radius: 6px; background-color: var(--primary-color); color: #212529; font-weight: 600; cursor: default; }
-        .search-box input { padding: 10px 16px; width: 100%; max-width: 350px; border: 1px solid var(--border-color); border-radius: 6px; background-color: var(--card-bg); color: var(--text-main); outline: none; }
-        .search-box input:focus { border-color: var(--primary-color); }
-        .status-msg { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 10px; }
-        
-        .table-wrapper { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; overflow-x: auto; max-height: 70vh; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
-        th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border-color); white-space: nowrap; }
-        th { background-color: var(--header-bg); color: var(--header-text); font-weight: 500; position: sticky; top: 0; z-index: 10; }
-        
-        /* PC 화면: 행에 마우스 올리면 하이라이트 */
-        tr:hover td { background-color: var(--hover-bg) !important; }
+body { font-family: 'Pretendard', sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 20px; }
+.container { max-width: 1400px; margin: 0 auto; }
+.page-header { margin-bottom: 24px; border-bottom: 2px solid var(--border-color); padding-bottom: 16px; }
+h1 { margin: 0 0 8px 0; font-size: 1.5rem; color: var(--text-main); }
+.controls { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 20px; }
+.search-box input { padding: 10px 16px; width: 100%; min-width: 300px; border: 1px solid var(--border-color); border-radius: 6px; background-color: var(--card-bg); color: var(--text-main); outline: none; }
+.search-box input:focus { border-color: var(--primary-color); }
+.status-msg { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 10px; }
+.tab-btn { padding: 10px 20px; border: 1px solid var(--border-color); border-radius: 6px; background-color: var(--primary-color); color: #212529; font-weight: 600; }
 
-        /* 그룹별 백그라운드 컬러 설정 */
-        tr.apt-group-0 td { background-color: var(--apt-bg-0); }
-        tr.apt-group-1 td { background-color: var(--apt-bg-1); }
-        tr.apt-group-2 td { background-color: var(--apt-bg-2); }
-        tr.apt-group-3 td { background-color: var(--apt-bg-3); }
-        tr.apt-group-4 td { background-color: var(--apt-bg-4); }
+/* =========================================
+   2. PC 버전: CSS Grid를 활용한 리스트 디자인
+   ========================================= */
+.list-wrapper {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden; /* 모서리 둥글게 */
+}
 
-        .pagination { display: flex; justify-content: center; gap: 5px; margin-top: 20px; flex-wrap: wrap; }
-        .page-btn { padding: 8px 12px; border: 1px solid var(--border-color); background-color: var(--card-bg); color: var(--text-main); cursor: pointer; border-radius: 4px; }
-        .page-btn:hover { background-color: var(--hover-bg); }
-        .page-btn.active { background-color: var(--header-bg); color: #fff; border-color: var(--header-bg); }
-        
-        /* =========================================
-           2. 모바일 반응형 (카드 & 컬러 그룹핑)
-           ========================================= */
-        @media screen and (max-width: 768px) {
-            .controls { flex-direction: column; align-items: stretch; }
-            .search-box input { max-width: 100%; }
-            .table-wrapper { border: none; background: transparent; max-height: none; overflow-x: hidden; }
-            table, thead, tbody, th, td, tr { display: block; }
-            thead tr { display: none; }
-            
-            tr { 
-                margin-bottom: 16px; 
-                border: 1px solid var(--border-color); 
-                border-radius: 8px; 
-                box-shadow: 0 3px 6px rgba(0,0,0,0.08); 
-                overflow: hidden; /* 테두리 둥글게 깎기 위해 */
-            }
-            
-            /* 모바일에서는 좌측 굵은 테두리로 아파트 그룹 확실히 구분 */
-            tr.apt-group-0 { border-left: 6px solid var(--apt-border-0); }
-            tr.apt-group-1 { border-left: 6px solid var(--apt-border-1); }
-            tr.apt-group-2 { border-left: 6px solid var(--apt-border-2); }
-            tr.apt-group-3 { border-left: 6px solid var(--apt-border-3); }
-            tr.apt-group-4 { border-left: 6px solid var(--apt-border-4); }
+/* 7개의 컬럼 비율을 CSS Grid로 정확히 나눔 */
+.list-header, .list-row {
+    display: grid;
+    grid-template-columns: 2.5fr 3fr 1fr 1fr 1.2fr 1.2fr 1.2fr;
+    align-items: center;
+}
 
-            td { 
-                border-bottom: 1px dashed var(--border-color); 
-                padding: 10px 16px 10px 40%; 
-                position: relative; 
-                text-align: right; 
-                font-size: 0.9rem; 
-                white-space: normal; 
-            }
-            td:last-child { border-bottom: none; }
-            td::before { 
-                content: attr(data-label); 
-                position: absolute; 
-                left: 16px; top: 10px; width: 35%; 
-                text-align: left; font-weight: 600; color: var(--text-muted); 
-            }
+.list-header {
+    background-color: var(--header-bg);
+    color: var(--header-text);
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
 
-            /* 💡 핵심: 아파트명은 카드의 '제목'처럼 디자인 */
-            td[data-label="아파트"] {
-                padding: 12px 16px;
-                text-align: center;
-                font-size: 1.15rem;
-                font-weight: 800;
-                color: var(--text-main);
-                background-color: rgba(0, 0, 0, 0.04);
-                border-bottom: 2px solid var(--border-color);
-            }
-            /* 아파트 항목에서는 왼쪽 라벨(::before) 숨기기 */
-            td[data-label="아파트"]::before { display: none; }
-        }
+.list-row {
+    border-bottom: 1px solid var(--border-color);
+    transition: background-color 0.2s;
+}
+.list-row:last-child { border-bottom: none; }
+.list-row:hover { background-color: var(--hover-bg) !important; cursor: default; }
+
+.list-cell {
+    padding: 12px 16px;
+    font-size: 0.95rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* PC 아파트 배경색 그룹핑 */
+.list-row.apt-group-0 { background-color: var(--apt-bg-0); }
+.list-row.apt-group-1 { background-color: var(--apt-bg-1); }
+.list-row.apt-group-2 { background-color: var(--apt-bg-2); }
+.list-row.apt-group-3 { background-color: var(--apt-bg-3); }
+.list-row.apt-group-4 { background-color: var(--apt-bg-4); }
+
+.pagination { display: flex; justify-content: center; gap: 5px; margin-top: 20px; flex-wrap: wrap; }
+.page-btn { padding: 8px 12px; border: 1px solid var(--border-color); background-color: var(--card-bg); color: var(--text-main); cursor: pointer; border-radius: 4px; }
+.page-btn.active { background-color: var(--header-bg); color: #fff; border-color: var(--header-bg); }
+
+/* =========================================
+   3. 모바일 반응형: Flexbox를 활용한 카드 디자인
+   ========================================= */
+@media screen and (max-width: 768px) {
+    .controls { flex-direction: column; align-items: stretch; }
+    .search-box input { min-width: unset; width: 100%; box-sizing: border-box; }
+    
+    .list-wrapper { border: none; background: transparent; }
+    .list-header { display: none; } /* 모바일에서는 헤더 숨김 */
+    
+    .list-row {
+        display: flex;
+        flex-direction: column;
+        background-color: var(--card-bg);
+        margin-bottom: 16px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        box-shadow: 0 3px 6px rgba(0,0,0,0.08);
+    }
+
+    /* 모바일 아파트 컬러 그룹 (좌측 테두리 강조) */
+    .list-row.apt-group-0 { border-left: 6px solid var(--apt-border-0); }
+    .list-row.apt-group-1 { border-left: 6px solid var(--apt-border-1); }
+    .list-row.apt-group-2 { border-left: 6px solid var(--apt-border-2); }
+    .list-row.apt-group-3 { border-left: 6px solid var(--apt-border-3); }
+    .list-row.apt-group-4 { border-left: 6px solid var(--apt-border-4); }
+
+    .list-cell {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 16px;
+        border-bottom: 1px dashed var(--border-color);
+        text-align: right;
+        white-space: normal;
+    }
+    .list-cell:last-child { border-bottom: none; }
+
+    /* 모바일 라벨 생성 */
+    .list-cell::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: var(--text-muted);
+        text-align: left;
+        margin-right: 15px;
+    }
+
+    /* 아파트 이름은 카드의 '제목' 영역으로 분리 및 강조 */
+    .list-cell[data-label="아파트"] {
+        order: -1; /* Flex 순서를 가장 위로 */
+        justify-content: center;
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: var(--text-main);
+        background-color: rgba(0, 0, 0, 0.04);
+        border-bottom: 2px solid var(--border-color);
+    }
+    .list-cell[data-label="아파트"]::before { display: none; /* 제목에는 라벨 숨김 */ }
+}
