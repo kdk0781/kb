@@ -1,10 +1,11 @@
-const CACHE_NAME = 'apt-price-v3';
+const CACHE_NAME = 'apt-price-v6'; // 💡 캐시 버전 업데이트
 const urlsToCache = [
   './',
   './index.html',
   './css/common.css',
   './js/app.js',
-  './ico/map512.png' // 💡 여기에 파일명 입력
+  '../ico/map192.png',
+  '../ico/map512.png'
 ];
 
 self.addEventListener('install', event => {
