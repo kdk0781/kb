@@ -93,21 +93,42 @@ function loadData() {
 function parseCSV(csv) {
     const lines = csv.split(/\r\n|\n/);
     const flatData = [];
+    
+    // 💡 날짜 추출 로직: 처음 10줄 이내에서 날짜 패턴(YYYY.MM.DD)을 자동으로 찾아냅니다.
+    let baseDate = "";
+    for (let i = 0; i < Math.min(10, lines.length); i++) {
+        // 정규식을 통해 날짜 형태 추출 (예: 2024-10-25, 2024.10.25, 2024년 10월 25일)
+        const match = lines[i].match(/(20\d{2})[-.년\s]+([0-1]?\d)[-.월\s]+([0-3]?\d)[일]?/);
+        if (match) {
+            const year = match[1];
+            const month = match[2].padStart(2, '0');
+            const day = match[3].padStart(2, '0');
+            baseDate = `${year}.${month}.${day}`;
+            break;
+        }
+    }
+    
+    // 날짜를 찾았다면 화면에 표시
+    const dateLabel = document.getElementById('baseDateLabel');
+    if (baseDate) {
+        dateLabel.textContent = `* ${baseDate} 기준 시세`;
+    } else {
+        dateLabel.style.display = 'none'; // 못 찾으면 영역을 숨김
+    }
 
     for (let i = 0; i < lines.length; i++) {
         const currentLine = lines[i].trim();
         if (!currentLine) continue; 
         
-        // 💡 핵심 고도화: 엑셀의 '제목 행(헤더)' 및 안내 문구 완벽 필터링
         if (
             currentLine.includes('전국은행연합회') || 
             currentLine.includes('조견표') || 
             currentLine.includes('절대 수정 금지') || 
             currentLine.includes('대출상담사') || 
             currentLine.includes('시도,시군구') || 
-            currentLine.includes('시/도') ||       // "시/도 시/군/구" 제거
-            currentLine.includes('공급면적') ||     // "공급면적" 타이틀 제거
-            currentLine.includes('하한가')          // "하한가" 타이틀 제거
+            currentLine.includes('시/도') ||       
+            currentLine.includes('공급면적') ||     
+            currentLine.includes('하한가')          
         ) {
             continue;
         }
@@ -115,7 +136,6 @@ function parseCSV(csv) {
         const col = currentLine.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.replace(/^"|"$/g, '').trim());
         if (col.length < 11 || !col[0]) continue;
 
-        // 💡 2차 방어: 아파트 이름 칸에 '아파트'라는 제목이 들어간 경우 스킵
         if (col[3] === '아파트' || col[3] === '단지명') continue;
 
         const regionStr = `${col[0]} ${col[1]} ${col[2]}`.replace(/\s+/g, ' ').trim();
