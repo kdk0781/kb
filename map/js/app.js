@@ -14,7 +14,6 @@ document.addEventListener("DOMContentLoaded", () => {
     loadData();
     setupScrollObserver();
 
-    // 💡 클릭 이벤트 감지 대상을 accordion-btn으로 변경
     document.getElementById('listBody').addEventListener('click', function(e) {
         const btn = e.target.closest('.accordion-btn');
         if (btn) {
@@ -123,6 +122,7 @@ function filterData(keyword) {
     renderPage();
 }
 
+// 💡 공급, 전용 텍스트 삭제 및 "공급면적 / 전용면적" 형태의 앱 UI로 변경
 function createGroupHTML(group) {
     let html = `
         <div class="group-item">
@@ -139,8 +139,9 @@ function createGroupHTML(group) {
         html += `
             <div class="inner-row">
                 <div class="inner-area">
-                    <span><span class="area-label">공급</span>${row.공급면적}㎡</span>
-                    <span><span class="area-label">전용</span>${row.전용면적}㎡</span>
+                    <span class="area-val">${row.공급면적}㎡</span>
+                    <span class="area-divider">/</span>
+                    <span class="area-val exclusive">${row.전용면적}㎡</span>
                 </div>
                 <div class="inner-prices">
                     <div class="price-box low"><span class="price-label">하한가</span><span class="price-val">${row.하한가}</span></div>
