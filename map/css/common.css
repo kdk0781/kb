@@ -112,7 +112,7 @@ body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
 .inner-row:last-child { border-bottom: none; }
 .inner-row:hover { background: var(--hover-bg); }
 
-.inner-area { display: flex; align-items: center; justify-content: center; gap: 8px; min-width: 140px; }
+.inner-area { display: flex; align-items: center; justify-content: center; gap: 8px; min-width: 170px; }
 .area-val { font-size: 1.1rem; font-weight: 700; color: var(--text-main); }
 .area-val.exclusive { font-size: 0.95rem; font-weight: 500; color: var(--text-muted); }
 .area-divider { color: #cbd5e1; font-weight: 300; font-size: 1.1rem; }
