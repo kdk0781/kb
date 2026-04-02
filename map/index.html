@@ -2,26 +2,46 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>아파트 시세표</title>
-    <link rel="stylesheet" href="css/common.css?v=12">
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#facc15">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='25' fill='%23facc15'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' font-size='26' font-weight='900' fill='%231a1f24' font-family='sans-serif'>시세표</text></svg>">
+    
+    <link rel="stylesheet" href="css/common.css?v=13">
 </head>
 <body>
+
 <div class="container">
-    <div class="controls">
-        <div class="search-box">
-            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-            <input type="text" id="searchInput" placeholder="지역, 아파트명 검색 (예: 중산동 호반)" autocomplete="off">
+    <div class="sticky-header">
+        <header class="app-header">
+            <h1 class="app-title">📊 아파트 시세표</h1>
+            <button id="hardRefreshBtn" class="refresh-btn" title="캐시 삭제 및 최신 데이터 불러오기">
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="23 4 23 10 17 10"></polyline>
+                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                </svg>
+                <span>새로고침</span>
+            </button>
+        </header>
+
+        <div class="controls">
+            <div class="search-box">
+                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input type="text" id="searchInput" placeholder="지역, 아파트명 검색 (예: 중산동 호반)" autocomplete="off">
+            </div>
         </div>
     </div>
 
-    <div class="list-wrapper" id="listBody">
-        </div>
+    <div class="list-wrapper" id="listBody"></div>
 
     <div id="scrollSentinel"></div>
     <div id="pagination" class="pagination"></div>
 </div>
 
-<script src="js/app.js?v=12"></script>
+<script src="js/app.js?v=13"></script>
 </body>
 </html>
