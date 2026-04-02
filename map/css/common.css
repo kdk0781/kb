@@ -41,11 +41,9 @@ body { font-family: 'Pretendard', -apple-system, sans-serif; background-color: v
    ========================================= */
 .list-wrapper { display: flex; flex-direction: column; gap: 12px; }
 
-/* 그룹 아이템 (아파트 1개 단위) */
 .group-item { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.02); transition: 0.3s; }
 .group-item.active { border-color: var(--text-muted); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
 
-/* 탭 헤더 (클릭 영역) */
 .group-header { padding: 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; transition: 0.2s; background: var(--card-bg); }
 .group-header:hover { background: var(--hover-bg); }
 
@@ -56,7 +54,6 @@ body { font-family: 'Pretendard', -apple-system, sans-serif; background-color: v
 .chevron { width: 24px; height: 24px; stroke: var(--text-muted); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
 .group-item.active .chevron { transform: rotate(180deg); stroke: var(--text-main); }
 
-/* 펼쳐지는 내부 콘텐츠 (평형 및 가격 정보) */
 .group-content { display: none; border-top: 1px solid var(--border-color); background: var(--card-bg); }
 .group-item.active .group-content { display: block; animation: slideDown 0.3s ease-out forwards; }
 
@@ -65,7 +62,6 @@ body { font-family: 'Pretendard', -apple-system, sans-serif; background-color: v
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* 내부 데이터 열 (PC) */
 .inner-row { padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
 .inner-row:last-child { border-bottom: none; }
 .inner-row:hover { background: var(--hover-bg); }
@@ -77,11 +73,8 @@ body { font-family: 'Pretendard', -apple-system, sans-serif; background-color: v
 .price-box { display: flex; flex-direction: column; align-items: flex-end; width: 100px; }
 .price-label { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; font-weight: 600;}
 .price-val { font-size: 1.05rem; font-weight: 600; color: var(--text-main); }
-.price-box.mid .price-val { color: var(--price-color); font-weight: 800; font-size: 1.15rem; } /* 일반가 강조 */
+.price-box.mid .price-val { color: var(--price-color); font-weight: 800; font-size: 1.15rem; }
 
-/* =========================================
-   4. 모바일 내부 콘텐츠 반응형
-   ========================================= */
 @media screen and (max-width: 768px) {
     .inner-row { flex-direction: column; align-items: flex-start; gap: 14px; padding: 20px; }
     .inner-area { width: 100%; justify-content: flex-start; border-bottom: 1px dashed var(--border-color); padding-bottom: 10px; }
@@ -90,9 +83,11 @@ body { font-family: 'Pretendard', -apple-system, sans-serif; background-color: v
 }
 
 /* =========================================
-   5. 페이지네이션
+   5. 페이지네이션 & 스크롤 센서
    ========================================= */
 .pagination { display: flex; justify-content: center; gap: 8px; margin-top: 30px; }
 .page-btn { padding: 8px 14px; border: 1px solid var(--border-color); background-color: var(--card-bg); color: var(--text-main); border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; }
 .page-btn:hover { background-color: var(--border-color); }
 .page-btn.active { background-color: var(--text-main); color: var(--card-bg); border-color: var(--text-main); }
+
+#scrollSentinel { height: 20px; width: 100%; margin-top: 10px; }
