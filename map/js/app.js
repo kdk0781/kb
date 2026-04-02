@@ -76,7 +76,6 @@ function parseCSV(csv) {
         const regionStr = `${col[0]} ${col[1]} ${col[2]}`.replace(/\s+/g, ' ').trim();
         const aptName = col[3];
         
-        // 💡 만원 텍스트 삭제. 숫자만 콤마 찍어서 반환합니다.
         const formatPrice = (val) => {
             const num = parseFloat(val.replace(/,/g, ''));
             return (isNaN(num) || num === 0) ? '-' : num.toLocaleString('ko-KR');
@@ -123,7 +122,7 @@ function filterData(keyword) {
     renderPage();
 }
 
-// 💡 탭 우측에 (단위: 만원) 라벨 추가
+// 💡 탭 내부 최상단에 면적 / (단위: 만원) 헤더가 노출되도록 구조 변경
 function createGroupHTML(group) {
     let html = `
         <div class="group-item">
@@ -133,11 +132,14 @@ function createGroupHTML(group) {
                     <span class="group-region">${group.지역}</span>
                 </div>
                 <div class="accordion-right">
-                    <span class="unit-label">(단위: 만원)</span>
                     <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
                 </div>
             </div>
             <div class="accordion-content">
+                <div class="content-header">
+                    <span class="header-area">면적</span>
+                    <span class="header-unit">(단위: 만원)</span>
+                </div>
     `;
     group.rows.forEach(row => {
         html += `
