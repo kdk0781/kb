@@ -11,14 +11,12 @@ let scrollObserver = null;
 let searchDebounceTimer;  
 
 document.addEventListener("DOMContentLoaded", () => {
-    // 💡 1. PWA 서비스 워커 등록
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('sw.js')
             .then(reg => console.log('Service Worker 등록 완료'))
             .catch(err => console.log('Service Worker 등록 실패', err));
     }
 
-    // 💡 2. 강력 새로고침 버튼 로직 (캐시 및 스토리지 폭파)
     document.getElementById('hardRefreshBtn').addEventListener('click', async () => {
         const btnSpan = document.querySelector('#hardRefreshBtn span');
         btnSpan.textContent = '업데이트 중...';
@@ -38,7 +36,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // 기존 데이터 로딩 및 이벤트
     loadData();
     setupScrollObserver();
 
@@ -76,7 +73,6 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function loadData() {
-    // 💡 파일명이 최신 캐시를 무시하도록 쿼리를 붙임
     fetch('excel/map.csv?t=' + new Date().getTime())
         .then(response => {
             if (!response.ok) throw new Error("파일 로드 실패");
@@ -86,8 +82,22 @@ function loadData() {
             const decoder = new TextDecoder('euc-kr');
             const csvText = decoder.decode(buffer);
             parseCSV(csvText);
+            
+            // 💡 데이터 렌더링이 완료된 후 오버레이를 부드럽게 숨김
+            setTimeout(() => {
+                const splash = document.getElementById('splashOverlay');
+                if (splash) splash.classList.add('hide');
+            }, 300);
         })
-        .catch(error => console.error("오류:", error));
+        .catch(error => {
+            console.error("오류:", error);
+            // 에러가 나도 로딩 화면에서 탈출할 수 있도록 숨김 처리
+            const splash = document.getElementById('splashOverlay');
+            if (splash) {
+                splash.innerHTML = '<div class="splash-text" style="color:red;">데이터를 불러올 수 없습니다.</div>';
+                setTimeout(() => splash.classList.add('hide'), 2000);
+            }
+        });
 }
 
 function parseCSV(csv) {
