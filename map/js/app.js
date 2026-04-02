@@ -76,9 +76,10 @@ function parseCSV(csv) {
         const regionStr = `${col[0]} ${col[1]} ${col[2]}`.replace(/\s+/g, ' ').trim();
         const aptName = col[3];
         
+        // 💡 만원 텍스트 삭제. 숫자만 콤마 찍어서 반환합니다.
         const formatPrice = (val) => {
             const num = parseFloat(val.replace(/,/g, ''));
-            return (isNaN(num) || num === 0) ? '-' : num.toLocaleString('ko-KR') + '만원';
+            return (isNaN(num) || num === 0) ? '-' : num.toLocaleString('ko-KR');
         };
 
         const formatArea = (val) => {
@@ -122,7 +123,7 @@ function filterData(keyword) {
     renderPage();
 }
 
-// 💡 공급, 전용 텍스트 삭제 및 "공급면적 / 전용면적" 형태의 앱 UI로 변경
+// 💡 탭 우측에 (단위: 만원) 라벨 추가
 function createGroupHTML(group) {
     let html = `
         <div class="group-item">
@@ -131,7 +132,10 @@ function createGroupHTML(group) {
                     <span class="group-apt">${group.아파트}</span>
                     <span class="group-region">${group.지역}</span>
                 </div>
-                <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                <div class="accordion-right">
+                    <span class="unit-label">(단위: 만원)</span>
+                    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </div>
             </div>
             <div class="accordion-content">
     `;
