@@ -28,9 +28,6 @@ body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
 .container { max-width: 1000px; margin: 0 auto; padding: 0 20px 20px 20px; }
 .page-header, .list-header, #statusMessage { display: none !important; }
 
-/* =========================================
-   💡 앱 스타일 로딩 오버레이 (Splash)
-   ========================================= */
 .splash-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background-color: var(--bg-color); z-index: 9999;
@@ -47,9 +44,6 @@ body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
 .splash-text { font-size: 1.1rem; font-weight: 700; color: var(--text-main); }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* =========================================
-   상단 고정 헤더 & 검색창
-   ========================================= */
 .sticky-header {
     position: sticky; top: 0; z-index: 100;
     background-color: var(--bg-blur);
@@ -74,9 +68,16 @@ body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
 .search-box input { width: 100%; padding: 16px 16px 16px 50px; border: 1px solid var(--border-color); border-radius: 14px; background-color: var(--card-bg); color: var(--text-main); font-size: 1.05rem; font-weight: 500; box-sizing: border-box; outline: none; transition: 0.3s; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
 .search-box input:focus { border-color: var(--primary-dark); box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.2); }
 
-/* =========================================
-   아코디언 리스트 (카드 UI)
-   ========================================= */
+/* 💡 날짜 표시 라벨 디자인 */
+.base-date-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-align: right;
+    margin-top: 8px;
+    padding-right: 6px;
+    font-weight: 600;
+}
+
 .list-wrapper { display: flex; flex-direction: column; gap: 14px; }
 .group-item { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.02); transition: 0.3s; }
 .group-item.active { border-color: var(--text-muted); box-shadow: 0 6px 16px rgba(0,0,0,0.06); }
@@ -100,9 +101,6 @@ body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* =========================================
-   내부 데이터 영역
-   ========================================= */
 .content-header { 
     display: flex; justify-content: space-between; align-items: center; 
     padding: 12px 20px; background-color: var(--hover-bg); 
@@ -133,11 +131,4 @@ body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
     .price-box { align-items: center; width: auto; }
 }
 
-/* =========================================
-   페이징 및 스크롤 센서
-   ========================================= */
-.pagination { display: flex; justify-content: center; gap: 8px; margin-top: 30px; padding-bottom: 20px; }
-.page-btn { padding: 10px 14px; border: 1px solid var(--border-color); background-color: var(--card-bg); color: var(--text-main); border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
-.page-btn:hover { background-color: var(--border-color); }
-.page-btn.active { background-color: var(--text-main); color: var(--card-bg); border-color: var(--text-main); }
-#scrollSentinel { height: 20px; width: 100%; margin-top: 10px; }
+#scrollSentinel { height: 40px; width: 100%; margin-top: 20px; }
