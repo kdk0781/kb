@@ -196,7 +196,7 @@ body {
 .meta-row {
     display: flex; align-items: center;
     justify-content: space-between;
-    padding: 15px 2px;
+    padding: 6px 2px 0;
 }
 
 .result-count {
@@ -439,7 +439,48 @@ body.pyeong-mode .u-sqm    { display: none !important; }
 
 
 /* ══════════════════════════════════════
-   규제지역 배지 (2025.10.16 기준)
+   가격 변동 뱃지 (지난주 대비)
+══════════════════════════════════════ */
+
+/* 행별 변동 (price-box 내부) */
+.price-diff {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 800;
+    margin-top: 3px;
+    letter-spacing: -0.2px;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+.price-diff.up   { color: #ef4444; }
+.price-diff.down { color: #3b82f6; }
+
+/* 카드 헤더 변동 요약 뱃지 */
+.group-diff-badge {
+    font-size: 0.75rem;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 8px;
+    white-space: nowrap;
+    letter-spacing: -0.2px;
+    flex-shrink: 0;
+}
+.group-diff-badge.up    { color: #ef4444; background: rgba(239,68,68,0.09); }
+.group-diff-badge.down  { color: #3b82f6; background: rgba(59,130,246,0.09); }
+.group-diff-badge.mixed { color: #7c3aed; background: rgba(124,58,237,0.09); }
+
+@media (prefers-color-scheme: dark) {
+    .price-diff.up   { color: #fca5a5; }
+    .price-diff.down { color: #93c5fd; }
+    .group-diff-badge.up    { color: #fca5a5; background: rgba(239,68,68,0.15); }
+    .group-diff-badge.down  { color: #93c5fd; background: rgba(59,130,246,0.15); }
+    .group-diff-badge.mixed { color: #c4b5fd; background: rgba(124,58,237,0.15); }
+}
+
+/* 480px 이하에서 카드 헤더 요약 뱃지 숨김 */
+@media screen and (max-width: 480px) {
+    .group-diff-badge { display: none; }
+}
    A = 투기지역+투기과열+조정 (서울 강남3구+용산)
    B = 투기과열+조정 (서울 나머지+경기 12곳)
 ══════════════════════════════════════ */
@@ -493,6 +534,50 @@ body.pyeong-mode .u-sqm    { display: none !important; }
 .group-item.has-reg.zone-A { border-left: 3px solid rgba(239, 68, 68, 0.55); }
 .group-item.has-reg.zone-B { border-left: 3px solid rgba(234, 88, 12, 0.45); }
 
+
+/* ══════════════════════════════════════
+   맨위로 버튼
+   ─────────────────────────────────────
+   - 우하단 고정 (fixed)
+   - 기본 숨김 → .visible 클래스로 표시
+   - opacity + translateY 트랜지션으로 자연스럽게 등장/소멸
+══════════════════════════════════════ */
+.scroll-top-btn {
+    position: fixed;
+    bottom: 28px;
+    right: 20px;
+    z-index: 200;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+
+    background: var(--chip-active-bg);
+    color: var(--chip-active-text);
+    border: none;
+    border-radius: 50%;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+    cursor: pointer;
+
+    /* 기본 숨김 상태 */
+    opacity: 0;
+    transform: translateY(12px);
+    pointer-events: none; /* 숨겨진 동안 클릭 막기 */
+    transition: opacity 0.28s ease, transform 0.28s ease;
+}
+
+/* app.js 에서 .visible 추가 시 등장 */
+.scroll-top-btn.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.scroll-top-btn:active {
+    transform: scale(0.92);
+}
 
 /* ── 무한스크롤 센티넬 ── */
 @media screen and (max-width: 768px) {
