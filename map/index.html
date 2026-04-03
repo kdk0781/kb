@@ -13,7 +13,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <link rel="stylesheet" href="css/common.css?v=35">
+    <link rel="stylesheet" href="css/common.css?v=36">
 </head>
 <body>
 
@@ -89,6 +89,15 @@
 
 </div>
 
-<script src="js/app.js?v=35"></script>
+<!-- 맨위로 버튼: 스크롤 시 우하단에 고정 표시, app.js setupScrollTopBtn() 제어 -->
+<button id="scrollTopBtn" class="scroll-top-btn" title="맨 위로">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none"
+         stroke="currentColor" stroke-width="2.5"
+         stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="18 15 12 9 6 15"></polyline>
+    </svg>
+</button>
+
+<script src="js/app.js?v=36"></script>
 </body>
 </html>
