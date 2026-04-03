@@ -7,7 +7,7 @@
    ✅ 버전 번호 화면 표시 (배포 확인용)
 ════════════════════════════════════════════ */
 
-const APP_VERSION = 'v8.0';
+const APP_VERSION = 'v6.0';
 
 /* ── 전역 상태 ── */
 let allGroups      = [];
@@ -186,7 +186,10 @@ function loadData() {
         if (ok) hideSplash();
     };
 
-    fetch('excel/map.csv?t=' + Date.now())
+    fetch('excel/map.csv', {
+        cache: 'no-store',   // 브라우저 HTTP 캐시 완전 우회
+        headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache, no-store' }
+    })
         .then(res => {
             if (!res.ok) throw new Error('HTTP ' + res.status);
             return res.arrayBuffer();
