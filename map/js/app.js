@@ -7,7 +7,7 @@
    ✅ 버전 번호 화면 표시 (배포 확인용)
 ════════════════════════════════════════════ */
 
-const APP_VERSION = 'v6.0';
+const APP_VERSION = 'v8.0';
 
 /* ── 전역 상태 ── */
 let allGroups      = [];
@@ -234,8 +234,78 @@ function parseCSVLine(line) {
 }
 
 /* ════════════════════════════════════════════
+   가격 캐시 (localStorage)  ─ 두 슬롯 구조
+   ┌──────────────────────────────────────┐
+   │ apt_map_curr : 현재 주 데이터        │
+   │ apt_map_prev : 비교 기준(이전 주)    │
+   └──────────────────────────────────────┘
+   동작:
+   ① 새 날짜 CSV 업로드
+      curr → prev 로 이동, 새 데이터 → curr 저장
+      diff = 새 데이터 vs (구)curr
+   ② 같은 날짜 재로드
+      curr 그대로, prev 그대로
+      diff = curr vs prev  (업로드 전까지 유지)
+════════════════════════════════════════════ */
+const CACHE_CURR = 'apt_map_curr';
+const CACHE_PREV = 'apt_map_prev';
+
+function buildPriceKey(row) {
+    return `${row.시도}|${row.시군구}|${row.동}|${row.아파트}|${row.공급면적}|${row.전용면적}|${row.suffix}`;
+}
+
+function readCache(key) {
+    try {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+}
+
+function writeCache(key, data) {
+    try {
+        localStorage.setItem(key, JSON.stringify(data));
+    } catch (e) {
+        console.warn('[priceCache] 저장 실패:', e.message);
+    }
+}
+
+function buildCachePayload(dateText, flatData) {
+    const p = {};
+    for (const row of flatData) {
+        p[buildPriceKey(row)] = [row.하한가Raw, row.일반가Raw, row.상한가Raw];
+    }
+    return { dateText, p };
+}
+
+/**
+ * 캐시 비교 + 갱신
+ * @returns {Object|null}  비교 기준 캐시 (없으면 null → diff 미표시)
+ */
+function syncPriceCache(baseDateText, flatData) {
+    const curr = readCache(CACHE_CURR);
+
+    if (curr && curr.dateText === baseDateText) {
+        // ② 같은 주 재로드 → prev 그대로 유지, diff 계속 표시
+        const prev = readCache(CACHE_PREV);
+        console.log('[priceCache] 같은 주 재로드 → diff 유지', prev ? prev.dateText : '(없음)');
+        return prev;          // prev가 비교 기준
+    }
+
+    // ① 새 날짜 CSV
+    // 기존 curr → prev 승격
+    if (curr) {
+        writeCache(CACHE_PREV, curr);
+        console.log('[priceCache] curr→prev 승격:', curr.dateText);
+    }
+    // 새 데이터 → curr 저장
+    writeCache(CACHE_CURR, buildCachePayload(baseDateText, flatData));
+    console.log('[priceCache] 새 curr 저장:', baseDateText);
+
+    return curr;    // 비교 기준 = 방금 승격된 구 curr (없으면 null)
+}
+
+/* ════════════════════════════════════════════
    CSV 파싱 + 렌더링 (완전 동기, 38ms)
-   async 청크 구조 제거 → 복잡한 Promise 체인 없음
 ════════════════════════════════════════════ */
 function parseAndRender(csv) {
     console.log('[parseAndRender] 시작');
@@ -307,8 +377,26 @@ function parseAndRender(csv) {
             공급평형: toPyeong(col[6]||col[4], col[7]), 전용평형: toPyeong(col[5],''),
             suffix: getSuffix(col[4]),
             하한가: toPrice(col[8]||''), 일반가: toPrice(col[9]||''), 상한가: toPrice(col[10]||''),
+            하한가Raw: toRaw(col[8]||''),
             일반가Raw: toRaw(col[9]||''),
+            상한가Raw: toRaw(col[10]||''),
+            // 가격 변동 (loadPriceCache 비교 후 주입)
+            diffLow: null, diffMid: null, diffHigh: null,
         });
+    }
+
+    /* ── 지난주 가격 비교 ── */
+    const compCache = syncPriceCache(baseDateText, flatData);
+    if (compCache) {
+        const pm = compCache.p;
+        for (const row of flatData) {
+            const prev = pm[buildPriceKey(row)];
+            if (prev) {
+                row.diffLow  = row.하한가Raw - prev[0];
+                row.diffMid  = row.일반가Raw - prev[1];
+                row.diffHigh = row.상한가Raw - prev[2];
+            }
+        }
     }
 
     /* 그룹화 */
@@ -399,12 +487,36 @@ function getPriceRange(g) {
     return `${g.minPrice.toLocaleString('ko-KR')} ~ ${g.maxPrice.toLocaleString('ko-KR')}만`;
 }
 
+/* 가격 변동 뱃지 생성 헬퍼 */
+function diffBadge(diff) {
+    if (diff === null || diff === undefined || diff === 0) return '';
+    const abs = Math.abs(diff).toLocaleString('ko-KR');
+    return diff > 0
+        ? `<span class="price-diff up">🔺${abs}</span>`
+        : `<span class="price-diff down">🔻${abs}</span>`;
+}
+
 function createGroupHTML(g) {
     const priceRange = getPriceRange(g);
 
     const regBadge = g.regLabel
         ? `<div class="reg-badges"><span class="reg-badge reg-${g.regZone}">${g.regLabel}</span></div>`
         : '';
+
+    // 그룹 내 변동 요약 (일반가 기준, 헤더에 표시)
+    const midDiffs = g.rows.map(r => r.diffMid).filter(d => d !== null && d !== 0);
+    let groupDiffBadge = '';
+    if (midDiffs.length > 0) {
+        const maxUp   = Math.max(...midDiffs.filter(d => d > 0), 0);
+        const maxDown = Math.min(...midDiffs.filter(d => d < 0), 0);
+        if (maxUp > 0 && maxDown < 0) {
+            groupDiffBadge = `<span class="group-diff-badge mixed">🔺🔻 등락</span>`;
+        } else if (maxUp > 0) {
+            groupDiffBadge = `<span class="group-diff-badge up">🔺${maxUp.toLocaleString('ko-KR')}</span>`;
+        } else if (maxDown < 0) {
+            groupDiffBadge = `<span class="group-diff-badge down">🔻${Math.abs(maxDown).toLocaleString('ko-KR')}</span>`;
+        }
+    }
 
     let rowsHTML = '';
     for (const row of g.rows) {
@@ -421,9 +533,21 @@ function createGroupHTML(g) {
                 ${sb}
             </div>
             <div class="inner-prices">
-                <div class="price-box low"><span class="price-label">하한가</span><span class="price-val">${row.하한가}</span></div>
-                <div class="price-box mid"><span class="price-label">일반가</span><span class="price-val">${row.일반가}</span></div>
-                <div class="price-box high"><span class="price-label">상한가</span><span class="price-val">${row.상한가}</span></div>
+                <div class="price-box low">
+                    <span class="price-label">하한가</span>
+                    <span class="price-val">${row.하한가}</span>
+                    ${diffBadge(row.diffLow)}
+                </div>
+                <div class="price-box mid">
+                    <span class="price-label">일반가</span>
+                    <span class="price-val">${row.일반가}</span>
+                    ${diffBadge(row.diffMid)}
+                </div>
+                <div class="price-box high">
+                    <span class="price-label">상한가</span>
+                    <span class="price-val">${row.상한가}</span>
+                    ${diffBadge(row.diffHigh)}
+                </div>
             </div>
         </div>`;
     }
@@ -437,6 +561,7 @@ function createGroupHTML(g) {
                 ${regBadge}
             </div>
             <div class="accordion-right">
+                ${groupDiffBadge}
                 ${priceRange?`<span class="price-range-badge">${priceRange}</span>`:''}
                 <span class="row-count-badge">${g.rows.length}개</span>
                 <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
