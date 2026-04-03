@@ -84,6 +84,14 @@ body {
     margin-top: 6px;
     min-height: 1em;
 }
+.splash-version {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    opacity: 0.5;
+    margin-top: 4px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
 
 .spinner {
     width: 44px; height: 44px;
