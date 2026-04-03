@@ -607,9 +607,9 @@ function _rptRenderSchTab(id, defaultType = 'level') {
     </div>
     <div class="ld-tab-row">
       <button class="ld-tab-btn ld-tab-btn--active" data-type="level"
-              onclick="_rptSwitchTab('${id}','level')">원금균등 방식</button>
+              onclick="_rptSwitchTab('${id}','level')">원리금균등 방식</button>
       <button class="ld-tab-btn" data-type="prin"
-              onclick="_rptSwitchTab('${id}','prin')">원리금균등 방식</button>
+              onclick="_rptSwitchTab('${id}','prin')">원금균등 방식</button>
     </div>
     <div id="${id}_tbl" class="ld-sch-scroll">
       <div class="ld-sch-loading">⏳ 스케줄 생성 중...</div>
