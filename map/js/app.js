@@ -418,7 +418,7 @@ const sb = row.suffix ? `<span class="area-suffix">${row.suffix}</span>` : '';
 const loanLow = _gLL(row.하한가Raw, g.regZone, row.일반가Raw);
 const loanLowBadge = loanLow
 ? `<span class="loan-badge ${loanLow.cls}">
-<em class="loan-floor">1층</em>대출 ${loanLow.amtStr}
+<em class="loan-floor"></em>대출 ${loanLow.amtStr}
 <em class="loan-ltv-rate">LTV${loanLow._lP}%</em>
 </span>`
 : '';
