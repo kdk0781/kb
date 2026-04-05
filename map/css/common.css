@@ -562,6 +562,7 @@ body.pyeong-mode .u-sqm    { display: none !important; }
 }
 .loan-tags {
     display:inline-block;
+	vertical-align:middle;
 }
 .loan-tag {
     display: inline-flex;
