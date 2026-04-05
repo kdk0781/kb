@@ -419,16 +419,16 @@ const loanLow = _gLL(row.하한가Raw, g.regZone, row.일반가Raw);
 const loanLowBadge = loanLow
 ? `<span class="loan-badge ${loanLow.cls}">
 <em class="loan-floor"></em>대출 ${loanLow.amtStr}
-<em class="loan-ltv-rate">LTV${loanLow._lP}%</em>
 </span>`
 : '';
+//<em class="loan-ltv-rate">LTV${loanLow._lP}%</em>  
 const loanMid = _gLL(row.일반가Raw, g.regZone, row.일반가Raw);
 const loanMidBadge = loanMid
 ? `<span class="loan-badge ${loanMid.cls}">
 대출 ${loanMid.amtStr}
-<em class="loan-ltv-rate">LTV${loanMid._lP}%</em>
 </span>`
 : '';
+//<em class="loan-ltv-rate">LTV${loanMid._lP}%</em>
 rowsHTML += `
 <div class="inner-row">
 <div class="inner-area">
