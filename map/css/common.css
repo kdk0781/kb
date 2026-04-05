@@ -481,6 +481,89 @@ body.pyeong-mode .u-sqm    { display: none !important; }
 @media screen and (max-width: 480px) {
     .group-diff-badge { display: none; }
 }
+
+
+/* ══════════════════════════════════════
+   대출 가능 한도 배지 (LTV + 정책 한도)
+   ────────────────────────────────────────
+   loan-ltv-reg : LTV 40% 규제지역 제한  → 주황
+   loan-ltv-gen : LTV 70% 일반지역 제한  → 파랑
+   loan-pol-a   : 정책 6억 한도 제한     → 녹색
+   loan-pol-b   : 정책 4억 한도 제한     → 노랑
+   loan-pol-c   : 정책 2억 한도 제한     → 회색
+══════════════════════════════════════ */
+.loan-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 0.72rem;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 6px;
+    margin-top: 4px;
+    white-space: nowrap;
+    letter-spacing: -0.2px;
+    line-height: 1.4;
+    gap: 1px;
+}
+.loan-floor {
+    font-size: 0.62rem;
+    font-weight: 700;
+    opacity: 0.75;
+    font-style: normal;
+    display: block;
+    margin-bottom: 1px;
+}
+.loan-ltv-rate {
+    font-size: 0.62rem;
+    font-weight: 700;
+    opacity: 0.75;
+    font-style: normal;
+    display: block;
+}
+
+/* 규제지역 LTV 40% — 주황 */
+.loan-badge.loan-ltv-reg {
+    background: rgba(234, 88, 12, 0.10);
+    color: #c2410c;
+    border: 1px solid rgba(234, 88, 12, 0.25);
+}
+/* 일반지역 LTV 70% — 파랑 */
+.loan-badge.loan-ltv-gen {
+    background: rgba(37, 99, 235, 0.08);
+    color: #1d4ed8;
+    border: 1px solid rgba(37, 99, 235, 0.20);
+}
+/* 정책 6억 한도 — 녹색 */
+.loan-badge.loan-pol-a {
+    background: rgba(22, 163, 74, 0.09);
+    color: #15803d;
+    border: 1px solid rgba(22, 163, 74, 0.22);
+}
+/* 정책 4억 한도 — 노랑 */
+.loan-badge.loan-pol-b {
+    background: rgba(202, 138, 4, 0.09);
+    color: #a16207;
+    border: 1px solid rgba(202, 138, 4, 0.22);
+}
+/* 정책 2억 한도 — 회색 */
+.loan-badge.loan-pol-c {
+    background: rgba(100, 116, 139, 0.09);
+    color: #475569;
+    border: 1px solid rgba(100, 116, 139, 0.22);
+}
+
+@media (prefers-color-scheme: dark) {
+    .loan-badge.loan-ltv-reg { background: rgba(234,88,12,0.18); color: #fdba74; border-color: rgba(234,88,12,0.32); }
+    .loan-badge.loan-ltv-gen { background: rgba(37,99,235,0.15); color: #93c5fd; border-color: rgba(37,99,235,0.28); }
+    .loan-badge.loan-pol-a   { background: rgba(22,163,74,0.16); color: #86efac; border-color: rgba(22,163,74,0.28); }
+    .loan-badge.loan-pol-b   { background: rgba(202,138,4,0.16); color: #fde68a; border-color: rgba(202,138,4,0.28); }
+    .loan-badge.loan-pol-c   { background: rgba(100,116,139,0.18); color: #94a3b8; border-color: rgba(100,116,139,0.28); }
+}
+
+
+/* ══════════════════════════════════════
+   규제지역 배지 (2025.10.16 기준)
    A = 투기지역+투기과열+조정 (서울 강남3구+용산)
    B = 투기과열+조정 (서울 나머지+경기 12곳)
 ══════════════════════════════════════ */
