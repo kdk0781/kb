@@ -318,22 +318,36 @@ body {
 }
 
 .inner-row {
-    padding: 16px 20px;
     border-bottom: 1px solid var(--border-color);
-    display: flex; justify-content: space-between; align-items: center;
+    display: flex;
+    flex-direction: column;
 }
 .inner-row:last-child { border-bottom: none; }
 .inner-row:hover { background: var(--hover-bg); }
 
+/* PC: 면적(좌) + 가격3컬럼(우) 한 줄 */
+.inner-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px 14px;
+    gap: 12px;
+}
+
+.loan-info-row {
+	padding:0 20px 10px;
+}
 .inner-area {
     display: flex; align-items: center;
-    gap: 6px; min-width: 160px; flex-wrap: wrap;
+    gap: 6px; flex-wrap: wrap;
+    min-width: 150px;
+    flex-shrink: 0;
 }
 .area-val {
     font-size: 1.05rem; font-weight: 700; color: var(--text-main);
 }
 .area-val.exclusive {
-    font-size: 0.92rem; font-weight: 500; color: var(--text-muted);
+    font-size: 0.9rem; font-weight: 500; color: var(--text-muted);
 }
 .area-divider { color: #cbd5e1; font-weight: 300; }
 
@@ -346,20 +360,31 @@ body {
     white-space: nowrap;
 }
 
+/* 가격 3컬럼 */
 .inner-prices {
-    display: flex; gap: 20px;
-    justify-content: flex-end;
+    display: flex;
+    gap: 0;
+    flex-shrink: 0;
 }
 .price-box {
     display: flex; flex-direction: column;
-    align-items: center; width: 90px; text-align: center;
+    align-items: center;
+    min-width: 90px;
+    text-align: center;
+    padding: 0 8px;
+}
+.price-box + .price-box {
+    border-left: 1px solid var(--border-color);
 }
 .price-label {
     font-size: 0.72rem; color: var(--text-muted);
-    margin-bottom: 4px; font-weight: 600;
+    margin-bottom: 6px; font-weight: 600;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
 }
 .price-val {
-    font-size: 1rem; font-weight: 600; color: var(--text-main);
+    font-size: 1.1rem; font-weight: 700; color: var(--text-main);
+    letter-spacing: -0.5px;
 }
 .price-box.mid .price-val {
     color: var(--price-color) !important;
@@ -442,18 +467,25 @@ body.pyeong-mode .u-sqm    { display: none !important; }
    가격 변동 뱃지 (지난주 대비)
 ══════════════════════════════════════ */
 
-/* 행별 변동 (price-box 내부) */
+/* 가격 변동 (price-box 내부) */
 .price-diff {
     display: block;
-    font-size: 0.7rem;
+    font-size: 0.72rem;
     font-weight: 800;
-    margin-top: 3px;
+    margin-top: 4px;
+    margin-bottom: 10px;
     letter-spacing: -0.2px;
-    line-height: 1.2;
+    line-height: 1;
     white-space: nowrap;
+    min-height: 1em; /* 항상 같은 높이 확보 → 컬럼 정렬 */
 }
 .price-diff.up   { color: #ef4444; }
 .price-diff.down { color: #3b82f6; }
+.price-diff.none {
+    color: var(--border-color);
+    font-weight: 400;
+    font-size: 0.65rem;
+}
 
 /* 카드 헤더 변동 요약 뱃지 */
 .group-diff-badge {
@@ -483,82 +515,102 @@ body.pyeong-mode .u-sqm    { display: none !important; }
 }
 
 
-/* ══════════════════════════════════════
-   대출 가능 한도 배지 (LTV + 정책 한도)
-   ────────────────────────────────────────
-   loan-ltv-reg : LTV 40% 규제지역 제한  → 주황
-   loan-ltv-gen : LTV 70% 일반지역 제한  → 파랑
-   loan-pol-a   : 정책 6억 한도 제한     → 녹색
-   loan-pol-b   : 정책 4억 한도 제한     → 노랑
-   loan-pol-c   : 정책 2억 한도 제한     → 회색
-══════════════════════════════════════ */
-.loan-badge {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    font-size: 0.72rem;
+/* ── LTV 칩 (카드 헤더 규제 배지 옆) ── */
+.ltv-chip {
+    display: inline-block;
+    font-size: 0.68rem;
     font-weight: 800;
-    padding: 3px 8px;
-    border-radius: 6px;
-    margin-top: 4px;
+    padding: 2px 7px;
+    border-radius: 5px;
     white-space: nowrap;
-    letter-spacing: -0.2px;
-    line-height: 1.4;
-    gap: 1px;
+    letter-spacing: -0.1px;
 }
-.loan-floor {
-    font-size: 0.62rem;
-    font-weight: 700;
-    opacity: 0.75;
-    font-style: normal;
-    display: block;
-    margin-bottom: 1px;
-}
-.loan-ltv-rate {
-    font-size: 0.62rem;
-    font-weight: 700;
-    opacity: 0.75;
-    font-style: normal;
-    display: block;
-}
-
-/* 규제지역 LTV 40% — 주황 */
-.loan-badge.loan-ltv-reg {
+/* LTV 40% — 규제지역 (주황 계열) */
+.ltv-chip.ltv-40 {
     background: rgba(234, 88, 12, 0.10);
     color: #c2410c;
     border: 1px solid rgba(234, 88, 12, 0.25);
 }
-/* 일반지역 LTV 70% — 파랑 */
-.loan-badge.loan-ltv-gen {
+/* LTV 70% — 일반지역 (파랑 계열) */
+.ltv-chip.ltv-70 {
     background: rgba(37, 99, 235, 0.08);
     color: #1d4ed8;
     border: 1px solid rgba(37, 99, 235, 0.20);
 }
-/* 정책 6억 한도 — 녹색 */
-.loan-badge.loan-pol-a {
-    background: rgba(22, 163, 74, 0.09);
-    color: #15803d;
-    border: 1px solid rgba(22, 163, 74, 0.22);
-}
-/* 정책 4억 한도 — 노랑 */
-.loan-badge.loan-pol-b {
-    background: rgba(202, 138, 4, 0.09);
-    color: #a16207;
-    border: 1px solid rgba(202, 138, 4, 0.22);
-}
-/* 정책 2억 한도 — 회색 */
-.loan-badge.loan-pol-c {
-    background: rgba(100, 116, 139, 0.09);
-    color: #475569;
-    border: 1px solid rgba(100, 116, 139, 0.22);
+@media (prefers-color-scheme: dark) {
+    .ltv-chip.ltv-40 { background: rgba(234,88,12,0.18); color: #fdba74; border-color: rgba(234,88,12,0.32); }
+    .ltv-chip.ltv-70 { background: rgba(37,99,235,0.15); color: #93c5fd; border-color: rgba(37,99,235,0.28); }
 }
 
+
+   대출 정보 행 (가격 3컬럼 아래 풀폭)
+══════════════════════════════════════ */
+.loan-info-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px 14px;
+    flex-wrap: wrap;
+    border-top: 1px dashed var(--border-color);
+}
+.loan-info-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.loan-tags {
+    display:inline-block;
+}
+.loan-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 7px;
+    white-space: nowrap;
+    letter-spacing: -0.2px;
+}
+.loan-tag-label {
+    font-size: 0.65rem;
+    font-weight: 800;
+    font-style: normal;
+    padding: 1px 6px;
+    border-radius: 3px;
+    background: rgba(0,0,0,0.10);
+    color: inherit;
+    opacity: 0.85;
+}
+/* 색상 클래스 (loan-tag / loan-badge 공통) */
+.loan-ltv-reg, .loan-tag.loan-ltv-reg {
+    background: rgba(234, 88, 12, 0.10); color: #c2410c;
+    border: 1px solid rgba(234, 88, 12, 0.25);
+}
+.loan-ltv-gen, .loan-tag.loan-ltv-gen {
+    background: rgba(37, 99, 235, 0.08); color: #1d4ed8;
+    border: 1px solid rgba(37, 99, 235, 0.20);
+}
+.loan-pol-a, .loan-tag.loan-pol-a {
+    background: rgba(22, 163, 74, 0.09); color: #15803d;
+    border: 1px solid rgba(22, 163, 74, 0.22);
+}
+.loan-pol-b, .loan-tag.loan-pol-b {
+    background: rgba(202, 138, 4, 0.09); color: #a16207;
+    border: 1px solid rgba(202, 138, 4, 0.22);
+}
+.loan-pol-c, .loan-tag.loan-pol-c {
+    background: rgba(100, 116, 139, 0.09); color: #475569;
+    border: 1px solid rgba(100, 116, 139, 0.22);
+}
 @media (prefers-color-scheme: dark) {
-    .loan-badge.loan-ltv-reg { background: rgba(234,88,12,0.18); color: #fdba74; border-color: rgba(234,88,12,0.32); }
-    .loan-badge.loan-ltv-gen { background: rgba(37,99,235,0.15); color: #93c5fd; border-color: rgba(37,99,235,0.28); }
-    .loan-badge.loan-pol-a   { background: rgba(22,163,74,0.16); color: #86efac; border-color: rgba(22,163,74,0.28); }
-    .loan-badge.loan-pol-b   { background: rgba(202,138,4,0.16); color: #fde68a; border-color: rgba(202,138,4,0.28); }
-    .loan-badge.loan-pol-c   { background: rgba(100,116,139,0.18); color: #94a3b8; border-color: rgba(100,116,139,0.28); }
+    .loan-ltv-reg, .loan-tag.loan-ltv-reg { background: rgba(234,88,12,0.18); color: #fdba74; border-color: rgba(234,88,12,0.32); }
+    .loan-ltv-gen, .loan-tag.loan-ltv-gen { background: rgba(37,99,235,0.15); color: #93c5fd; border-color: rgba(37,99,235,0.28); }
+    .loan-pol-a,   .loan-tag.loan-pol-a   { background: rgba(22,163,74,0.16); color: #86efac; border-color: rgba(22,163,74,0.28); }
+    .loan-pol-b,   .loan-tag.loan-pol-b   { background: rgba(202,138,4,0.16); color: #fde68a; border-color: rgba(202,138,4,0.28); }
+    .loan-pol-c,   .loan-tag.loan-pol-c   { background: rgba(100,116,139,0.18); color: #94a3b8; border-color: rgba(100,116,139,0.28); }
 }
 
 
@@ -671,23 +723,38 @@ body.pyeong-mode .u-sqm    { display: none !important; }
 
     .accordion-right { gap: 4px; }
 
-    .inner-row {
-        flex-direction: column; align-items: center;
-        gap: 12px; padding: 18px 16px; text-align: center;
+    .inner-main {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 14px 16px 10px;
+        gap: 12px;
     }
     .inner-area {
-        width: 100%; justify-content: center;
+        justify-content: center;
+        padding-bottom: 10px;
         border-bottom: 1px dashed var(--border-color);
-        padding-bottom: 10px; min-width: unset;
+        min-width: unset;
     }
     .inner-prices {
-        justify-content: space-around;
+        width: 100%;
         background: var(--hover-bg);
-        padding: 14px 10px; border-radius: 12px;
-        width: calc(100% - 20px);
-        gap: 0;
+        border-radius: 12px;
+        overflow: hidden;
     }
-    .price-box { width: auto; min-width: 70px; }
+    .price-box {
+        flex: 1;
+        min-width: 0;
+        padding: 12px 4px;
+    }
+    .price-box + .price-box {
+        border-left: 1px solid var(--border-color);
+    }
+    .loan-info-row {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 8px 16px 14px;
+        gap: 6px;
+    }
 
     .meta-row { padding-top: 4px; }
 }
@@ -695,4 +762,5 @@ body.pyeong-mode .u-sqm    { display: none !important; }
 @media screen and (max-width: 400px) {
     .group-apt { font-size: 1.05rem; }
     .row-count-badge { display: none; }
+    .loan-tags {display:flex; gap: 6px; }
 }
