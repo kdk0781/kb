@@ -41,28 +41,36 @@ return { zone: null, label: '' };
 }
 function _gLL(priceRaw, regZone, midRaw) {
 if (!priceRaw||priceRaw<=0) return null;
-const _iR = regZone==='A'||regZone==='B';
-const _lR = _iR ? 0.40 : 0.70;
-const _lP = _iR ? 40 : 70;
-const _lA = Math.floor(priceRaw * _lR / 1000) * 1000;
+const isReg = regZone==='A'||regZone==='B';
+const ltvRate = isReg ? 0.40 : 0.70;
+const ltvPct = isReg ? 40 : 70;
+const ltvAmt = Math.floor(priceRaw * ltvRate / 100) * 100;
 const ref = midRaw||priceRaw;
-let _pL;
-if (ref<=150000) _pL = 60000; // 15억 이하 → 6억
-else if (ref<=250000) _pL = 40000; // 25억 이하 → 4억
-else _pL = 20000; // 25억 초과 → 2억
-const _fA = Math.min(_lA, _pL);
-const _iLL = _fA===_lA; // true = LTV가 제한 요인
-const eok = _fA / 10000;
-const amtStr = Number.isInteger(eok) ? eok + '억' : eok.toFixed(1) + '억';
+let policyLimit;
+if (ref<=150000) policyLimit = 60000;
+else if (ref<=250000) policyLimit = 40000;
+else policyLimit = 20000;
+const finalAmt = Math.min(ltvAmt, policyLimit);
+const isLtvLimit = finalAmt===ltvAmt&&ltvAmt < policyLimit;
+function fmtAmt(man) {
+const eok = Math.floor(man / 10000);
+const rest = man % 10000;
+if (eok > 0&&rest > 0)
+return `${eok}억 ${rest.toLocaleString('ko-KR')}만`;
+if (eok > 0)
+return `${eok}억`;
+return `${rest.toLocaleString('ko-KR')}만`;
+}
+const amtStr = fmtAmt(finalAmt);
 let cls;
-if (_iLL) {
-cls = _iR ? 'loan-ltv-reg' : 'loan-ltv-gen';
+if (isLtvLimit) {
+cls = isReg ? 'loan-ltv-reg' : 'loan-ltv-gen';
 } else {
-if (_pL===60000) cls = 'loan-pol-a';
-else if (_pL===40000) cls = 'loan-pol-b';
+if (policyLimit===60000) cls = 'loan-pol-a';
+else if (policyLimit===40000) cls = 'loan-pol-b';
 else cls = 'loan-pol-c';
 }
-return { amtStr, _lP, _iLL, cls };
+return { amtStr, ltvPct, isLtvLimit, cls };
 }
 document.addEventListener('DOMContentLoaded', ()=>{
 const vEl = document.getElementById('splashVersion');
@@ -388,7 +396,8 @@ if (g.minPrice===g.maxPrice) return g.minPrice.toLocaleString('ko-KR')+'만';
 return `${g.minPrice.toLocaleString('ko-KR')} ~ ${g.maxPrice.toLocaleString('ko-KR')}만`;
 }
 function _dB(diff) {
-if (diff===null||diff===undefined||diff===0) return '';
+if (diff===null||diff===undefined||diff===0)
+return `<span class="price-diff none">-</span>`;
 const abs = Math.abs(diff).toLocaleString('ko-KR');
 return diff > 0
 ? `<span class="price-diff up">🔺${abs}</span>`
@@ -396,9 +405,14 @@ return diff > 0
 }
 function _cGH(g) {
 const priceRange = _gPR(g);
+const ltvPct = (g.regZone==='A'||g.regZone==='B') ? 40 : 70;
+const ltvChip = `<span class="ltv-chip ltv-${ltvPct}">LTV ${ltvPct}%</span>`;
 const regBadge = g.regLabel
-? `<div class="reg-badges"><span class="reg-badge reg-${g.regZone}">${g.regLabel}</span></div>`
-: '';
+? `<div class="reg-badges">
+<span class="reg-badge reg-${g.regZone}">${g.regLabel}</span>
+${ltvChip}
+</div>`
+: `<div class="reg-badges">${ltvChip}</div>`;
 const midDiffs = g.rows.map(r=>r.diffMid).filter(d=>d!==null&&d!==0);
 let groupDiffBadge = '';
 if (midDiffs.length > 0) {
@@ -417,20 +431,23 @@ for (const row of g.rows) {
 const sb = row.suffix ? `<span class="area-suffix">${row.suffix}</span>` : '';
 const loanLow = _gLL(row.하한가Raw, g.regZone, row.일반가Raw);
 const loanLowBadge = loanLow
-? `<span class="loan-badge ${loanLow.cls}">
-<em class="loan-floor"></em>대출 ${loanLow.amtStr}
-</span>`
+? `<span class="loan-badge ${loanLow.cls}">대출 ${loanLow.amtStr}</span>`
 : '';
-//<em class="loan-ltv-rate">LTV${loanLow._lP}%</em>  
 const loanMid = _gLL(row.일반가Raw, g.regZone, row.일반가Raw);
 const loanMidBadge = loanMid
-? `<span class="loan-badge ${loanMid.cls}">
-대출 ${loanMid.amtStr}
-</span>`
+? `<span class="loan-badge ${loanMid.cls}">대출 ${loanMid.amtStr}</span>`
 : '';
-//<em class="loan-ltv-rate">LTV${loanMid._lP}%</em>
+const loanRowHTML = (loanLow||loanMid) ? `
+<div class="loan-info-row">
+<span class="loan-info-label">대출 가능액 :</span>
+<div class="loan-tags">
+${loanLow ? `<span class="loan-tag ${loanLow.cls}"><em class="loan-tag-label">1층</em>${loanLow.amtStr}</span>` : ''}
+${loanMid ? `<span class="loan-tag ${loanMid.cls}"><em class="loan-tag-label">일반</em>${loanMid.amtStr}</span>` : ''}
+</div>
+</div>` : '';
 rowsHTML += `
 <div class="inner-row">
+<div class="inner-main">
 <div class="inner-area">
 <span class="area-val u-sqm">${row.공급면적}㎡</span>
 <span class="area-divider u-sqm">/</span>
@@ -445,13 +462,11 @@ ${sb}
 <span class="price-label">하한가</span>
 <span class="price-val">${row.하한가}</span>
 ${_dB(row.diffLow)}
-${loanLowBadge}
 </div>
 <div class="price-box mid">
 <span class="price-label">일반가</span>
 <span class="price-val">${row.일반가}</span>
 ${_dB(row.diffMid)}
-${loanMidBadge}
 </div>
 <div class="price-box high">
 <span class="price-label">상한가</span>
@@ -459,6 +474,8 @@ ${loanMidBadge}
 ${_dB(row.diffHigh)}
 </div>
 </div>
+</div>
+${loanRowHTML}
 </div>`;
 }
 return `
