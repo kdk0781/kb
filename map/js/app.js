@@ -10,7 +10,13 @@ const token = new URLSearchParams(location.search).get('share');
 if (!token) return true; // 공유 링크 아님 → 정상 실행
 try {
 const { exp } = JSON.parse(atob(token));
-if (Date.now() < exp) return true; // 유효 → 정상 실행
+if (Date.now() < exp) {
+window.addEventListener('beforeinstallprompt', e=>{
+e.preventDefault();
+e.stopImmediatePropagation();
+}, { capture: true });
+return true; // 앱 실행은 정상
+}
 } catch (_) { }
 document.addEventListener('DOMContentLoaded', ()=>{
 const splash = document.getElementById('splashOverlay');
@@ -106,7 +112,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
 if (!_sV) return; // 만료 링크면 앱 초기화 중단
 const vEl = document.getElementById('splashVersion');
 if (vEl) vEl.textContent = _V;
-if ('serviceWorker' in navigator) {
+const _isShared = !!new URLSearchParams(location.search).get('share');
+if ('serviceWorker' in navigator&&!_isShared) {
 navigator.serviceWorker.register('sw.js').catch(()=>{});
 }
 document.getElementById('hardRefreshBtn').addEventListener('click', async ()=>{
