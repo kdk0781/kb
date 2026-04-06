@@ -1,4 +1,34 @@
-const _V = 'v8.0';
+const _V = 'v9.0';
+const _SEM = {
+icon: '🔒',
+title: '링크가 만료되었습니다',
+desc: '접속량이 많아 유효한 페이지가 아닙니다.',
+sub: '담당자분께 링크를 다시 요청하세요.',
+};
+function _cSL() {
+const token = new URLSearchParams(location.search).get('share');
+if (!token) return true; // 공유 링크 아님 → 정상 실행
+try {
+const { exp } = JSON.parse(atob(token));
+if (Date.now() < exp) return true; // 유효 → 정상 실행
+} catch (_) { }
+document.addEventListener('DOMContentLoaded', ()=>{
+const splash = document.getElementById('splashOverlay');
+if (splash) {
+splash.style.opacity = '1';
+splash.style.visibility = 'visible';
+splash.innerHTML = `
+<div class="share-expired-page">
+<div class="sep-icon">${_SEM.icon}</div>
+<h2 class="sep-title">${_SEM.title}</h2>
+<p class="sep-desc">${_SEM.desc}</p>
+<p class="sep-sub">${_SEM.sub}</p>
+</div>`;
+}
+});
+return false;
+}
+const _sV = _cSL();
 let _aG = [];
 let _fG = [];
 let _aR = '전체';
@@ -73,6 +103,7 @@ else cls = 'loan-pol-c';
 return { amtStr, ltvPct, isLtvLimit, cls };
 }
 document.addEventListener('DOMContentLoaded', ()=>{
+if (!_sV) return; // 만료 링크면 앱 초기화 중단
 const vEl = document.getElementById('splashVersion');
 if (vEl) vEl.textContent = _V;
 if ('serviceWorker' in navigator) {
@@ -134,6 +165,7 @@ btn.querySelector('.u-label-pyeong').classList.toggle('active', _aU==='pyeong');
 });
 _sSO();
 _sSTB();
+_sSB();
 _lD();
 });
 function _sSP() {
@@ -556,5 +588,77 @@ btn.classList.remove('visible');
 }, { passive: true });
 btn.addEventListener('click', ()=>{
 window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+}
+function _sSB() {
+const openBtn = document.getElementById('shareBtnOpen');
+const modal = document.getElementById('shareModal');
+const closeBtn = document.getElementById('shareCloseBtn');
+const genBtn = document.getElementById('shareGenBtn');
+const copyBtn = document.getElementById('shareCopyBtn');
+const linkInput = document.getElementById('shareLinkInput');
+const resultBox = document.getElementById('shareResultBox');
+const copyMsg = document.getElementById('shareCopyMsg');
+if (!openBtn) return;
+const _eT = new URLSearchParams(location.search).get('share');
+if (_eT) {
+openBtn.addEventListener('click', async ()=>{
+const currentUrl = location.href; // 현재 share 파라미터 포함 URL
+try {
+await navigator.clipboard.writeText(currentUrl);
+} catch (_) {
+const tmp = document.createElement('textarea');
+tmp.value = currentUrl;
+document.body.appendChild(tmp);
+tmp.select(); document.execCommand('copy');
+document.body.removeChild(tmp);
+}
+const span = openBtn.querySelector('span');
+const orig = span.textContent;
+span.textContent = '복사됨!';
+openBtn.style.background = 'var(--primary-color)';
+openBtn.style.color = '#1a1f24';
+setTimeout(()=>{
+span.textContent = orig;
+openBtn.style.background = '';
+openBtn.style.color = '';
+}, 2000);
+});
+return; // 모달 이벤트 등록 불필요
+}
+openBtn.addEventListener('click', ()=>{
+modal.classList.add('open');
+resultBox.style.display = 'none';
+copyMsg.style.display = 'none';
+});
+closeBtn.addEventListener('click', ()=>modal.classList.remove('open'));
+modal.addEventListener('click', e=>{
+if (e.target===modal) modal.classList.remove('open');
+});
+genBtn.addEventListener('click', ()=>{
+const dur = Math.max(1, parseInt(document.getElementById('shareDuration').value)||1);
+const unit = parseInt(document.getElementById('shareUnit').value);
+const exp = Date.now() + dur * unit;
+const token = btoa(JSON.stringify({ exp }));
+const url = new URL(location.href);
+url.search = '?share=' + encodeURIComponent(token);
+url.hash = '';
+linkInput.value = url.toString();
+resultBox.style.display = 'flex';
+copyMsg.style.display = 'none';
+const d = new Date(exp);
+document.getElementById('shareExpLabel').textContent =
+'만료: ' + d.toLocaleDateString('ko-KR') + ' ' +
+d.toLocaleTimeString('ko-KR', { hour:'2-digit', minute:'2-digit' });
+});
+copyBtn.addEventListener('click', async ()=>{
+try {
+await navigator.clipboard.writeText(linkInput.value);
+} catch (_) {
+linkInput.select();
+document.execCommand('copy');
+}
+copyMsg.style.display = 'block';
+setTimeout(()=>{ copyMsg.style.display = 'none'; }, 2000);
 });
 }
