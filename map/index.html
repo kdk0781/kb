@@ -13,7 +13,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <link rel="stylesheet" href="css/common.css?v=49">
+    <link rel="stylesheet" href="css/common.css?v=50">
 </head>
 <body>
 
@@ -152,20 +152,23 @@
             <p class="share-hint">예) 1 = 하루(24시간) · 7 = 일주일</p>
         </div>
 
-        <!-- 생성된 링크 -->
+        <!-- 생성된 공유 메시지 미리보기 -->
         <div id="shareResultBox" class="share-result-box" style="display:none">
             <div class="share-exp-label" id="shareExpLabel"></div>
-            <div class="share-link-row">
-                <input type="text" id="shareLinkInput" class="share-link-input" readonly>
-                <button id="shareCopyBtn" class="share-copy-btn">복사</button>
+            <p class="share-msg-label">📋 복사할 메시지 미리보기</p>
+            <div class="share-msg-preview-wrap">
+                <textarea id="shareLinkInput" class="share-msg-textarea" readonly rows="5"></textarea>
             </div>
+            <button id="shareCopyBtn" class="share-copy-btn-full">
+                📎 메시지 + 링크 복사하기
+            </button>
             <div id="shareCopyMsg" class="share-copy-msg" style="display:none">
-                ✅ 클립보드에 복사됐습니다
+                ✅ 클립보드에 복사됐습니다. 카카오톡 · 문자에 붙여넣기 하세요!
             </div>
         </div>
     </div>
 </div>
 
-<script src="js/app.js?v=49"></script>
+<script src="js/app.js?v=50"></script>
 </body>
 </html>
