@@ -10,7 +10,7 @@ const _SP = 'k';
 const _SCT = (url) =>
 `[KB 아파트 시세표]
 아래 링크를 클릭하면 주간 시세를 확인하실 수 있습니다.
-매주 실시간으로 수도권지역 시세를 확인할 수 있습니다.
+유효 기간이 있는 임시 링크이며, 기간 만료 시 접속이 제한됩니다.
 ${url}`;
 function _sE(payload) {
 const key = _SS;
@@ -29,17 +29,21 @@ return JSON.parse(new TextDecoder().decode(new Uint8Array(dec)));
 function _cSL() {
 const SS_TOKEN = '_shr_t';
 const SS_URL = '_shr_u';
+const SS_BLOCKED = '_shr_blocked';
+try {
+if (sessionStorage.getItem(SS_BLOCKED)) {
+_sEAB();
+return false;
+}
+} catch (_) {}
 let token = null;
 let origUrl = null;
+let fromUrl = false;
 const urlToken = new URLSearchParams(location.search).get(_SP);
 if (urlToken) {
 token = urlToken;
 origUrl = location.href;
-try { history.replaceState(null, '', location.pathname); } catch (_) {}
-try {
-sessionStorage.setItem(SS_TOKEN, token);
-sessionStorage.setItem(SS_URL, origUrl);
-} catch (_) {}
+fromUrl = true;
 } else {
 try {
 token = sessionStorage.getItem(SS_TOKEN);
@@ -47,9 +51,19 @@ origUrl = sessionStorage.getItem(SS_URL);
 } catch (_) {}
 }
 if (!token) return true; // 공유 링크 아님 → 정상 실행
+let isValid = false;
 try {
 const { exp } = _sD(token);
-if (Date.now() < exp) {
+isValid = Date.now() < exp;
+} catch (_) {}
+if (isValid) {
+if (fromUrl) {
+try { history.replaceState(null, '', location.pathname); } catch (_) {}
+try {
+sessionStorage.setItem(SS_TOKEN, token);
+sessionStorage.setItem(SS_URL, origUrl);
+} catch (_) {}
+}
 window.addEventListener('beforeinstallprompt', e=>{
 e.preventDefault();
 e.stopImmediatePropagation();
@@ -57,14 +71,18 @@ e.stopImmediatePropagation();
 window._shareOrigUrl = origUrl;
 return true;
 }
-} catch (_) { }
 try {
 sessionStorage.removeItem(SS_TOKEN);
 sessionStorage.removeItem(SS_URL);
+sessionStorage.setItem(SS_BLOCKED, '1');
 } catch (_) {}
+_sEAB();
+return false;
+}
+function _sEAB() {
 document.addEventListener('DOMContentLoaded', ()=>{
 const splash = document.getElementById('splashOverlay');
-if (splash) {
+if (!splash) return;
 splash.style.opacity = '1';
 splash.style.visibility = 'visible';
 splash.innerHTML = `
@@ -74,9 +92,7 @@ splash.innerHTML = `
 <p class="sep-desc">${_SEM.desc}</p>
 <p class="sep-sub">${_SEM.sub}</p>
 </div>`;
-}
 });
-return false;
 }
 const _sV = _cSL();
 let _aG = [];
@@ -218,6 +234,10 @@ btn.querySelector('.u-label-pyeong').classList.toggle('active', _aU==='pyeong');
 _sSO();
 _sSTB();
 _sSB();
+if (window._showSharePreview) {
+showSharePreview();
+return; // _lD는 startApp()에서 호출
+}
 _lD();
 });
 function _sSP() {
@@ -728,4 +748,45 @@ document.execCommand('copy');
 copyMsg.style.display = 'block';
 setTimeout(()=>{ copyMsg.style.display = 'none'; }, 2500);
 });
+}
+const PREVIEW_SEC = 10;
+function showSharePreview() {
+const splash = document.getElementById('splashOverlay');
+if (!splash) { startApp(); return; }
+splash.classList.remove('hide');
+splash.style.opacity = '1';
+splash.style.visibility = 'visible';
+splash.innerHTML = `
+<div class="share-preview-page">
+<p class="spp-badge">임시 공유 링크</p>
+<div class="spp-icon">📊</div>
+<h2 class="spp-title">아파트 시세표</h2>
+<p class="spp-desc">
+Preview를 클릭하거나<br>
+<span id="shareCountdown">${PREVIEW_SEC}</span>초 뒤 페이지가<br>
+자동으로 이동됩니다.
+</p>
+<button id="sharePreviewBtn" class="spp-btn">Preview →</button>
+<p class="spp-notice">⏱ 유효 기간이 있는 임시 링크입니다</p>
+</div>`;
+let started = false;
+const go = ()=>{
+if (started) return;
+started = true;
+clearInterval(timer);
+startApp();
+};
+let count = PREVIEW_SEC;
+const timer = setInterval(()=>{
+count--;
+const el = document.getElementById('shareCountdown');
+if (el) el.textContent = count;
+if (count<=0) go();
+}, 1000);
+document.getElementById('sharePreviewBtn')
+.addEventListener('click', go, { once: true });
+}
+function startApp() {
+_hS();
+_lD();
 }
