@@ -128,6 +128,11 @@ body {
     margin: 0; color: var(--text-main); letter-spacing: -0.5px;
 }
 
+/* 버튼 그룹: 새로고침 + 공유 */
+.header-actions {
+    display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+}
+
 .refresh-btn {
     display: flex; align-items: center; gap: 6px;
     background: var(--card-bg); border: 1px solid var(--border-color);
@@ -241,15 +246,16 @@ body {
 }
 
 .accordion-btn {
-    padding: 20px;
+    padding: 18px 20px;
     display: flex; justify-content: space-between; align-items: center;
     cursor: pointer; user-select: none;
     transition: background 0.15s;
     background: var(--card-bg);
+    gap: 12px;
 }
 .accordion-btn:hover { background: var(--hover-bg); }
 
-.group-title-wrap { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.group-title-wrap { display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 1; }
 .group-apt {
     font-size: 1.2rem; font-weight: 800;
     color: var(--text-main); letter-spacing: -0.4px;
@@ -259,7 +265,8 @@ body {
 
 .accordion-right {
     display: flex; align-items: center;
-    gap: 6px; flex-shrink: 0; margin-left: 12px;
+    gap: 6px; flex-shrink: 0; margin-left: 10px;
+    flex-wrap: nowrap; /* 한 줄 유지 */
 }
 
 /* 일반가 범위 배지 */
@@ -496,6 +503,9 @@ body.pyeong-mode .u-sqm    { display: none !important; }
     white-space: nowrap;
     letter-spacing: -0.2px;
     flex-shrink: 0;
+    max-width: 90px;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 .group-diff-badge.up    { color: #ef4444; background: rgba(239,68,68,0.09); }
 .group-diff-badge.down  { color: #3b82f6; background: rgba(59,130,246,0.09); }
@@ -561,10 +571,7 @@ body.pyeong-mode .u-sqm    { display: none !important; }
     flex-shrink: 0;
 }
 .loan-tags {
-    display:inline-flex;
-	flex-wrap:nowrap;
-	flex-direction:row;
-	gap:6px;
+    display:inline-block;
 }
 .loan-tag {
     display: inline-flex;
@@ -726,6 +733,15 @@ body.pyeong-mode .u-sqm    { display: none !important; }
 
     .accordion-right { gap: 4px; }
 
+    /* 모바일: 공유 버튼 텍스트 숨김 → 아이콘만 표시 */
+    .share-btn-text { display: none; }
+    .share-btn {
+        padding: 8px 10px;   /* 정사각형에 가깝게 */
+        border-radius: 50%;
+        min-width: 38px; min-height: 38px;
+        justify-content: center;
+    }
+
     .inner-main {
         flex-direction: column;
         align-items: stretch;
@@ -766,4 +782,191 @@ body.pyeong-mode .u-sqm    { display: none !important; }
     .group-apt { font-size: 1.05rem; }
     .row-count-badge { display: none; }
     .loan-tags {display:flex; gap: 6px; }
+}
+
+
+/* ══════════════════════════════════════════════
+   공유 버튼
+══════════════════════════════════════════════ */
+.share-btn {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--card-bg);
+    border: 1px solid var(--primary-dark);
+    color: var(--primary-dark);
+    font-size: 0.85rem; font-weight: 700;
+    padding: 8px 14px; border-radius: 20px;
+    cursor: pointer; transition: 0.2s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    font-family: inherit;
+}
+.share-btn:hover { background: var(--primary-color); color: #1a1f24; }
+.share-btn:active { transform: scale(0.95); }
+
+/* ══════════════════════════════════════════════
+   공유 모달 오버레이
+══════════════════════════════════════════════ */
+.share-modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+    z-index: 9000;
+    display: flex; align-items: center; justify-content: center;
+    padding: 16px;
+    opacity: 0; visibility: hidden;
+    transition: opacity 0.22s, visibility 0.22s;
+}
+.share-modal-overlay.open { opacity: 1; visibility: visible; }
+
+.share-modal-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 24px 22px 22px;
+    width: 100%; max-width: 420px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    transform: translateY(10px);
+    transition: transform 0.22s;
+}
+.share-modal-overlay.open .share-modal-card { transform: translateY(0); }
+
+.share-modal-header {
+    display: flex; align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+.share-modal-title {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 1rem; font-weight: 800;
+    color: var(--text-main); margin: 0;
+}
+.share-close-btn {
+    background: none; border: none;
+    font-size: 1rem; color: var(--text-muted);
+    cursor: pointer; padding: 4px 8px;
+    border-radius: 8px; transition: 0.15s;
+    font-family: inherit; line-height: 1;
+}
+.share-close-btn:hover { background: var(--hover-bg); color: var(--text-main); }
+
+.share-modal-desc {
+    font-size: 0.82rem; color: var(--text-muted);
+    line-height: 1.55; margin: 0 0 18px;
+}
+
+/* 기간 설정 */
+.share-duration-wrap { margin-bottom: 16px; }
+.share-duration-label {
+    display: block;
+    font-size: 0.78rem; font-weight: 700;
+    color: var(--text-muted); margin-bottom: 8px;
+}
+.share-duration-row {
+    display: flex; gap: 8px; align-items: center;
+}
+.share-duration-input {
+    width: 64px; padding: 10px 8px;
+    border: 1.5px solid var(--border-color);
+    border-radius: 10px;
+    background: var(--bg-color); color: var(--text-main);
+    font-size: 1rem; font-weight: 700;
+    text-align: center; outline: none;
+    font-family: inherit; transition: 0.2s; flex-shrink: 0;
+}
+.share-duration-input:focus { border-color: var(--primary-dark); }
+.share-unit-select {
+    flex: 1; padding: 10px 10px;
+    border: 1.5px solid var(--border-color);
+    border-radius: 10px;
+    background: var(--bg-color); color: var(--text-main);
+    font-size: 0.85rem; font-weight: 600;
+    outline: none; cursor: pointer;
+    font-family: inherit; transition: 0.2s;
+    appearance: none; -webkit-appearance: none;
+    min-width: 0;
+}
+.share-unit-select:focus { border-color: var(--primary-dark); }
+.share-gen-btn {
+    padding: 10px 16px;
+    background: var(--primary-dark); color: #1a1f24;
+    border: none; border-radius: 10px;
+    font-size: 0.88rem; font-weight: 800;
+    cursor: pointer; transition: 0.2s;
+    white-space: nowrap; font-family: inherit; flex-shrink: 0;
+}
+.share-gen-btn:hover { background: var(--primary-color); }
+.share-gen-btn:active { transform: scale(0.96); }
+
+.share-hint {
+    font-size: 0.72rem; color: var(--text-muted);
+    margin: 6px 0 0; opacity: 0.65;
+}
+
+/* 생성된 링크 결과 */
+.share-result-box {
+    border-top: 1px solid var(--border-color);
+    padding-top: 16px;
+    display: flex; flex-direction: column; gap: 10px;
+}
+.share-exp-label {
+    font-size: 0.75rem; font-weight: 700;
+    color: var(--text-muted);
+    padding: 6px 12px;
+    background: var(--hover-bg);
+    border-radius: 8px;
+    white-space: nowrap;
+    align-self: flex-start;
+}
+.share-link-row {
+    display: flex; gap: 8px; align-items: stretch;
+}
+.share-link-input {
+    flex: 1; min-width: 0;
+    padding: 10px 12px;
+    border: 1.5px solid var(--border-color);
+    border-radius: 10px;
+    background: var(--hover-bg); color: var(--text-muted);
+    font-size: 0.78rem; font-weight: 500;
+    outline: none; font-family: monospace;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.share-copy-btn {
+    padding: 10px 16px; flex-shrink: 0;
+    background: var(--card-bg);
+    border: 1.5px solid var(--border-color);
+    color: var(--text-main);
+    border-radius: 10px;
+    font-size: 0.85rem; font-weight: 700;
+    cursor: pointer; transition: 0.2s;
+    white-space: nowrap; font-family: inherit;
+}
+.share-copy-btn:hover { background: var(--primary-color); border-color: var(--primary-dark); color: #1a1f24; }
+.share-copy-msg {
+    font-size: 0.78rem; font-weight: 700;
+    color: #16a34a; text-align: center;
+}
+
+/* ══════════════════════════════════════════════
+   링크 만료 페이지
+══════════════════════════════════════════════ */
+.share-expired-page {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center;
+    padding: 40px 30px;
+    max-width: 340px;
+    gap: 10px;
+}
+.sep-icon  { font-size: 3rem; line-height: 1; margin-bottom: 4px; }
+.sep-title {
+    font-size: 1.3rem; font-weight: 800;
+    color: var(--text-main); margin: 0;
+    letter-spacing: -0.5px;
+}
+.sep-desc  {
+    font-size: 0.95rem; color: var(--text-muted);
+    margin: 4px 0 0; line-height: 1.6;
+}
+.sep-sub   {
+    font-size: 0.85rem; color: var(--text-muted);
+    opacity: 0.75; margin: 0;
 }
