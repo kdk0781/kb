@@ -7,6 +7,11 @@ sub: '담당자분께 링크를 다시 요청하세요.',
 };
 const _SS = 'kdk_apt_2026_!@#'; // ← 원하는 값으로 변경
 const _SP = 'k';
+const _SCT = (url) =>
+`[KB 아파트 시세표]
+아래 링크를 클릭하면 주간 시세를 확인하실 수 있습니다.
+유효 기간이 있는 임시 링크이며, 기간 만료 시 접속이 제한됩니다.
+${url}`;
 function _sE(payload) {
 const key = _SS;
 const bytes = Array.from(new TextEncoder().encode(JSON.stringify(payload)));
@@ -50,7 +55,6 @@ e.preventDefault();
 e.stopImmediatePropagation();
 }, { capture: true });
 window._shareOrigUrl = origUrl;
-window._showSharePreview = true; // 프리뷰 페이지 표시 플래그
 return true;
 }
 } catch (_) { }
@@ -214,10 +218,6 @@ btn.querySelector('.u-label-pyeong').classList.toggle('active', _aU==='pyeong');
 _sSO();
 _sSTB();
 _sSB();
-if (window._showSharePreview) {
-_sSPrev();
-return; // _lD()는 프리뷰 확인 후 _sA()에서 호출
-}
 _lD();
 });
 function _sSP() {
@@ -704,65 +704,28 @@ const d = new Date(exp);
 document.getElementById('shareExpLabel').textContent =
 '만료: ' + d.toLocaleDateString('ko-KR') + ' ' +
 d.toLocaleTimeString('ko-KR', { hour:'2-digit', minute:'2-digit' });
+let finalUrl = longUrl;
 try {
 const res = await fetch(
 'https://tinyurl.com/api-create.php?url=' + encodeURIComponent(longUrl)
 );
 const tiny = await res.text();
-linkInput.value = tiny.startsWith('http') ? tiny : longUrl;
-} catch (_) {
-linkInput.value = longUrl;
-}
+if (tiny.startsWith('http')) finalUrl = tiny;
+} catch (_) { }
+const msgText = _SCT(finalUrl);
+linkInput.value = msgText; // textarea에 전체 메시지 표시
 copyBtn.disabled = false;
-window._shareOrigUrl = linkInput.value;
+window._shareOrigUrl = finalUrl; // 수신자 재공유용
 });
 copyBtn.addEventListener('click', async ()=>{
+const text = linkInput.value;
 try {
-await navigator.clipboard.writeText(linkInput.value);
+await navigator.clipboard.writeText(text);
 } catch (_) {
 linkInput.select();
 document.execCommand('copy');
 }
 copyMsg.style.display = 'block';
-setTimeout(()=>{ copyMsg.style.display = 'none'; }, 2000);
+setTimeout(()=>{ copyMsg.style.display = 'none'; }, 2500);
 });
-}
-const _PS = 10;
-function _sSPrev() {
-const splash = document.getElementById('splashOverlay');
-if (!splash) { _sA(); return; }
-splash.classList.remove('hide');
-splash.style.opacity = '1';
-splash.style.visibility = 'visible';
-splash.innerHTML = `
-<div class="share-preview-page">
-<div class="spp-badge">임시 공유 링크</div>
-<div class="spp-icon">📊</div>
-<h2 class="spp-title">아파트 시세표</h2>
-<p class="spp-desc">
-KB 주간 아파트 시세 정보가 공유되었습니다.<br>
-아래 버튼을 눌러 최신 시세를 확인하세요.
-</p>
-<button id="sharePreviewBtn" class="spp-btn">
-시세표 확인하기
-</button>
-<p class="spp-auto">
-<span id="shareCountdown">${_PS}</span>초 후 자동으로 이동합니다
-</p>
-<p class="spp-notice">⏱ 유효 기간이 있는 임시 링크입니다</p>
-</div>`;
-let count = _PS;
-const bar = null; // 필요 시 프로그레스 바 연결
-const timer = setInterval(()=>{
-count--;
-const el = document.getElementById('shareCountdown');
-if (el) el.textContent = count;
-if (count<=0) { clearInterval(timer); _sA(); }
-}, 1000);
-document.getElementById('sharePreviewBtn')
-.addEventListener('click', ()=>{ clearInterval(timer); _sA(); });
-}
-function _sA() {
-_hS();
-_lD();
 }
