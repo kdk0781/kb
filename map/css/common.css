@@ -970,3 +970,101 @@ body.pyeong-mode .u-sqm    { display: none !important; }
     font-size: 0.85rem; color: var(--text-muted);
     opacity: 0.75; margin: 0;
 }
+
+
+/* ══════════════════════════════════════════════
+   공유 링크 프리뷰 페이지
+══════════════════════════════════════════════ */
+.share-preview-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 40px 32px;
+    max-width: 380px;
+    width: 100%;
+    gap: 0;
+}
+
+/* 임시 링크 배지 */
+.spp-badge {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: var(--primary-dark);
+    background: rgba(234, 179, 8, 0.12);
+    border: 1px solid rgba(234, 179, 8, 0.3);
+    padding: 4px 12px;
+    border-radius: 20px;
+    letter-spacing: 0.3px;
+    margin-bottom: 24px;
+}
+
+/* 아이콘 */
+.spp-icon {
+    font-size: 3.5rem;
+    line-height: 1;
+    margin-bottom: 16px;
+    filter: drop-shadow(0 4px 12px rgba(250,204,21,0.3));
+}
+
+/* 제목 */
+.spp-title {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: var(--text-main);
+    margin: 0 0 14px;
+    letter-spacing: -0.5px;
+}
+
+/* 설명 */
+.spp-desc {
+    font-size: 0.92rem;
+    color: var(--text-muted);
+    line-height: 1.7;
+    margin: 0 0 28px;
+}
+
+/* CTA 버튼 */
+.spp-btn {
+    width: 100%;
+    max-width: 260px;
+    padding: 16px 24px;
+    background: var(--primary-dark);
+    color: #1a1f24;
+    border: none;
+    border-radius: 14px;
+    font-size: 1rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: transform 0.18s, background 0.18s;
+    font-family: inherit;
+    letter-spacing: -0.3px;
+    box-shadow: 0 8px 24px rgba(234,179,8,0.3);
+    margin-bottom: 16px;
+}
+.spp-btn:hover  { background: var(--primary-color); transform: translateY(-2px); }
+.spp-btn:active { transform: scale(0.97); }
+
+/* 카운트다운 */
+.spp-auto {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin: 0 0 12px;
+    opacity: 0.75;
+}
+.spp-auto #shareCountdown {
+    display: inline-block;
+    font-weight: 800;
+    color: var(--primary-dark);
+    min-width: 16px;
+    font-size: 0.95rem;
+}
+
+/* 하단 안내 */
+.spp-notice {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin: 0;
+    opacity: 0.55;
+}
