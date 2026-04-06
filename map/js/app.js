@@ -5,19 +5,59 @@ title: '링크가 만료되었습니다',
 desc: '접속량이 많아 유효한 페이지가 아닙니다.',
 sub: '담당자분께 링크를 다시 요청하세요.',
 };
+const _SS = 'kdk_apt_2026_!@#'; // ← 원하는 값으로 변경
+const _SP = 'k';
+function _sE(payload) {
+const key = _SS;
+const bytes = Array.from(new TextEncoder().encode(JSON.stringify(payload)));
+const enc = bytes.map((b, i)=>b ^ key.charCodeAt(i % key.length));
+return btoa(String.fromCharCode(...enc))
+.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+}
+function _sD(token) {
+const key = _SS;
+const b64 = token.replace(/-/g, '+').replace(/_/g, '/');
+const bytes = Array.from(atob(b64), c=>c.charCodeAt(0));
+const dec = bytes.map((b, i)=>b ^ key.charCodeAt(i % key.length));
+return JSON.parse(new TextDecoder().decode(new Uint8Array(dec)));
+}
 function _cSL() {
-const token = new URLSearchParams(location.search).get('share');
+const SS_TOKEN = '_shr_t';
+const SS_URL = '_shr_u';
+let token = null;
+let origUrl = null;
+const urlToken = new URLSearchParams(location.search).get(_SP);
+if (urlToken) {
+token = urlToken;
+origUrl = location.href;
+try { history.replaceState(null, '', location.pathname); } catch (_) {}
+try {
+sessionStorage.setItem(SS_TOKEN, token);
+sessionStorage.setItem(SS_URL, origUrl);
+} catch (_) {}
+} else {
+try {
+token = sessionStorage.getItem(SS_TOKEN);
+origUrl = sessionStorage.getItem(SS_URL);
+} catch (_) {}
+}
 if (!token) return true; // 공유 링크 아님 → 정상 실행
 try {
-const { exp } = JSON.parse(atob(token));
+const { exp } = _sD(token);
 if (Date.now() < exp) {
 window.addEventListener('beforeinstallprompt', e=>{
 e.preventDefault();
 e.stopImmediatePropagation();
 }, { capture: true });
-return true; // 앱 실행은 정상
+window._shareOrigUrl = origUrl;
+window._showSharePreview = true; // 프리뷰 페이지 표시 플래그
+return true;
 }
 } catch (_) { }
+try {
+sessionStorage.removeItem(SS_TOKEN);
+sessionStorage.removeItem(SS_URL);
+} catch (_) {}
 document.addEventListener('DOMContentLoaded', ()=>{
 const splash = document.getElementById('splashOverlay');
 if (splash) {
@@ -112,7 +152,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
 if (!_sV) return; // 만료 링크면 앱 초기화 중단
 const vEl = document.getElementById('splashVersion');
 if (vEl) vEl.textContent = _V;
-const _isShared = !!new URLSearchParams(location.search).get('share');
+const _isShared = !!new URLSearchParams(location.search).get(_SP)
+|| !!window._shareOrigUrl;
 if ('serviceWorker' in navigator&&!_isShared) {
 navigator.serviceWorker.register('sw.js').catch(()=>{});
 }
@@ -173,6 +214,10 @@ btn.querySelector('.u-label-pyeong').classList.toggle('active', _aU==='pyeong');
 _sSO();
 _sSTB();
 _sSB();
+if (window._showSharePreview) {
+_sSPrev();
+return; // _lD()는 프리뷰 확인 후 _sA()에서 호출
+}
 _lD();
 });
 function _sSP() {
@@ -607,31 +652,31 @@ const linkInput = document.getElementById('shareLinkInput');
 const resultBox = document.getElementById('shareResultBox');
 const copyMsg = document.getElementById('shareCopyMsg');
 if (!openBtn) return;
-const _eT = new URLSearchParams(location.search).get('share');
+const _eT = !!window._shareOrigUrl; // _cSL() 에서 설정
 if (_eT) {
 openBtn.addEventListener('click', async ()=>{
-const currentUrl = location.href; // 현재 share 파라미터 포함 URL
+const originalUrl = window._shareOrigUrl||location.href;
 try {
-await navigator.clipboard.writeText(currentUrl);
+await navigator.clipboard.writeText(originalUrl);
 } catch (_) {
 const tmp = document.createElement('textarea');
-tmp.value = currentUrl;
+tmp.value = originalUrl;
 document.body.appendChild(tmp);
 tmp.select(); document.execCommand('copy');
 document.body.removeChild(tmp);
 }
 const span = openBtn.querySelector('span');
-const orig = span.textContent;
-span.textContent = '복사됨!';
+const orig = span ? span.textContent : '';
+if (span) span.textContent = '복사됨!';
 openBtn.style.background = 'var(--primary-color)';
 openBtn.style.color = '#1a1f24';
 setTimeout(()=>{
-span.textContent = orig;
+if (span) span.textContent = orig;
 openBtn.style.background = '';
 openBtn.style.color = '';
 }, 2000);
 });
-return; // 모달 이벤트 등록 불필요
+return;
 }
 openBtn.addEventListener('click', ()=>{
 modal.classList.add('open');
@@ -642,21 +687,34 @@ closeBtn.addEventListener('click', ()=>modal.classList.remove('open'));
 modal.addEventListener('click', e=>{
 if (e.target===modal) modal.classList.remove('open');
 });
-genBtn.addEventListener('click', ()=>{
+genBtn.addEventListener('click', async ()=>{
 const dur = Math.max(1, parseInt(document.getElementById('shareDuration').value)||1);
 const unit = parseInt(document.getElementById('shareUnit').value);
 const exp = Date.now() + dur * unit;
-const token = btoa(JSON.stringify({ exp }));
-const url = new URL(location.href);
-url.search = '?share=' + encodeURIComponent(token);
-url.hash = '';
-linkInput.value = url.toString();
+const token = _sE({ exp });
+const baseUrl = new URL(location.href);
+baseUrl.search = '?' + _SP + '=' + token;
+baseUrl.hash = '';
+const longUrl = baseUrl.toString();
 resultBox.style.display = 'flex';
 copyMsg.style.display = 'none';
+linkInput.value = '링크 생성 중...';
+copyBtn.disabled = true;
 const d = new Date(exp);
 document.getElementById('shareExpLabel').textContent =
 '만료: ' + d.toLocaleDateString('ko-KR') + ' ' +
 d.toLocaleTimeString('ko-KR', { hour:'2-digit', minute:'2-digit' });
+try {
+const res = await fetch(
+'https://tinyurl.com/api-create.php?url=' + encodeURIComponent(longUrl)
+);
+const tiny = await res.text();
+linkInput.value = tiny.startsWith('http') ? tiny : longUrl;
+} catch (_) {
+linkInput.value = longUrl;
+}
+copyBtn.disabled = false;
+window._shareOrigUrl = linkInput.value;
 });
 copyBtn.addEventListener('click', async ()=>{
 try {
@@ -668,4 +726,43 @@ document.execCommand('copy');
 copyMsg.style.display = 'block';
 setTimeout(()=>{ copyMsg.style.display = 'none'; }, 2000);
 });
+}
+const _PS = 10;
+function _sSPrev() {
+const splash = document.getElementById('splashOverlay');
+if (!splash) { _sA(); return; }
+splash.classList.remove('hide');
+splash.style.opacity = '1';
+splash.style.visibility = 'visible';
+splash.innerHTML = `
+<div class="share-preview-page">
+<div class="spp-badge">임시 공유 링크</div>
+<div class="spp-icon">📊</div>
+<h2 class="spp-title">아파트 시세표</h2>
+<p class="spp-desc">
+KB 주간 아파트 시세 정보가 공유되었습니다.<br>
+아래 버튼을 눌러 최신 시세를 확인하세요.
+</p>
+<button id="sharePreviewBtn" class="spp-btn">
+시세표 확인하기
+</button>
+<p class="spp-auto">
+<span id="shareCountdown">${_PS}</span>초 후 자동으로 이동합니다
+</p>
+<p class="spp-notice">⏱ 유효 기간이 있는 임시 링크입니다</p>
+</div>`;
+let count = _PS;
+const bar = null; // 필요 시 프로그레스 바 연결
+const timer = setInterval(()=>{
+count--;
+const el = document.getElementById('shareCountdown');
+if (el) el.textContent = count;
+if (count<=0) { clearInterval(timer); _sA(); }
+}, 1000);
+document.getElementById('sharePreviewBtn')
+.addEventListener('click', ()=>{ clearInterval(timer); _sA(); });
+}
+function _sA() {
+_hS();
+_lD();
 }
