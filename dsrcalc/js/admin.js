@@ -1,83 +1,248 @@
 /* =============================================================================
-   js/admin.js — 관리자 인증 + 배포 링크 생성 + 로그아웃
-   · checkAdminAuth       : 세션 확인 → 관리자 UI 표시
-   · generateAdminShareLink: HMAC OTL 토큰으로 앱 설치 링크 생성
-   · adminLogout / closeLogoutModal / proceedAdminLogout
-   · 의존: config.js, report.js (_otlIssue, _forceCopy, showAlert)
+   DSR 계산기 — 관리자 로그인 · admin.js  VER 2026.06
+   ─────────────────────────────────────────────────────────────────────────────
+   ★ 자동 로그인 / 기억하기 고도화 흐름
+
+   [A] 자동 로그인 체크박스 ON + 로그인 성공
+       → kb_admin_autologin 에 { id, pw, enabled:true } 저장
+       → 다음 접속 시 페이지 로드되자마자 자동 로그인
+
+   [B] 자동 로그인 체크박스 OFF + 로그인 성공
+       → kb_admin_autologin 삭제
+       → 다음 접속 시 빈 화면
+
+   [C] 로그아웃 (common.js proceedAdminLogout 호출)
+       → kb_admin_init_state 에 { id, pw, autoCheck:true } 저장 후 admin.html 이동
+       → 로그인 페이지 로드 시 해당 값으로 필드·체크박스 복원
+
+   [D] 관리자 설정 변경 완료
+       → 기존 세션 종료 + kb_admin_init_state 에 새 id/pw 저장 후 admin.html 이동
+       → 로그인 페이지 로드 시 새 자격증명으로 필드 채움 + 체크박스 체크
    ============================================================================= */
 
-function checkAdminAuth() {
-  // 고객 낙인이 있으면 관리자 UI 강제 차단
-  if (localStorage.getItem('kb_guest_mode') === 'true') return;
+const _AUTOLOGIN_KEY  = 'kb_admin_autologin';   // { id, pw, enabled }
+const _INIT_STATE_KEY = 'kb_admin_init_state';   // { id, pw, autoCheck } — 1회용
 
+// ─── 관리자 설정 ─────────────────────────────────────────────────────────────
+const DEFAULT_CONFIG = {
+  id:      'admin',
+  pw:      'admin',
+  mainUrl: 'index.html',
+};
+
+function getAdminConfig() {
   try {
-    const session = JSON.parse(localStorage.getItem('kb_admin_session') || 'null');
-    if (session?.isAuth && Date.now() < session.expires) {
-      const adminUI = document.getElementById('adminShareContainer');
-      if (adminUI) adminUI.style.display = 'block';
-    } else {
-      localStorage.removeItem('kb_admin_session');
-    }
-  } catch {}
+    const stored = localStorage.getItem('kb_admin_config');
+    return stored ? JSON.parse(stored) : DEFAULT_CONFIG;
+  } catch { return DEFAULT_CONFIG; }
 }
 
-// ─── 배포용 앱 설치 링크 생성 ────────────────────────────────────────────────
-async function generateAdminShareLink() {
-  const btn = document.getElementById('btnAdminShare');
-  const origHtml = btn.innerHTML;
-  btn.innerHTML = '🔗 링크 생성 중...'; btn.disabled = true;
+function saveAdminConfig(config) {
+  localStorage.setItem('kb_admin_config', JSON.stringify(config));
+}
 
+// ─── 커스텀 모달 ──────────────────────────────────────────────────────────────
+let _modalCallback = null;
+
+function showAlert(msg, icon = '⚠️', callback = null) {
+  const modal = document.getElementById('customModal');
+  document.getElementById('modalMsg').innerHTML = msg.replace(/\n/g, '<br>');
+  document.getElementById('modalIcon').innerText = icon;
+  _modalCallback = callback;
+  modal.style.display = 'flex';
+}
+
+// ─── 자동 로그인 저장/불러오기 ────────────────────────────────────────────────
+function saveAutoLogin(id, pw) {
+  localStorage.setItem(_AUTOLOGIN_KEY, JSON.stringify({ id, pw, enabled: true }));
+}
+
+function clearAutoLogin() {
+  localStorage.removeItem(_AUTOLOGIN_KEY);
+}
+
+function getAutoLogin() {
   try {
-    const currentUrl = window.location.href.split('?')[0].split('#')[0];
-    const baseUrl    = currentUrl.substring(0, currentUrl.lastIndexOf('/') + 1);
+    const raw = localStorage.getItem(_AUTOLOGIN_KEY);
+    if (!raw) return null;
+    const data = JSON.parse(raw);
+    return data.enabled ? data : null;
+  } catch { return null; }
+}
 
-    // ★ 링크 유효 시간 설정 ────────────────────────────────────────────────────
-    // 단위: 밀리초(ms) — 아래 숫자 하나만 바꾸면 됩니다
-    //   1시간  →   1 * 60 * 60 * 1000  =    3_600_000
-    //   6시간  →   6 * 60 * 60 * 1000  =   21_600_000
-    //  12시간  →  12 * 60 * 60 * 1000  =   43_200_000
-    //  24시간  →  24 * 60 * 60 * 1000  =   86_400_000  ← 현재값
-    //  48시간  →  48 * 60 * 60 * 1000  =  172_800_000
-    const SHARE_LINK_TTL_MS = 24 * 60 * 60 * 1000; // ← 여기만 수정
-    // ──────────────────────────────────────────────────────────────────────────
+// ─── 초기 상태 (1회용 — 로그아웃/설정변경 후 필드 복원) ──────────────────────
+function getInitState() {
+  try {
+    const raw = localStorage.getItem(_INIT_STATE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch { return null; }
+}
 
-    const encodedPayload = await _otlIssue(currentUrl, SHARE_LINK_TTL_MS);
-    const longShareUrl   = `${baseUrl}share.html?t=${encodedPayload}`;
-    // 외부 단축 서비스 미사용 — 앱 설치 링크는 길이가 짧아 직접 공유 가능
-    const shortUrl = longShareUrl;
+function clearInitState() {
+  localStorage.removeItem(_INIT_STATE_KEY);
+}
 
-    const msg = `🔗 <b>계산기 앱 설치 링크가 복사되었습니다.</b><br><br>` +
-                `<span style="font-size:12px; display:block; margin-top:8px;">` +
-                `• 이 링크는 발급 시간 기준 <b>24시간 동안만 유효</b>합니다.<br>` +
-                `• 접속 시 PWA 자동 설치 안내 페이지로 연결됩니다.</span>`;
+// ─── 페이지 로드 초기화 ───────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  // 모달 확인 버튼
+  document.getElementById('modalConfirm').addEventListener('click', () => {
+    document.getElementById('customModal').style.display = 'none';
+    if (_modalCallback) { _modalCallback(); _modalCallback = null; }
+  });
 
-    if (navigator.share && /Mobi|Android/i.test(navigator.userAgent)) {
-      navigator.share({ title: 'DSR 계산기 앱웹', text: 'DSR 계산기 간편 접속 및 앱 설치 링크입니다. (24시간 유효)', url: shortUrl })
-        .catch(err => { if (err.name !== 'AbortError') _forceCopy(shortUrl, msg); });
-    } else {
-      _forceCopy(shortUrl, msg);
+  // ── 1회용 초기 상태 처리 (로그아웃 또는 설정 변경 직후)
+  const initState = getInitState();
+  if (initState) {
+    clearInitState(); // 1회만 사용
+    _fillForm(initState.id, initState.pw, initState.autoCheck !== false);
+    // 자동 로그인이 활성화돼 있던 경우 자동 시도
+    if (initState.autoLogin) {
+      _triggerAutoLogin(initState.id, initState.pw);
     }
-  } catch (e) {
-    console.error(e);
-    showAlert('링크 생성 중 오류가 발생했습니다.', null, '⚠️');
-  } finally {
-    btn.innerHTML = origHtml; btn.disabled = false;
+    return; // 자동로그인 중복 실행 방지
+  }
+
+  // ── 자동 로그인 처리 (일반 접속)
+  const auto = getAutoLogin();
+  if (auto) {
+    _fillForm(auto.id, auto.pw, true);
+    _triggerAutoLogin(auto.id, auto.pw);
+  }
+});
+
+/** 폼 필드 + 체크박스 채우기 */
+function _fillForm(id, pw, checkAuto) {
+  const idEl  = document.getElementById('adminId');
+  const pwEl  = document.getElementById('adminPw');
+  const chkEl = document.getElementById('autoLoginChk');
+  if (idEl)  idEl.value   = id  || '';
+  if (pwEl)  pwEl.value   = pw  || '';
+  if (chkEl) chkEl.checked = !!checkAuto;
+}
+
+/** 자동 로그인 배지 표시 후 로그인 실행 */
+function _triggerAutoLogin(id, pw) {
+  const card = document.querySelector('.admin-card');
+  if (!card) return;
+
+  // 배지 삽입
+  const badge = document.createElement('div');
+  badge.className = 'admin-auto-badge';
+  badge.innerHTML = '⚡ 자동 로그인 중...';
+  const loginBtn = document.querySelector('.btn-login');
+  if (loginBtn) card.insertBefore(badge, loginBtn);
+
+  setTimeout(() => {
+    _doLogin(id, pw);
+  }, 700); // 짧은 딜레이로 배지가 보이게
+}
+
+// ─── 로그인 로직 ─────────────────────────────────────────────────────────────
+function attemptLogin() {
+  const id  = document.getElementById('adminId').value.trim();
+  const pw  = document.getElementById('adminPw').value.trim();
+  _doLogin(id, pw);
+}
+
+function _doLogin(id, pw) {
+  const config = getAdminConfig();
+  const chk    = document.getElementById('autoLoginChk')?.checked;
+
+  if (id === config.id && pw === config.pw) {
+    // ── 자동 로그인 저장 여부
+    if (chk) {
+      saveAutoLogin(id, pw);
+    } else {
+      clearAutoLogin();
+    }
+
+    localStorage.removeItem('kb_guest_mode');
+    const sessionData = {
+      isAuth: true,
+      expires: Date.now() + 24 * 60 * 60 * 1000,
+      mainUrl: config.mainUrl,
+    };
+    localStorage.setItem('kb_admin_session', JSON.stringify(sessionData));
+
+    showAlert('관리자 로그인이 완료되었습니다.<br>대표 페이지로 이동합니다.', '✅', () => {
+      window.location.href = config.mainUrl;
+    });
+  } else {
+    // 자동 로그인 배지 제거
+    document.querySelector('.admin-auto-badge')?.remove();
+    showAlert('아이디 또는 비밀번호가 일치하지 않습니다.', '🚫');
   }
 }
 
-// ─── 로그아웃 ─────────────────────────────────────────────────────────────────
-function adminLogout() {
-  const modal = document.getElementById('logoutConfirmModal');
-  if (modal) modal.style.display = 'flex';
+// ─── 엔터키 로그인 ────────────────────────────────────────────────────────────
+document.addEventListener('keypress', function (e) {
+  if (e.key !== 'Enter') return;
+  const customOpen   = document.getElementById('customModal')?.style.display === 'flex';
+  const settingsOpen = document.getElementById('settingsModal')?.style.display === 'flex';
+  if (customOpen || settingsOpen) return;
+  attemptLogin();
+});
+
+// ─── 관리자 설정 변경 ─────────────────────────────────────────────────────────
+function changeAdminSettings() {
+  const config = getAdminConfig();
+  document.getElementById('setCurId').value  = '';
+  document.getElementById('setCurPw').value  = '';
+  document.getElementById('setNewPw').value  = '';
+  document.getElementById('setNewUrl').value = config.mainUrl;
+  document.getElementById('settingsModal').style.display = 'flex';
 }
-function closeLogoutModal() {
-  const modal = document.getElementById('logoutConfirmModal');
-  if (modal) modal.style.display = 'none';
+
+function closeSettingsModal() {
+  document.getElementById('settingsModal').style.display = 'none';
 }
-function proceedAdminLogout() {
-  closeLogoutModal();
+
+function saveSettingsFromModal() {
+  const config = getAdminConfig();
+  const curId  = document.getElementById('setCurId').value.trim();
+  const curPw  = document.getElementById('setCurPw').value.trim();
+  const newPw  = document.getElementById('setNewPw').value.trim();
+  const newUrl = document.getElementById('setNewUrl').value.trim();
+
+  if (curId !== config.id || curPw !== config.pw) {
+    showAlert('현재 아이디 또는 비밀번호가 일치하지 않습니다.', '🚫');
+    return;
+  }
+
+  const finalPw  = newPw  !== '' ? newPw  : config.pw;
+  const finalUrl = newUrl !== '' ? newUrl : config.mainUrl;
+  const newConfig = { id: config.id, pw: finalPw, mainUrl: finalUrl };
+
+  saveAdminConfig(newConfig);
+
+  // ── 세션 종료 + 자동로그인 갱신
   localStorage.removeItem('kb_admin_session');
-  const currentUrl = window.location.href.split('?')[0].split('#')[0];
-  const baseUrl    = currentUrl.substring(0, currentUrl.lastIndexOf('/') + 1);
-  window.location.href = baseUrl + 'admin.html';
+
+  // 자동로그인이 켜져 있었다면 새 비번으로 갱신
+  const autoLogin = getAutoLogin();
+  if (autoLogin) {
+    saveAutoLogin(newConfig.id, finalPw);
+  }
+
+  // ── 로그인 페이지에 1회용 초기 상태 설정 (새 자격증명 + 체크박스 ON + 자동로그인 플래그)
+  localStorage.setItem(_INIT_STATE_KEY, JSON.stringify({
+    id:        newConfig.id,
+    pw:        finalPw,
+    autoCheck: true,          // 체크박스 체크된 상태로 복원
+    autoLogin: true,          // 페이지 로드 시 자동 로그인 실행
+  }));
+
+  closeSettingsModal();
+
+  showAlert(
+    '관리자 설정이 변경되었습니다.<br>' +
+    '<span style="font-size:12px;">변경된 계정으로 자동 로그인합니다.</span>',
+    '✅',
+    () => {
+      // admin.html로 이동 (init_state 감지 → 자동 로그인)
+      const base = window.location.href.split('?')[0].split('#')[0];
+      window.location.href = base;
+    }
+  );
 }
