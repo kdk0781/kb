@@ -10,8 +10,7 @@ const _SP = 'k';
 const _CNS = 'kdk-apt-map'; // ← 변경 가능 (다른 사이트와 충돌 방지용)
 const _SCT = (url) =>
 `[KB 아파트 시세표]
-아래 링크를 클릭하면 주간 시세를 확인하실 수 있습니다.
-Preview를 클릭하시거나 10초뒤 페이지가 자동 이동됩니다.
+아래 링크를 클릭하면 수도권 주간 아파트 시세를 확인하실 수 있습니다.
 ${url}`;
 function _sE(payload) {
 const key = _SS;
@@ -903,6 +902,7 @@ const exp = Date.now() + dur * unit;
 const _inclFav = document.getElementById('shareFavToggle')?.checked||false;
 const token = _sE({ exp, includeFavs: _inclFav });
 const baseUrl = new URL(location.href);
+baseUrl.pathname = baseUrl.pathname.replace(/\/index\.html$/, '/');
 baseUrl.search = '?' + _SP + '=' + token;
 baseUrl.hash = '';
 const longUrl = baseUrl.toString();
@@ -960,7 +960,7 @@ splash.style.opacity = '1';
 splash.style.visibility = 'visible';
 splash.innerHTML = `
 <div class="share-preview-page">
-<p class="spp-badge">임시 공유 링크</p>
+<p class="spp-badge">아파트 시세 링크</p>
 <div class="spp-icon">📊</div>
 <h2 class="spp-title">아파트 시세표</h2>
 <p class="spp-desc">
@@ -969,7 +969,7 @@ Preview를 클릭하거나<br>
 자동으로 이동됩니다.
 </p>
 <button id="sharePreviewBtn" class="spp-btn">Preview →</button>
-<p class="spp-notice">🏠수도권 아파트 시세<</p>
+<p class="spp-notice">🏠수도권 아파트 시세</p>
 </div>`;
 let started = false;
 const go = ()=>{
