@@ -917,26 +917,38 @@ d.toLocaleTimeString('ko-KR', { hour:'2-digit', minute:'2-digit' });
 let finalUrl = longUrl;
 try {
 const res = await fetch(
-'https://tinyurl.com/api-create.php?url=' + encodeURIComponent(longUrl)
+'https://is.gd/create.php?format=simple&url=' + encodeURIComponent(longUrl)
 );
-const tiny = await res.text();
-if (tiny.startsWith('http')) finalUrl = tiny;
+const short = (await res.text()).trim();
+if (short.startsWith('http')) finalUrl = short;
 } catch (_) { }
 const msgText = _SCT(finalUrl);
-linkInput.value = msgText;
+linkInput.value = msgText; // 메시지 미리보기
 copyBtn.disabled = false;
+const urlOnlyBtn = document.getElementById('shareUrlOnlyBtn');
+if (urlOnlyBtn) urlOnlyBtn.dataset.url = finalUrl;
 window._shareOrigUrl = finalUrl; // 수신자 재공유용
 });
 copyBtn.addEventListener('click', async ()=>{
 const text = linkInput.value;
-try {
-await navigator.clipboard.writeText(text);
-} catch (_) {
-linkInput.select();
-document.execCommand('copy');
-}
+try { await navigator.clipboard.writeText(text); }
+catch (_) { linkInput.select(); document.execCommand('copy'); }
 copyMsg.style.display = 'block';
 setTimeout(()=>{ copyMsg.style.display = 'none'; }, 2500);
+});
+document.getElementById('shareUrlOnlyBtn')?.addEventListener('click', async ()=>{
+const urlBtn = document.getElementById('shareUrlOnlyBtn');
+const url = urlBtn?.dataset.url||window._shareOrigUrl||'';
+if (!url) return;
+try { await navigator.clipboard.writeText(url); }
+catch (_) {
+const t = document.createElement('textarea');
+t.value = url; document.body.appendChild(t);
+t.select(); document.execCommand('copy'); t.remove();
+}
+const orig = urlBtn.textContent;
+urlBtn.textContent = '✅ 복사됨!';
+setTimeout(()=>{ urlBtn.textContent = orig; }, 2000);
 });
 }
 const PREVIEW_SEC = 10;
@@ -948,7 +960,7 @@ splash.style.opacity = '1';
 splash.style.visibility = 'visible';
 splash.innerHTML = `
 <div class="share-preview-page">
-<p class="spp-badge">아파트 시세 링크</p>
+<p class="spp-badge">임시 공유 링크</p>
 <div class="spp-icon">📊</div>
 <h2 class="spp-title">아파트 시세표</h2>
 <p class="spp-desc">
@@ -957,7 +969,7 @@ Preview를 클릭하거나<br>
 자동으로 이동됩니다.
 </p>
 <button id="sharePreviewBtn" class="spp-btn">Preview →</button>
-<p class="spp-notice">🏠수도권 아파트 시세</p>
+<p class="spp-notice">🏠수도권 아파트 시세<</p>
 </div>`;
 let started = false;
 const go = ()=>{
