@@ -15,28 +15,49 @@
 <link rel="icon" type="image/png" href="../ico/dsrcalc.png">
 <link rel="shortcut icon" href="../ico/dsrcalc.png">
 <link rel="manifest" href="app_main.json">
-<link rel="stylesheet" href="./css/common.css?v=202603291324" media="all">
+<link rel="stylesheet" href="common.css?v=202603291324" media="all">
 <title>DSR 계산기</title>
 </head>
 <body>
-<!-- ── 로딩 오버레이 (하드 새로고침 시 표시) ────────────────────────────── -->
+<!-- ── 로딩 오버레이 — 고정 디자인 ──────────────────────────────────────────── -->
 <div id="loadingOverlay" class="loading-overlay" style="display:none;" aria-live="polite" role="status">
-	<div class="loading-spinner-wrap">
-		<div class="loading-emoji">
-			📊
-		</div>
-	</div>
-	<div class="loading-text">
-		 로딩 중 <span class="loading-dots">
-		<span>.</span><span>.</span><span>.</span>
-		<span>.</span><span>.</span><span>.</span>
-		</span>
-	</div>
-	<div class="loading-sub">
-		페이지를 로딩중 입니다 <br />
-		기존 데이터값이 남아있으면 <br />
-		캐시 삭제 해주세요.
-	</div>
+
+  <!-- SVG 원형 트랙 + 노란 아크 스피너 -->
+  <div class="loading-spinner-wrap">
+    <svg viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
+      <circle class="loading-track" cx="25" cy="25" r="20"/>
+      <circle class="loading-arc"  cx="25" cy="25" r="20"/>
+    </svg>
+    <div class="loading-emoji">📊</div>
+  </div>
+
+  <!-- 로딩 중 + 점 애니메이션 -->
+  <div class="loading-text">
+    로딩 중
+    <span class="loading-dots">
+      <span></span><span></span><span></span>
+      <span></span><span></span><span></span>
+    </span>
+  </div>
+
+  <!-- 3단계 진행 카드 -->
+  <div class="loading-steps-wrap">
+    <div id="ls1" class="loading-step">
+      <span class="ls-icon">⚙️</span>
+      <span class="ls-text">서비스 워커 업데이트</span>
+    </div>
+    <div id="ls2" class="loading-step">
+      <span class="ls-icon">🗑️</span>
+      <span class="ls-text">브라우저 캐시 삭제</span>
+    </div>
+    <div id="ls3" class="loading-step">
+      <span class="ls-icon">🔄</span>
+      <span class="ls-text">최신 금리 불러오기</span>
+    </div>
+  </div>
+
+  <!-- 하단 노란 배너 -->
+  <div class="loading-sub">잠시만 기다려 주세요.</div>
 </div>
 <!-- ── 사용 가이드 모달 ──────────────────────────────────────────────────── -->
 <div id="guideModal" class="guide-overlay" style="display:none;" onclick="closeGuideOnBackdrop(event)">
@@ -502,8 +523,8 @@
 		<button class="modal-btn" id="modalConfirm">확인</button>
 	</div>
 </div>
-<script src="./js/kb_rates.js?v=260409"></script>
-<script src="./js/common.js?v=260409"></script>
+<script src="kb_rates.js?v=2026.06"></script>
+<script src="common.js?v=2026.06"></script>
 <script>
     /* ── 사용 가이드 모달 ──────────────────────────────────────────────── */
     // ESC 키로 가이드 닫기 (이건 남겨두셔도 좋습니다)
