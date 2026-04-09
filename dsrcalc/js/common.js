@@ -117,6 +117,13 @@ function _showLoading(visible) {
   if (!el) return;
   el.style.display = visible ? 'flex' : 'none';
   document.body.style.overflow = visible ? 'hidden' : '';
+  // 오버레이 표시 시 단계 카드 초기화 + 3번째(금리 불러오기)를 active로 설정
+  if (visible) {
+    for (let i = 1; i <= 3; i++) {
+      const s = document.getElementById(`ls${i}`);
+      if (s) s.className = 'loading-step' + (i === 3 ? ' active' : ' done');
+    }
+  }
 }
 
 function applySystemTheme() {
