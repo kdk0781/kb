@@ -394,57 +394,91 @@ body.dark .guide-tip { color: var(--kb-yellow); background: rgba(255,184,28,.1);
 .guide-start-btn:active { transform: scale(.98); }
 
 /* ── 로딩 오버레이 (하드 새로고침) ──────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════════════════
+   로딩 오버레이 — 고정 디자인 (이미지 기준)
+   · 다크 블러 배경
+   · SVG 원형 트랙 + 노란 아크 스피너
+   · 중앙 앱 이모지 아이콘
+   · "로딩 중 ·" 텍스트
+   · 3단계 단계 카드 (서비스워커 / 캐시삭제 / 금리불러오기)
+   · 하단 노란 배너
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+/* ── 오버레이 배경 ───────────────────────────────────────────────────────────── */
 .loading-overlay {
   position: fixed; inset: 0; z-index: 9000;
-  background: rgba(10,15,30,.72);
-  backdrop-filter: blur(10px) saturate(120%);
-  -webkit-backdrop-filter: blur(10px) saturate(120%);
+  background: rgba(8, 12, 26, 0.80);
+  backdrop-filter: blur(14px) saturate(130%);
+  -webkit-backdrop-filter: blur(14px) saturate(130%);
   display: flex; flex-direction: column;
-  align-items: center; justify-content: center; gap: 18px;
-  animation: modal-bg-in .22s var(--ease) both;
+  align-items: center; justify-content: center;
+  gap: 0;
+  padding: 0 20px;
+  animation: modal-bg-in .25s ease both;
 }
-body.white .loading-overlay { background: rgba(230,235,248,.85); }
 
-/* 이중 링 스피너 */
-.loading-spinner-wrap { position: relative; width: 74px; height: 74px; }
-.loading-spinner-wrap::before {
-  content: ''; position: absolute; inset: 0;
-  border: 3.5px solid rgba(255,184,28,.22);
-  border-top-color: var(--kb-yellow);
-  border-radius: 50%;
-  animation: spin .9s linear infinite;
+/* ── 스피너 (SVG 트랙 + 노란 아크) ─────────────────────────────────────────── */
+.loading-spinner-wrap {
+  position: relative;
+  width: 80px; height: 80px;
+  margin-bottom: 18px;
 }
-.loading-spinner-wrap::after {
-  content: ''; position: absolute; inset: 13px;
-  border: 3px solid rgba(26,43,90,.18);
-  border-bottom-color: var(--kb-yellow-deep);
-  border-radius: 50%;
-  animation: spin-rev 1.35s linear infinite;
+
+/* SVG 트랙 링 */
+.loading-spinner-wrap svg {
+  width: 80px; height: 80px;
+  transform: rotate(-90deg); /* 12시 방향에서 시작 */
 }
+.loading-spinner-wrap .loading-track {
+  fill: none;
+  stroke: rgba(255,184,28,.15);
+  stroke-width: 4;
+}
+.loading-spinner-wrap .loading-arc {
+  fill: none;
+  stroke: var(--kb-yellow, #FFB81C);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-dasharray: 80;
+  stroke-dashoffset: 20;
+  animation: arc-spin 1.1s linear infinite;
+  filter: drop-shadow(0 0 6px rgba(255,184,28,.6));
+}
+@keyframes arc-spin {
+  0%   { stroke-dashoffset: 20; transform-origin: 50% 50%; }
+  50%  { stroke-dashoffset: 60; }
+  100% { stroke-dashoffset: 20; transform: rotate(360deg); }
+}
+
+/* 중앙 이모지 아이콘 */
 .loading-emoji {
   position: absolute; inset: 0;
   display: flex; align-items: center; justify-content: center;
-  font-size: 26px;
-  animation: pulse-em 1.7s ease-in-out infinite;
+  font-size: 28px;
+  animation: pulse-em 2s ease-in-out infinite;
 }
-@keyframes spin     { to { transform: rotate(360deg); } }
-@keyframes spin-rev { to { transform: rotate(-360deg); } }
 @keyframes pulse-em {
-  0%,100% { transform: scale(1); opacity: 1; }
-  50%      { transform: scale(.85); opacity: .65; }
+  0%,100% { transform: scale(1);    opacity: 1; }
+  50%      { transform: scale(.88); opacity: .75; }
 }
 
-/* 로딩 텍스트 */
+/* ── "로딩 중 ·" 텍스트 ─────────────────────────────────────────────────────── */
 .loading-text {
-  font-size: 15px; font-weight: 700; letter-spacing: -.01em;
-  color: var(--kb-yellow); display: flex; align-items: center; gap: 1px;
+  font-size: 16px; font-weight: 700; letter-spacing: -.01em;
+  color: #fff;
+  display: flex; align-items: center; gap: 6px;
+  margin-bottom: 20px;
 }
-body.white .loading-text { color: var(--kb-yellow-deep); }
 
-/* 움직이는 점 */
+/* 움직이는 단일 점 */
+.loading-dots {
+  display: inline-flex; align-items: center;
+}
 .loading-dots span {
-  display: inline-block; font-weight: 900; font-size: 16px;
-  animation: dot-wave 1.5s ease-in-out infinite;
+  display: inline-block; width: 4px; height: 4px;
+  background: var(--kb-yellow, #FFB81C);
+  border-radius: 50%; margin: 0 2px;
+  animation: dot-bounce 1.4s ease-in-out infinite;
   opacity: 0;
 }
 .loading-dots span:nth-child(1) { animation-delay: 0s; }
@@ -453,85 +487,76 @@ body.white .loading-text { color: var(--kb-yellow-deep); }
 .loading-dots span:nth-child(4) { animation-delay: .54s; }
 .loading-dots span:nth-child(5) { animation-delay: .72s; }
 .loading-dots span:nth-child(6) { animation-delay: .90s; }
-@keyframes dot-wave {
+@keyframes dot-bounce {
   0%,60%,100% { opacity: 0; transform: translateY(0); }
-  30%          { opacity: 1; transform: translateY(-5px); }
+  30%          { opacity: 1; transform: translateY(-4px); }
 }
 
-/* 로딩 서브 텍스트 */
-.loading-sub {
-  font-size: 11.5px; color: rgba(255,255,255,.55);
-  text-align: center; line-height: 1.6;
-}
-body.white .loading-sub { color: var(--text-muted); }
-
-/* ── 단계별 로딩 카드 ─────────────────────────────────────────────────── */
-.loading-steps {
-  display: flex; flex-direction: column; gap: 10px;
+/* ── 3단계 카드 래퍼 ────────────────────────────────────────────────────────── */
+.loading-steps-wrap {
+  display: flex; flex-direction: column; gap: 8px;
   width: 100%; max-width: 280px;
+  margin-bottom: 16px;
 }
 
+/* 개별 단계 카드 */
 .loading-step {
   display: flex; align-items: center; gap: 12px;
-  background: rgba(255,255,255,.07);
-  border: 1.5px solid rgba(255,255,255,.1);
-  border-radius: 12px; padding: 13px 16px;
-  transition: background .3s, border-color .3s, transform .25s;
-  opacity: .45;
-}
-body.white .loading-step {
-  background: rgba(26,43,90,.05);
-  border-color: rgba(26,43,90,.12);
+  padding: 11px 16px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 10px;
+  font-size: 13px; font-weight: 600;
+  color: rgba(255,255,255,.35);
+  transition: background .3s ease, color .3s ease,
+              border-color .3s ease, box-shadow .3s ease;
 }
 
-/* 활성 단계 */
+/* 활성(현재 진행 중) */
 .loading-step.active {
-  background: rgba(255,184,28,.15);
-  border-color: var(--kb-yellow);
-  opacity: 1;
-  transform: scale(1.02);
-  box-shadow: 0 2px 16px rgba(255,184,28,.2);
-}
-body.white .loading-step.active {
   background: rgba(255,184,28,.12);
-  box-shadow: 0 2px 12px rgba(229,162,0,.18);
+  border-color: rgba(255,184,28,.35);
+  color: var(--kb-yellow, #FFB81C);
+  box-shadow: 0 0 16px rgba(255,184,28,.18);
 }
 
-/* 완료 단계 */
+/* 완료 */
 .loading-step.done {
-  background: rgba(255,255,255,.04);
-  border-color: rgba(255,255,255,.08);
-  opacity: .6;
-}
-body.white .loading-step.done {
-  background: rgba(26,43,90,.03);
-  border-color: rgba(26,43,90,.08);
+  background: rgba(74,222,128,.08);
+  border-color: rgba(74,222,128,.25);
+  color: rgba(74,222,128,.85);
 }
 
-.lstep-icon {
-  font-size: 18px; line-height: 1;
-  flex-shrink: 0;
-  filter: grayscale(1);
-  transition: filter .3s;
-}
-.loading-step.active .lstep-icon { filter: grayscale(0); }
-.loading-step.done   .lstep-icon { filter: grayscale(0) opacity(.7); }
+.ls-icon { font-size: 16px; flex-shrink: 0; }
+.ls-text  { letter-spacing: -.01em; }
 
-.lstep-label {
+/* ── 하단 노란 배너 "잠시만 기다려 주세요." ──────────────────────────────────── */
+.loading-sub {
+  width: 100%; max-width: 280px;
+  background: var(--kb-yellow, #FFB81C);
+  color: #1A2B5A;
   font-size: 13px; font-weight: 700;
-  color: rgba(255,255,255,.6);
-  transition: color .3s;
+  text-align: center;
+  padding: 12px 0;
+  border-radius: 10px;
+  letter-spacing: -.01em;
+  box-shadow: 0 4px 18px rgba(255,184,28,.35);
 }
-body.white .lstep-label { color: var(--text-secondary); }
-.loading-step.active .lstep-label { color: #fff; }
-body.white .loading-step.active .lstep-label { color: var(--kb-navy); }
 
-/* 완료 체크 (done 시 label 뒤에 ✓ 표시) */
-.loading-step.done .lstep-label::after {
-  content: ' ✓';
-  color: var(--kb-yellow);
-  font-size: 12px;
+/* 공통 애니메이션 */
+@keyframes spin     { to { transform: rotate(360deg); } }
+@keyframes spin-rev { to { transform: rotate(-360deg); } }
+
+/* spinning FAB */
+.refresh-btn.spinning {
+  animation: fab-spin .8s linear infinite;
+  pointer-events: none;
 }
+@keyframes fab-spin { to { transform: rotate(360deg); } }
+
+/* body-no-scroll */
+body.body-no-scroll { overflow: hidden !important; touch-action: none; }
+
 
 /* ── FAB 새로고침 (새로운 그라데이션 디자인) ─────────────────────────────── */
 .refresh-btn {
@@ -1696,152 +1721,4 @@ body.dark .admin-share-icon {
 /* 로그아웃 버튼 호버 효과 추가 */
 .modal-btn-danger:hover {
   opacity: 0.9;
-}
-
-/* ─── 역행 계산기 (DSR 초과 솔루션) CSS ────────────────────────────────────── */
-.btn-reverse-toggle {
-    background-color: rgba(211, 47, 47, 0.05);
-    color: var(--danger, #d32f2f);
-    border: 1px solid rgba(211, 47, 47, 0.3);
-    margin-bottom: 12px;
-}
-.btn-reverse-toggle:hover {
-    background-color: rgba(211, 47, 47, 0.1);
-}
-
-.reverse-calc-container {
-    background: var(--bg-surface);
-    border: 1px solid var(--border-strong);
-    border-radius: var(--radius-lg);
-    padding: 20px;
-    margin-bottom: 24px;
-    animation: fade-in 0.4s var(--ease);
-}
-
-.reverse-title-wrap {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 16px;
-    border-bottom: 2px solid var(--border);
-    padding-bottom: 10px;
-}
-
-.reverse-title {
-    font-size: 16px;
-    font-weight: 800;
-    color: var(--kb-navy);
-}
-
-.reverse-loan-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-bottom: 20px;
-}
-
-.reverse-loan-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: var(--bg-page);
-    padding: 14px;
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--border-light);
-}
-
-.reverse-loan-info {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.reverse-loan-name {
-    font-size: 14px;
-    font-weight: 800;
-    color: var(--text-primary);
-}
-
-.reverse-loan-meta {
-    font-size: 12px;
-    color: var(--text-secondary);
-    font-weight: 500;
-}
-
-.reverse-loan-dsr {
-    font-size: 18px;
-    font-weight: 800;
-    color: var(--danger);
-    font-family: 'Roboto', monospace;
-    letter-spacing: -0.02em;
-}
-
-.reverse-solution-card {
-    background: rgba(211, 47, 47, 0.04);
-    padding: 18px;
-    border-radius: var(--radius-md);
-    border: 1px solid rgba(211, 47, 47, 0.15);
-    border-left: 4px solid var(--danger);
-}
-
-.solution-title {
-    font-size: 15px;
-    font-weight: 800;
-    color: var(--danger);
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.solution-text {
-    font-size: 13.5px;
-    line-height: 1.6;
-    color: var(--text-secondary);
-    word-break: keep-all;
-}
-
-.solution-highlight {
-    font-size: 16px;
-    font-weight: 800;
-    color: var(--danger);
-    font-family: 'Roboto', monospace;
-}
-
-/* ─── 전문 소견 (DSR 초과 시 추천 문구용) CSS ───────────────────────────────── */
-.rec-expert-advice {
-    display: block;
-    margin-top: 10px;
-    padding: 14px 16px;
-    background: rgba(211, 47, 47, 0.04);
-    border: 1px solid rgba(211, 47, 47, 0.15);
-    border-radius: var(--radius-sm);
-    color: var(--text-secondary);
-    font-size: 13px;
-    line-height: 1.65;
-    word-break: keep-all;
-}
-
-.rec-expert-title {
-    font-weight: 800;
-    color: var(--danger);
-    margin-bottom: 8px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.rec-highlight-income {
-    font-weight: 800;
-    color: var(--kb-navy);
-    background: var(--kb-yellow-light);
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-family: 'Roboto', monospace;
-}
-
-.rec-highlight-prin {
-    font-weight: 800;
-    color: var(--danger);
-    font-family: 'Roboto', monospace;
 }
