@@ -1,12 +1,13 @@
 const _V = 'v9.0';
 const _SEM = {
 icon: '🔒',
-title: '트래픽 초과로 링크가 만료되었습니다',
+title: '트래픽 초과로 만료되었습니다.',
 desc: '접속량이 많아 유효한 페이지가 아닙니다.',
 sub: '담당자분께 링크를 다시 요청하세요.',
 };
 const _SS = 'kdk_apt_2026_!@#'; // ← 원하는 값으로 변경
 const _SP = 'k';
+const _CNS = 'kdk-apt-map'; // ← 변경 가능 (다른 사이트와 충돌 방지용)
 const _SCT = (url) =>
 `[KB 아파트 시세표]
 아래 링크를 클릭하면 주간 시세를 확인하실 수 있습니다.
@@ -30,6 +31,20 @@ function _cSL() {
 const SS_TOKEN = '_shr_t';
 const SS_URL = '_shr_u';
 const SS_BLOCKED = '_shr_blocked';
+const LS_BACKUP = '_shr_ls'; // localStorage 이중 백업 키
+const LS_EXP_FLAG = '_shr_exp'; // 만료 확정 플래그 (localStorage)
+try {
+if (localStorage.getItem(LS_EXP_FLAG)) {
+const freshToken = new URLSearchParams(location.search).get(_SP);
+const isSharSess = !!sessionStorage.getItem('_shr_sess_alive')
+|| !!sessionStorage.getItem(SS_BLOCKED)
+|| !!sessionStorage.getItem(SS_TOKEN);
+if (!freshToken&&isSharSess) {
+_sEAB();
+return false;
+}
+}
+} catch (_) {}
 try {
 if (sessionStorage.getItem(SS_BLOCKED)) {
 _sEAB();
@@ -49,42 +64,65 @@ try {
 token = sessionStorage.getItem(SS_TOKEN);
 origUrl = sessionStorage.getItem(SS_URL);
 } catch (_) {}
+if (!token) {
+try {
+const isSameSess = !!sessionStorage.getItem('_shr_sess_alive');
+if (isSameSess) {
+const ls = JSON.parse(localStorage.getItem(LS_BACKUP)||'null');
+if (ls&&ls.t) { token = ls.t; origUrl = ls.u; }
+}
+} catch (_) {}
+}
 }
 if (!token) return true; // 공유 링크 아님 → 정상 실행
 let isValid = false;
+let decoded = null;
 try {
-const { exp } = _sD(token);
-isValid = Date.now() < exp;
+decoded = _sD(token);
+isValid = Date.now() < decoded.exp;
 } catch (_) {}
 if (isValid) {
 if (fromUrl) {
 try { history.replaceState(null, '', location.pathname); } catch (_) {}
+}
 try {
 sessionStorage.setItem(SS_TOKEN, token);
 sessionStorage.setItem(SS_URL, origUrl);
+sessionStorage.setItem('_shr_sess_alive', '1');
 } catch (_) {}
-}
+try {
+localStorage.setItem(LS_BACKUP, JSON.stringify({ t: token, u: origUrl }));
+} catch (_) {}
 window.addEventListener('beforeinstallprompt', e=>{
 e.preventDefault();
 e.stopImmediatePropagation();
 }, { capture: true });
-window._shareOrigUrl = origUrl;
+window._shareOrigUrl = origUrl; // 재공유용 URL
+window._isShareRecipient = true;
+window._shareIncludeFavs = !!decoded.includeFavs;
 return true;
 }
+try {
+const _dir = location.pathname.replace(/\/[^/]*$/, '/'); // /test/index.html → /test/
+const _rnd = Math.random().toString(36).slice(2, 10)
++ Math.random().toString(36).slice(2, 10);
+history.replaceState(null, '', _dir + '#' + _rnd);
+} catch (_) {}
 try {
 sessionStorage.removeItem(SS_TOKEN);
 sessionStorage.removeItem(SS_URL);
 sessionStorage.setItem(SS_BLOCKED, '1');
+localStorage.removeItem(LS_BACKUP);
+localStorage.setItem(LS_EXP_FLAG, '1');
 } catch (_) {}
 _sEAB();
 return false;
 }
 function _sEAB() {
-document.addEventListener('DOMContentLoaded', ()=>{
+const render = ()=>{
 const splash = document.getElementById('splashOverlay');
 if (!splash) return;
-splash.style.opacity = '1';
-splash.style.visibility = 'visible';
+splash.style.cssText = 'opacity:1;visibility:visible;display:flex;pointer-events:auto';
 splash.innerHTML = `
 <div class="share-expired-page">
 <div class="sep-icon">${_SEM.icon}</div>
@@ -92,7 +130,12 @@ splash.innerHTML = `
 <p class="sep-desc">${_SEM.desc}</p>
 <p class="sep-sub">${_SEM.sub}</p>
 </div>`;
-});
+};
+if (document.readyState==='loading') {
+document.addEventListener('DOMContentLoaded', render, { once: true });
+} else {
+render();
+}
 }
 const _sV = _cSL();
 let _aG = [];
@@ -104,6 +147,13 @@ let _lC = 0;
 const _lS = 20;
 let _sDT = null;
 let _sO = null;
+const _FK = 'apt_map_favs';
+let _fS = new Set(); // Set<string> key = 지역|아파트
+let _aFO = false; // 즐겨찾기만 보기 토글
+let _aFH = false; // 생애최초 LTV 모드
+const _RK = 'apt_map_recent';
+const _RM = 5;
+let _rS = []; // string[]
 const _sM = {
 'T':'테라스','P':'펜트','C':'코너',
 'A':'타입A','B':'타입B','D':'타입D','E':'타입E',
@@ -138,8 +188,14 @@ return { zone: null, label: '' };
 function _gLL(priceRaw, regZone, midRaw) {
 if (!priceRaw||priceRaw<=0) return null;
 const isReg = regZone==='A'||regZone==='B';
-const ltvRate = isReg ? 0.40 : 0.70;
-const ltvPct = isReg ? 40 : 70;
+let ltvRate, ltvPct;
+if (_aFH&&isReg) {
+ltvRate = 0.70;
+ltvPct = 70;
+} else {
+ltvRate = isReg ? 0.40 : 0.70;
+ltvPct = isReg ? 40 : 70;
+}
 const ltvAmt = Math.floor(priceRaw * ltvRate / 100) * 100;
 const ref = midRaw||priceRaw;
 let policyLimit;
@@ -159,7 +215,9 @@ return `${rest.toLocaleString('ko-KR')}만`;
 }
 const amtStr = fmtAmt(finalAmt);
 let cls;
-if (isLtvLimit) {
+if (_aFH&&isReg) {
+cls = 'loan-first-home'; // 생애최초 규제지역 전용 색상
+} else if (isLtvLimit) {
 cls = isReg ? 'loan-ltv-reg' : 'loan-ltv-gen';
 } else {
 if (policyLimit===60000) cls = 'loan-pol-a';
@@ -172,8 +230,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 if (!_sV) return; // 만료 링크면 앱 초기화 중단
 const vEl = document.getElementById('splashVersion');
 if (vEl) vEl.textContent = _V;
-const _isShared = !!new URLSearchParams(location.search).get(_SP)
-|| !!window._shareOrigUrl;
+const _isShared = !!window._isShareRecipient;
 if ('serviceWorker' in navigator&&!_isShared) {
 navigator.serviceWorker.register('sw.js').catch(()=>{});
 }
@@ -190,16 +247,52 @@ await Promise.all(names.map(n=>caches.delete(n)));
 }
 const savedCurr = localStorage.getItem(_cC);
 const savedPrev = localStorage.getItem(_cP);
+const savedFavs = localStorage.getItem(_FK);
+const savedRecent = localStorage.getItem(_RK);
+const isShareSess = !!sessionStorage.getItem('_shr_t');
+const savedShrLs = isShareSess ? localStorage.getItem('_shr_ls') : null;
+const savedShrExp = localStorage.getItem('_shr_exp');
 localStorage.clear();
 if (savedCurr) localStorage.setItem(_cC, savedCurr);
 if (savedPrev) localStorage.setItem(_cP, savedPrev);
+if (savedFavs) localStorage.setItem(_FK, savedFavs);
+if (savedRecent) localStorage.setItem(_RK, savedRecent);
+if (savedShrLs) localStorage.setItem('_shr_ls', savedShrLs);
+if (savedShrExp) localStorage.setItem('_shr_exp', savedShrExp);
+const ssToken = sessionStorage.getItem('_shr_t');
+const ssUrl = sessionStorage.getItem('_shr_u');
+const ssBlocked = sessionStorage.getItem('_shr_blocked');
+const ssAlive = sessionStorage.getItem('_shr_sess_alive');
+const ssRecent = sessionStorage.getItem('_shr_recent'); // 수신자 최근검색
+const ssRcClr = sessionStorage.getItem('_shr_rc_cleared'); // 첫접속 판단 플래그
 sessionStorage.clear();
+if (ssToken) sessionStorage.setItem('_shr_t', ssToken);
+if (ssUrl) sessionStorage.setItem('_shr_u', ssUrl);
+if (ssBlocked)sessionStorage.setItem('_shr_blocked', ssBlocked);
+if (ssAlive) sessionStorage.setItem('_shr_sess_alive', ssAlive);
+if (ssRecent) sessionStorage.setItem('_shr_recent', ssRecent);
+if (ssRcClr) sessionStorage.setItem('_shr_rc_cleared', ssRcClr);
 } finally { window.location.reload(true); }
 });
 document.getElementById('listBody').addEventListener('click', (e)=>{
+const starBtn = e.target.closest('.fav-star-btn');
+if (starBtn) {
+const key = starBtn.getAttribute('data-fav-key'); // dataset 미사용 (난독화 충돌 방지)
+if (!key) return;
+const wasFav = _fS.has(key);
+wasFav ? _fS.delete(key) : _fS.add(key);
+_sFav();
+const isNowFav = _fS.has(key);
+starBtn.classList.toggle('active', isNowFav);
+starBtn.textContent = isNowFav ? '⭐' : '☆';
+starBtn.title = isNowFav ? '즐겨찾기 해제' : '즐겨찾기 추가';
+if (_aFO&&!isNowFav) _aF();
+return;
+}
 const btn = e.target.closest('.accordion-btn');
 if (!btn) return;
-const item = btn.parentElement;
+const item = btn.closest('.group-item');
+if (!item) return;
 const wasActive = item.classList.contains('active');
 document.querySelectorAll('.group-item.active').forEach(el=>{
 if (el!==item) el.classList.remove('active');
@@ -216,9 +309,35 @@ window.scrollTo({ top: window.scrollY + rect.top - hBottom - 10, behavior: 'smoo
 }, 320);
 }
 });
-document.getElementById('searchInput').addEventListener('input', ()=>{
+const _si = document.getElementById('searchInput');
+_si.addEventListener('input', ()=>{
 clearTimeout(_sDT);
-_sDT = setTimeout(_aF, 250);
+_sDT = setTimeout(()=>{
+_aF();
+_rRSU();
+}, 250);
+});
+const _saveSearchTerm = ()=>{
+const v = _si.value.trim();
+if (v.length>=2) _sRS(v);
+};
+_si.addEventListener('keydown', (e)=>{
+if (e.key==='Enter') {
+const v = _si.value.trim();
+if (v==='투데이') {
+e.preventDefault();
+_si.value = '';
+_rRSU();
+_sTVP();
+return;
+}
+_saveSearchTerm();
+_rRSU();
+}
+});
+_si.addEventListener('blur', ()=>{
+_saveSearchTerm();
+setTimeout(_rRSU, 150);
 });
 document.getElementById('sortSelect').addEventListener('change', (e)=>{
 _aS = e.target.value;
@@ -231,13 +350,42 @@ const btn = document.getElementById('unitToggleBtn');
 btn.querySelector('.u-label-sqm').classList.toggle('active', _aU==='sqm');
 btn.querySelector('.u-label-pyeong').classList.toggle('active', _aU==='pyeong');
 });
+document.getElementById('firstHomeBtn')?.addEventListener('click', ()=>{
+_aFH = !_aFH;
+const btn = document.getElementById('firstHomeBtn');
+btn.classList.toggle('active', _aFH);
+btn.title = _aFH ? '생애최초 LTV 해제' : '생애최초 LTV 적용';
+_rI(true);
+});
 _sSO();
 _sSTB();
 _sSB();
+_lFav();
+const _isShareRecv = !!window._isShareRecipient;
+if (_isShareRecv) {
+const _rcCleared = sessionStorage.getItem('_shr_rc_cleared');
+if (!_rcCleared) {
+_rS = [];
+sessionStorage.setItem('_shr_recent', '[]');
+sessionStorage.setItem('_shr_rc_cleared', '1');
+} else {
+try {
+const raw = sessionStorage.getItem('_shr_recent');
+_rS = raw ? JSON.parse(raw) : [];
+} catch { _rS = []; }
+}
+if (!window._shareIncludeFavs) {
+_fS = new Set();
+}
+_rRSU();
+} else {
+_lRS();
+}
 if (window._showSharePreview) {
 showSharePreview();
 return; // _lD는 startApp()에서 호출
 }
+_tTV(!!window._isShareRecipient);
 _lD();
 });
 function _sSP() {
@@ -469,14 +617,38 @@ _rI();
 function _bRC(regions) {
 const wrap = document.getElementById('regionFilter');
 if (!wrap) return;
-wrap.innerHTML = regions.map(r =>
-`<button class="region-chip${r==='전체'?' active':''}" data-region="${r}">${r}</button>`
-).join('');
+const MOBILE_MAIN = new Set(['전체','서울특별시','경기도','인천광역시']);
+const _showFavChip = !window._isShareRecipient||window._shareIncludeFavs;
+wrap.innerHTML = [
+_showFavChip ? `<button class="region-chip fav-chip${_aFO?' active':''}" data-fav="1" title="즐겨찾기한 단지만 보기">
+<span class="fav-chip-star">⭐</span><span class="fav-chip-text"> 즐겨찾기</span>
+</button>` : '',
+...regions.map(r=>{
+const hideCls = MOBILE_MAIN.has(r) ? '' : ' mobile-hidden';
+return `<button class="region-chip${r==='전체'&&!_aFO?' active':''}${hideCls}" data-region="${r}">${r}</button>`;
+})
+].join('');
 wrap.addEventListener('click', (e)=>{
 const chip = e.target.closest('.region-chip');
 if (!chip) return;
+if (chip.dataset.fav) {
+_aFO = !_aFO;
+chip.classList.toggle('active', _aFO);
+wrap.querySelectorAll('.region-chip:not([data-fav])').forEach(c =>
+c.classList.remove('active')
+);
+if (!_aFO) {
+wrap.querySelector('[data-region="전체"]')?.classList.add('active');
+_aR = '전체';
+}
+} else {
+_aFO = false;
+wrap.querySelector('[data-fav]')?.classList.remove('active');
 _aR = chip.dataset.region;
-wrap.querySelectorAll('.region-chip').forEach(c=>c.classList.toggle('active', c===chip));
+wrap.querySelectorAll('.region-chip:not([data-fav])').forEach(c =>
+c.classList.toggle('active', c===chip)
+);
+}
 _aF();
 });
 }
@@ -484,7 +656,11 @@ function _aF() {
 const raw = document.getElementById('searchInput').value.trim().toLowerCase();
 const terms = raw ? raw.split(/\s+/) : [];
 let result = _aG;
-if (_aR!=='전체') result = result.filter(g=>g.시도===_aR);
+if (_aFO) {
+result = result.filter(g=>_fS.has(_fK(g)));
+} else if (_aR!=='전체') {
+result = result.filter(g=>g.시도===_aR);
+}
 if (terms.length > 0) result = result.filter(g=>terms.every(t=>g.searchKey.includes(t)));
 switch (_aS) {
 case 'name': result = [...result].sort((a,b)=>a.아파트.localeCompare(b.아파트,'ko')); break;
@@ -509,8 +685,10 @@ return diff > 0
 }
 function _cGH(g) {
 const priceRange = _gPR(g);
-const ltvPct = (g.regZone==='A'||g.regZone==='B') ? 40 : 70;
-const ltvChip = `<span class="ltv-chip ltv-${ltvPct}">LTV ${ltvPct}%</span>`;
+const isRegCard = g.regZone==='A'||g.regZone==='B';
+const ltvPct = (isRegCard&&!_aFH) ? 40 : 70;
+const ltvChipCls = (isRegCard&&_aFH) ? 'ltv-chip ltv-70 ltv-first' : `ltv-chip ltv-${ltvPct}`;
+const ltvChip = `<span class="${ltvChipCls}">LTV ${ltvPct}%${_aFH&&isRegCard ? ' <em class="ltv-fh-mark">생애최초</em>' : ''}</span>`;
 const regBadge = g.regLabel
 ? `<div class="reg-badges">
 <span class="reg-badge reg-${g.regZone}">${g.regLabel}</span>
@@ -582,8 +760,19 @@ ${_dB(row.diffHigh)}
 ${loanRowHTML}
 </div>`;
 }
+const isFav = _fS.has(_fK(g));
+const fKey = _fK(g);
+const _showStar = !window._isShareRecipient||window._shareIncludeFavs;
+const _starHTML = _showStar
+? `<button class="fav-star-btn${isFav?' active':''}"
+data-fav-key="${fKey}"
+title="${isFav?'즐겨찾기 해제':'즐겨찾기 추가'}"
+type="button">${isFav?'⭐':'☆'}</button>`
+: '';
 return `
 <div class="group-item${g.regZone?' has-reg zone-'+g.regZone:''}">
+<div class="group-item-header">
+${_starHTML}
 <div class="accordion-btn">
 <div class="group-title-wrap">
 <span class="group-apt">${g.아파트}</span>
@@ -595,6 +784,7 @@ ${groupDiffBadge}
 ${priceRange?`<span class="price-range-badge">${priceRange}</span>`:''}
 <span class="row-count-badge">${g.rows.length}개</span>
 <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+</div>
 </div>
 </div>
 <div class="accordion-content">
@@ -609,14 +799,14 @@ ${rowsHTML}
 </div>
 </div>`;
 }
-function _rI() {
+function _rI(keepScroll) {
 const listBody = document.getElementById('listBody');
 const sentinel = document.getElementById('scrollSentinel');
 const countEl = document.getElementById('resultCount');
 listBody.innerHTML = '';
 _lC = 0;
 const total = _fG.length;
-const isFiltered = _aR!=='전체'||document.getElementById('searchInput').value.trim()!=='';
+const isFiltered = _aR!=='전체'||_aFO||document.getElementById('searchInput').value.trim()!=='';
 if (countEl) {
 countEl.textContent = isFiltered
 ? `${total.toLocaleString()}개 단지`
@@ -628,7 +818,7 @@ sentinel.style.display = 'none';
 return;
 }
 _lM();
-window.scrollTo({ top: 0, behavior: 'smooth' });
+if (!keepScroll) window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 function _lM() {
 const listBody = document.getElementById('listBody');
@@ -672,13 +862,12 @@ const linkInput = document.getElementById('shareLinkInput');
 const resultBox = document.getElementById('shareResultBox');
 const copyMsg = document.getElementById('shareCopyMsg');
 if (!openBtn) return;
-const _eT = !!window._shareOrigUrl; // _cSL() 에서 설정
+const _eT = !!window._isShareRecipient;
 if (_eT) {
 openBtn.addEventListener('click', async ()=>{
 const originalUrl = window._shareOrigUrl||location.href;
-try {
-await navigator.clipboard.writeText(originalUrl);
-} catch (_) {
+try { await navigator.clipboard.writeText(originalUrl); }
+catch (_) {
 const tmp = document.createElement('textarea');
 tmp.value = originalUrl;
 document.body.appendChild(tmp);
@@ -711,7 +900,8 @@ genBtn.addEventListener('click', async ()=>{
 const dur = Math.max(1, parseInt(document.getElementById('shareDuration').value)||1);
 const unit = parseInt(document.getElementById('shareUnit').value);
 const exp = Date.now() + dur * unit;
-const token = _sE({ exp });
+const _inclFav = document.getElementById('shareFavToggle')?.checked||false;
+const token = _sE({ exp, includeFavs: _inclFav });
 const baseUrl = new URL(location.href);
 baseUrl.search = '?' + _SP + '=' + token;
 baseUrl.hash = '';
@@ -733,7 +923,7 @@ const tiny = await res.text();
 if (tiny.startsWith('http')) finalUrl = tiny;
 } catch (_) { }
 const msgText = _SCT(finalUrl);
-linkInput.value = msgText; // textarea에 전체 메시지 표시
+linkInput.value = msgText;
 copyBtn.disabled = false;
 window._shareOrigUrl = finalUrl; // 수신자 재공유용
 });
@@ -758,7 +948,7 @@ splash.style.opacity = '1';
 splash.style.visibility = 'visible';
 splash.innerHTML = `
 <div class="share-preview-page">
-<p class="spp-badge">공유 링크</p>
+<p class="spp-badge">아파트 시세 링크</p>
 <div class="spp-icon">📊</div>
 <h2 class="spp-title">아파트 시세표</h2>
 <p class="spp-desc">
@@ -767,7 +957,7 @@ Preview를 클릭하거나<br>
 자동으로 이동됩니다.
 </p>
 <button id="sharePreviewBtn" class="spp-btn">Preview →</button>
-<p class="spp-notice">수도권 아파트 시세확인 링크입니다</p>
+<p class="spp-notice">🏠수도권 아파트 시세</p>
 </div>`;
 let started = false;
 const go = ()=>{
@@ -789,4 +979,179 @@ document.getElementById('sharePreviewBtn')
 function startApp() {
 _hS();
 _lD();
+}
+function _fK(g) { return `${g.지역}|${g.아파트}`; }
+function _lFav() {
+try {
+const raw = localStorage.getItem(_FK);
+_fS = new Set(raw ? JSON.parse(raw) : []);
+} catch { _fS = new Set(); }
+}
+function _sFav() {
+try { localStorage.setItem(_FK, JSON.stringify([..._fS])); } catch {}
+}
+function _lRS() {
+try {
+const raw = localStorage.getItem(_RK);
+_rS = raw ? JSON.parse(raw) : [];
+} catch { _rS = []; }
+_rRSU();
+}
+function _sRS(term) {
+if (!term||term.length < 1) return;
+_rS = _rS.filter(t=>t!==term);
+_rS.unshift(term);
+if (_rS.length > _RM) _rS = _rS.slice(0, _RM);
+if (window._isShareRecipient) {
+try { sessionStorage.setItem('_shr_recent', JSON.stringify(_rS)); } catch {}
+} else {
+try { localStorage.setItem(_RK, JSON.stringify(_rS)); } catch {}
+}
+_rRSU();
+}
+function _rRS(term) {
+_rS = _rS.filter(t=>t!==term);
+if (window._isShareRecipient) {
+try { sessionStorage.setItem('_shr_recent', JSON.stringify(_rS)); } catch {}
+} else {
+try { localStorage.setItem(_RK, JSON.stringify(_rS)); } catch {}
+}
+_rRSU();
+}
+function _rRSU() {
+const container = document.getElementById('recentSearchWrap');
+if (!container) return;
+const searchInput = document.getElementById('searchInput');
+const currentVal = searchInput ? searchInput.value.trim() : '';
+if (currentVal||_rS.length===0) {
+container.style.display = 'none';
+return;
+}
+container.style.display = 'flex';
+container.innerHTML = `
+<span class="recent-label">최근 검색</span>
+<div class="recent-chips">
+${_rS.map(t=>`
+<span class="recent-chip">
+<button class="recent-chip-text" data-term="${t}">${t}</button>
+<button class="recent-chip-del" data-del="${t}" aria-label="삭제">✕</button>
+</span>`).join('')}
+</div>`;
+container.querySelectorAll('.recent-chip-text').forEach(btn=>{
+btn.addEventListener('click', ()=>{
+const inp = document.getElementById('searchInput');
+if (inp) { inp.value = btn.dataset.term; }
+_aF();
+_rRSU();
+});
+});
+container.querySelectorAll('.recent-chip-del').forEach(btn=>{
+btn.addEventListener('click', (e)=>{
+e.stopPropagation();
+_rRS(btn.dataset.del);
+});
+});
+}
+function _gTK() {
+const d = new Date();
+const y = d.getFullYear();
+const m = String(d.getMonth() + 1).padStart(2, '0');
+const day = String(d.getDate()).padStart(2, '0');
+return 'd-' + y + m + day; // 예: d-20260408
+}
+async function _tTV(isRecipient) {
+const dateKey = _gTK();
+const apiKey = isRecipient
+? 's-' + dateKey.slice(2) // s-YYYYMMDD (공유)
+: dateKey; // d-YYYYMMDD (직접)
+const dupKey = '_today_hit_' + apiKey;
+const storage = isRecipient ? sessionStorage : localStorage;
+if (storage.getItem(dupKey)) return;
+try {
+await fetch(
+`https://api.counterapi.dev/v1/${_CNS}/${apiKey}/up`,
+{ method: 'GET' }
+);
+storage.setItem(dupKey, '1');
+if (!isRecipient) _cOHK();
+} catch (_) {}
+}
+function _cOHK() {
+const cutoff = new Date();
+cutoff.setDate(cutoff.getDate() - 30);
+const cutStr = cutoff.getFullYear()
++ String(cutoff.getMonth()+1).padStart(2,'0')
++ String(cutoff.getDate()).padStart(2,'0');
+Object.keys(localStorage).forEach(k=>{
+if (k.startsWith('_today_hit_d-')) {
+const dateStr = k.replace('_today_hit_d-', '');
+if (dateStr < cutStr) localStorage.removeItem(k);
+}
+});
+}
+async function _sTVP() {
+document.getElementById('todayPopup')?.remove();
+const popup = document.createElement('div');
+popup.id = 'todayPopup';
+popup.className = 'today-popup';
+popup.innerHTML = `
+<div class="tp-header">
+<span class="tp-title">📊 오늘 방문자</span>
+<button class="tp-close" onclick="document.getElementById('todayPopup')?.remove()">✕</button>
+</div>
+<div class="tp-body">
+<div class="tp-rows">
+<div class="tp-row">
+<span class="tp-label">🏠 직접 접속</span>
+<span class="tp-val" id="tpDirect"><span class="tp-spinner-sm"></span></span>
+</div>
+<div class="tp-divider"></div>
+<div class="tp-row">
+<span class="tp-label">🔗 공유 링크</span>
+<span class="tp-val" id="tpShare"><span class="tp-spinner-sm"></span></span>
+</div>
+<div class="tp-divider"></div>
+<div class="tp-row tp-row-total">
+<span class="tp-label">합계</span>
+<span class="tp-val tp-total" id="tpTotal">-</span>
+</div>
+</div>
+<p class="tp-date">${new Date().toLocaleDateString('ko-KR')} 기준</p>
+<p class="tp-hint">같은 브라우저 당일 중복 집계 제외</p>
+</div>`;
+document.body.appendChild(popup);
+setTimeout(()=>{
+document.addEventListener('click', function _close(e) {
+if (!popup.contains(e.target)) {
+popup.remove();
+document.removeEventListener('click', _close);
+}
+});
+}, 200);
+const dateKey = _gTK();
+const directKey = dateKey; // d-YYYYMMDD
+const shareKey = 's-' + dateKey.slice(2); // s-YYYYMMDD
+const fetchCount = async (key)=>{
+try {
+const res = await fetch(`https://api.counterapi.dev/v1/${_CNS}/${key}/get`);
+const data = await res.json();
+return data?.value ?? data?.count ?? 0;
+} catch (_) { return null; }
+};
+const fmt = (n)=>n===null
+? '<span class="tp-err">-</span>'
+: `<span class="tp-num-sm">${Number(n).toLocaleString('ko-KR')}</span><span class="tp-unit-sm">명</span>`;
+const [direct, share] = await Promise.all([
+fetchCount(directKey),
+fetchCount(shareKey),
+]);
+const elD = document.getElementById('tpDirect');
+const elS = document.getElementById('tpShare');
+const elT = document.getElementById('tpTotal');
+if (elD) elD.innerHTML = fmt(direct);
+if (elS) elS.innerHTML = fmt(share);
+if (elT) {
+const total = (direct ?? 0) + (share ?? 0);
+elT.innerHTML = `<span class="tp-num-sm tp-total-num">${total.toLocaleString('ko-KR')}</span><span class="tp-unit-sm">명</span>`;
+}
 }
