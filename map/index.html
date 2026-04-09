@@ -13,7 +13,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <link rel="stylesheet" href="css/common.css?v=51">
+    <link rel="stylesheet" href="css/common.css?v=77">
 </head>
 <body>
 
@@ -72,28 +72,37 @@
                    autocomplete="off" autocorrect="off" spellcheck="false">
         </div>
 
+        <!-- 최근 검색어 -->
+        <div id="recentSearchWrap" class="recent-search-wrap" style="display:none"></div>
+
         <!-- 지역 칩 필터 (파싱 후 동적 생성) -->
         <div id="regionFilter" class="region-filter"></div>
 
-        <!-- 결과 수 + 단위 토글 + 정렬 + 기준일 -->
+        <!-- 결과 수 + 단위 토글 + 생애최초 -->
         <div class="meta-row">
             <span id="resultCount" class="result-count"></span>
             <div style="display:flex; align-items:center; gap:8px;">
-                <!-- ㎡ / 평 단위 토글 -->
                 <button id="unitToggleBtn" class="unit-toggle-btn" title="면적 단위 전환">
                     <span class="u-label-sqm active">㎡</span>
                     <span class="u-sep"></span>
                     <span class="u-label-pyeong">평</span>
                 </button>
-                <select id="sortSelect" class="sort-select">
-                    <option value="default">기본순</option>
-                    <option value="name">가나다순</option>
-                    <option value="price_asc">가격 낮은순</option>
-                    <option value="price_desc">가격 높은순</option>
-                </select>
+                <button id="firstHomeBtn" class="first-home-btn" title="생애최초 LTV 적용">
+                    🏠 생애최초
+                </button>
             </div>
         </div>
-        <div id="baseDateLabel" class="base-date-label"></div>
+
+        <!-- 정렬 셀렉트 + 기준일 -->
+        <div class="date-action-row">
+            <div id="baseDateLabel" class="base-date-label"></div>
+            <select id="sortSelect" class="sort-select">
+                <option value="default">기본순</option>
+                <option value="name">가나다순</option>
+                <option value="price_asc">가격 낮은순</option>
+                <option value="price_desc">가격 높은순</option>
+            </select>
+        </div>
 
     </div><!-- /.sticky-header -->
 
@@ -152,6 +161,18 @@
             <p class="share-hint">예) 1 = 하루(24시간) · 7 = 일주일</p>
         </div>
 
+        <!-- 즐겨찾기 포함 토글 -->
+        <div class="share-fav-toggle-wrap">
+            <div class="share-fav-toggle-info">
+                <span class="share-fav-toggle-label">⭐ 즐겨찾기 기능 허용</span>
+                <span class="share-fav-toggle-desc">수신자가 즐겨찾기를 사용할 수 있게 설정</span>
+            </div>
+            <label class="sft-switch">
+                <input type="checkbox" id="shareFavToggle">
+                <span class="sft-slider"></span>
+            </label>
+        </div>
+
         <!-- 생성된 공유 메시지 미리보기 -->
         <div id="shareResultBox" class="share-result-box" style="display:none">
             <div class="share-exp-label" id="shareExpLabel"></div>
@@ -159,9 +180,12 @@
             <div class="share-msg-preview-wrap">
                 <textarea id="shareLinkInput" class="share-msg-textarea" readonly rows="5"></textarea>
             </div>
-            <button id="shareCopyBtn" class="share-copy-btn-full">
-                📎 메시지 + 링크 복사하기
-            </button>
+            <!-- 버튼 그룹 -->
+            <div class="share-action-btns">
+                <button id="shareCopyBtn" class="share-copy-btn-full">
+                    📎 메시지 + 링크 복사
+                </button>
+            </div>
             <div id="shareCopyMsg" class="share-copy-msg" style="display:none">
                 ✅ 클립보드에 복사됐습니다. 카카오톡 · 문자에 붙여넣기 하세요!
             </div>
@@ -169,6 +193,6 @@
     </div>
 </div>
 
-<script src="js/app.js?v=51"></script>
+<script src="js/app.js?v=77"></script>
 </body>
 </html>
