@@ -38,6 +38,60 @@
 .admin-footer { margin-top: 20px; text-align: center; }
 .btn-text { font-size: 12px; color: var(--text-muted); text-decoration: underline; cursor: pointer; background: none; border: none; padding: 5px; }
 
+/* ── 자동 로그인 체크박스 ── */
+.admin-remember-row {
+  margin: 12px 0 4px;
+  display: flex; align-items: center;
+}
+.admin-remember-label {
+  display: flex; align-items: center; gap: 9px;
+  cursor: pointer; user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+/* 실제 input 숨김 */
+.admin-remember-chk { display: none; }
+
+/* 커스텀 체크박스 박스 */
+.admin-remember-mark {
+  width: 20px; height: 20px; flex-shrink: 0;
+  border: 2px solid var(--border-strong);
+  border-radius: 5px;
+  background: var(--bg-input);
+  display: flex; align-items: center; justify-content: center;
+  transition: border-color 0.18s, background 0.18s;
+  position: relative;
+}
+/* 체크 표시 */
+.admin-remember-mark::after {
+  content: '';
+  width: 5px; height: 9px;
+  border: 2.5px solid transparent;
+  border-top: none; border-left: none;
+  border-right-color: #fff; border-bottom-color: #fff;
+  transform: rotate(45deg) translate(-1px, -1px);
+  opacity: 0; transition: opacity 0.15s;
+}
+/* 체크됐을 때 */
+.admin-remember-chk:checked + .admin-remember-mark {
+  background: var(--kb-navy);
+  border-color: var(--kb-navy);
+}
+.admin-remember-chk:checked + .admin-remember-mark::after { opacity: 1; }
+
+.admin-remember-text {
+  font-size: 13px; font-weight: 600;
+  color: var(--text-secondary);
+}
+/* 자동로그인 중 스피너 배지 */
+.admin-auto-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 600; color: var(--kb-yellow-deep);
+  background: var(--kb-yellow-light); border: 1px solid var(--kb-yellow);
+  border-radius: var(--radius-sm); padding: 4px 10px; margin-bottom: 14px;
+  animation: pulse 1.5s infinite;
+}
+body.dark .admin-auto-badge { color: var(--kb-yellow); background: rgba(255,184,28,.12); }
+
 
 /* ── 관리자 전용 커스텀 모달 스타일 ── */
 .admin-modal-overlay {
