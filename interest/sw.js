@@ -1,5 +1,5 @@
 /* ======================================================
-   KB 금리표 · sw.js  260409
+   KB 금리표 · sw.js  v0781_4
    
    ⚠️ 이 파일은 반드시 navigator.serviceWorker.register()로만 등록할 것
       <script src="sw.js"> 로 로드하면 self.skipWaiting() 에서 TypeError 크래시 발생
@@ -7,7 +7,7 @@
 
 // ── 버전 문자열: 배포 시 수동으로 올릴 것
 //    Date.now() 사용 금지 — SW가 설치될 때마다 새 캐시 생성 → 용량 무한 증가 버그
-const VERSION    = '260409';
+const VERSION    = 'kb-interest-v4';
 const CACHE_NAME = VERSION;
 
 // 캐싱할 정적 파일 목록
@@ -77,17 +77,25 @@ self.addEventListener('fetch', event => {
     // 외부 도메인(폰트 CDN 등) → 패스스루
     if (url.origin !== self.location.origin) return;
 
-    // GET 요청만 캐싱
+    // GET 요청만 처리
     if (request.method !== 'GET') return;
 
-    const isHTML = request.headers.get('accept')?.includes('text/html');
+    // ── URL 정규화: /index.html → / 리다이렉트 (SW 레벨)
+    //    브라우저가 직접 index.html을 요청한 경우 클린 URL로 301
+    if (url.pathname.endsWith('/index.html')) {
+        const cleanUrl = url.href.replace(/\/index\.html(\?.*)?$/, (_, qs) => '/' + (qs || ''));
+        event.respondWith(Response.redirect(cleanUrl, 301));
+        return;
+    }
+
+    const isHTML  = request.headers.get('accept')?.includes('text/html');
     const isAsset = /\.(css|js|json)(\?.*)?$/.test(url.pathname);
 
     if (isHTML) {
-        // ── HTML: Network First
+        // ── HTML: Network First (항상 최신 HTML 확보)
         event.respondWith(networkFirst(request));
     } else if (isAsset) {
-        // ── CSS/JS/JSON: Stale-While-Revalidate
+        // ── CSS/JS/JSON: Stale-While-Revalidate (빠른 응답 + 백그라운드 갱신)
         event.respondWith(staleWhileRevalidate(request));
     } else {
         // ── 이미지 등: Cache First

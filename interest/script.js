@@ -1,5 +1,5 @@
 /* ======================================================
-   KB 금리표 · script.js  v260409
+   KB 금리표 · script.js  v0781_5
    ====================================================== */
 
 /* ======================================================
@@ -7,15 +7,15 @@
       배포 시 두 파일 모두 같이 올릴 것
       버전이 바뀌면 → 이번 주 공지 닫기 설정이 초기화됨
    ====================================================== */
-const APP_VERSION = '260409';
+const APP_VERSION = 'kb-interest-v4';
 
 /* ======================================================
    1. 금리 데이터
    ====================================================== */
 const r = {
     base: {
-        mor5:    3.77,
-        mor2:    3.48,
+        mor5:    4.06,
+        mor2:    3.68,
         ncofix:  2.82,
         scofix:  2.47,
         primeOn: 1.10,
@@ -27,10 +27,10 @@ const r = {
         v_6_12:   2.87
     },
     add: {
-        mort: { m5: 2.21, n6: 2.56, n12: 2.52, s6: 2.90, s12: 3.03 },
-        hf:   { m2: 2.07, n6: 2.30, n12: 2.41, s6: 2.55, s12: 2.94 },
-        hug:  { m2: 2.13, n6: 2.33, n12: 2.31, s6: 2.58, s12: 2.84 },
-        sgi:  { m2: 2.44, n6: 2.42, n12: 2.54, s6: 2.87, s12: 3.00 }
+        mort: { m5: 2.18, n6: 2.73, n12: 2.69, s6: 3.07, s12: 3.20 },
+        hf:   { m2: 2.20, n6: 2.43, n12: 2.54, s6: 2.68, s12: 3.07 },
+        hug:  { m2: 2.26, n6: 2.46, n12: 2.44, s6: 2.71, s12: 2.97 },
+        sgi:  { m2: 2.56, n6: 2.55, n12: 2.67, s6: 3.00, s12: 3.13 }
     }
 };
 
@@ -80,7 +80,7 @@ function renderContent() {
     const groups = [
         {
             title: '주택담보대출',
-            desc: '부동산 담보대출 금리 · 잔금일 기준(포함) <strong>50일 전</strong>부터 접수',
+            desc: '부동산 담보 대출 금리 리포트',
             warn: true,
             id: 'mort'
         },
@@ -234,8 +234,13 @@ async function refreshData() {
     setStep(3);
     await sleep(600);
 
-    const base   = window.location.origin + window.location.pathname;
-    const newUrl = base.split('?')[0] + '?v=' + Date.now();
+    // index.html 없는 클린 URL 생성
+    var cleanPath = window.location.pathname
+        .replace(/\/index\.html$/, '/');  // index.html 제거
+    // 끝이 /로 끝나지 않으면 붙임 (디렉토리 URL 보장)
+    if (!cleanPath.endsWith('/')) cleanPath += '/';
+
+    const newUrl = window.location.origin + cleanPath + '?v=' + Date.now();
     window.location.replace(newUrl);
 }
 
