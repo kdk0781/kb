@@ -80,7 +80,7 @@ function renderContent() {
     const groups = [
         {
             title: '주택담보대출',
-            desc: '부동산 담보 대출 금리 리포트',
+            desc: '부동산 담보 대출 · 잔금일 기준(포함) <strong>50일 전</strong>부터 접수',
             warn: true,
             id: 'mort'
         },
