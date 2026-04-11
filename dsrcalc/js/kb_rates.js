@@ -56,7 +56,7 @@ function _getCacheKey() {
 function _cleanOldCacheKeys(currentKey) {
   try {
     Object.keys(localStorage).forEach(k => {
-      if (k.startsWith('kb_rates_v1') && k !== currentKey) {
+      if (k.startsWith('kb_rates_v4') && k !== currentKey) {
         localStorage.removeItem(k);
       }
     });
