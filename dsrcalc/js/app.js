@@ -114,7 +114,7 @@ async function hardRefresh() {
 
     // ② 브라우저 캐시 삭제
     _lstepActive('lstep2', '브라우저 캐시를 초기화합니다.');
-    localStorage.removeItem('kb_rates_v2');
+    //localStorage.removeItem('kb_rates_v2');
     if (typeof clearKBRatesCache === 'function') await clearKBRatesCache();
     if ('caches' in window) {
       const cacheNames = await caches.keys();
