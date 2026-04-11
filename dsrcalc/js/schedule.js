@@ -103,11 +103,18 @@ function renderLoanSchedule(listEl, loan) {
   if (!P || !n) return;
 
   // 스케줄 헤더
+  // ★ 선택된 탭(원금균등/원리금균등)을 헤더 타이틀에 반영
+  //   label 에 이미 "(원리금)" 등 상품명이 포함되어 있어 혼동 발생
+  //   → 괄호 부분을 제거하고 실제 상환 방식으로 교체
+  const _schedMethod    = currentScheduleType === 'L' ? '원리금균등' : '원금균등';
+  const _baseLabel      = label.replace(/\s*\([^)]+\)\s*$/, '').trim(); // "(원리금)" 등 제거
+  const _displayLabel   = _baseLabel + ' (' + _schedMethod + ')';
+
   const schedHeader = document.createElement('div');
   schedHeader.className = 'sch-calc-header';
   schedHeader.innerHTML = merged
-    ? `<span class="sch-calc-title">🏠 통합 구입자금 상환 스케줄</span><span class="sch-calc-meta">합산 ${Math.round(P).toLocaleString()}원 | 가중평균 ${R.toFixed(2)}% | ${n}개월</span>`
-    : `<span class="sch-calc-title">${_EMOJI[loan.cat]||'🏠'} ${label} 상환 스케줄</span><span class="sch-calc-meta">${Math.round(P).toLocaleString()}원 | ${R.toFixed(2)}% | ${n}개월</span>`;
+    ? `<span class="sch-calc-title">🏠 통합 구입자금 (${_schedMethod}) 상환 스케줄</span><span class="sch-calc-meta">합산 ${Math.round(P).toLocaleString()}원 | 가중평균 ${R.toFixed(2)}% | ${n}개월</span>`
+    : `<span class="sch-calc-title">${_EMOJI[loan.cat]||'🏠'} ${_displayLabel} 상환 스케줄</span><span class="sch-calc-meta">${Math.round(P).toLocaleString()}원 | ${R.toFixed(2)}% | ${n}개월</span>`;
   listEl.appendChild(schedHeader);
 
   // ★ 마일스톤 맵 구성
