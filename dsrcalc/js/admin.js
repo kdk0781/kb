@@ -102,6 +102,11 @@ function _triggerAutoLogin(id, pw) {
 
 // ─── 페이지 로드 초기화 ───────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function () {
+  // ★ admin.html 접속 시 고객 낙인 즉시 해제
+  // admin.html 은 관리자만 접근하는 페이지이므로
+  // 로그인 성공 여부와 무관하게 낙인을 먼저 제거합니다.
+  localStorage.removeItem('kb_guest_mode');
+
   // 모달 확인 버튼 이벤트
   const confirmBtn = document.getElementById('modalConfirm');
   if (confirmBtn) {
