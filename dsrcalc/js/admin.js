@@ -1,226 +1,204 @@
-/* =================================================================
-   admin.js — admin.html 전용 로그인 / 설정 변경 로직
-   원본 admin-login.js 구조 기반 + ES 호환성 수정본
-   · _adminAlert 는 이 파일 고유 시그니처 (msg, icon, callback)
-     → common.js 의 _adminAlert(msg, focusId, icon) 와 다른 파일임
-     → admin.html 은 common.js 를 로드하지 않으므로 충돌 없음
-   · DOMContentLoaded + 정적 <script src> → 타이밍 문제 없음
-   ================================================================= */
+/* =============================================================================
+   js/admin.js — index.html 관리자 기능 전용
+   ★ 이 파일은 index.html 에서만 로드됩니다 (common.js 이후 로드)
+   ★ showAlert 시그니처: common.js 기준 → showAlert(msg, focusId, icon)
+      focusId 자리에 null 전달
+   =============================================================================
+   포함:
+   · checkAdminAuth()          — 세션 확인 → adminShareContainer 노출
+   · generateAdminShareLink()  — 24시간 임시 링크 생성 + is.gd 단축
+   · adminLogout()             — 로그아웃 모달 표시
+   · closeLogoutModal()        — 로그아웃 모달 닫기
+   · proceedAdminLogout()      — 로그아웃 실행
+   ============================================================================= */
 
-// ─── 설정 ─────────────────────────────────────────────────────────
-var DEFAULT_CONFIG = {
-  id:      'admin',
-  pw:      'admin',
-  mainUrl: 'index.html',
-  phone:   ''
-};
-
-function getAdminConfig() {
+// ─── 관리자 세션 확인 ────────────────────────────────────────────────────────
+function checkAdminAuth() {
+  if (localStorage.getItem('kb_guest_mode') === 'true') return;
   try {
-    var s = localStorage.getItem('kb_admin_config');
-    return s ? JSON.parse(s) : DEFAULT_CONFIG;
-  } catch(e) { return DEFAULT_CONFIG; }
-}
-function saveAdminConfig(config) {
-  localStorage.setItem('kb_admin_config', JSON.stringify(config));
-}
-
-// ─── 모달 (admin.html 전용 — common.js showAlert 와 충돌 없음) ────
-var _modalCallback = null;
-
-function _adminAlert(msg, icon, callback) {
-  // icon 기본값: 경고 이모지 (유니코드 이스케이프)
-  icon     = (icon !== undefined && icon !== null) ? icon : '\u26a0\ufe0f';
-  callback = callback || null;
-  var modal = document.getElementById('customModal');
-  if (!modal) return;
-  document.getElementById('modalMsg').innerHTML  = msg.replace(/\n/g, '<br>');
-  document.getElementById('modalIcon').innerText = icon;
-  _modalCallback = callback;
-  modal.style.display = 'flex';
+    var s = localStorage.getItem('kb_admin_session');
+    if (!s) return;
+    var session = JSON.parse(s);
+    if (session && session.isAuth && Date.now() < session.expires) {
+      var el = document.getElementById('adminShareContainer');
+      if (el) el.style.display = 'block';
+    } else {
+      localStorage.removeItem('kb_admin_session');
+    }
+  } catch(e) {}
 }
 
-// ─── 자동 로그인 ──────────────────────────────────────────────────
-var _AK = 'kb_admin_autologin';
-var _IK = 'kb_admin_init_state';
-
-function saveAutoLogin(id, pw) {
-  localStorage.setItem(_AK, JSON.stringify({ id: id, pw: pw, enabled: true }));
-}
-function clearAutoLogin() { localStorage.removeItem(_AK); }
-function getAutoLogin() {
-  try {
-    var r = localStorage.getItem(_AK);
-    if (!r) return null;
-    var d = JSON.parse(r);
-    return (d && d.enabled) ? d : null;
-  } catch(e) { return null; }
-}
-function getInitState() {
-  try {
-    var r = localStorage.getItem(_IK);
-    return r ? JSON.parse(r) : null;
-  } catch(e) { return null; }
-}
-function clearInitState() { localStorage.removeItem(_IK); }
-
-// ─── 폼 채우기 ────────────────────────────────────────────────────
-function _fillForm(id, pw, chk) {
-  var a = document.getElementById('adminId');
-  var b = document.getElementById('adminPw');
-  var c = document.getElementById('autoLoginChk');
-  if (a) a.value   = id  || '';
-  if (b) b.value   = pw  || '';
-  if (c) c.checked = !!chk;
-}
-
-// ─── 자동 로그인 실행 ─────────────────────────────────────────────
-function _triggerAutoLogin(id, pw) {
-  var card = document.querySelector('.admin-card');
-  var btn  = document.querySelector('.btn-login');
-  if (card && btn) {
-    var badge = document.createElement('div');
-    badge.className = 'admin-auto-badge';
-    badge.innerHTML = '\u26a1 자동 로그인 중...';
-    card.insertBefore(badge, btn);
-  }
-  setTimeout(function() { _doLogin(id, pw); }, 700);
-}
-
-// ─── 로그인 ───────────────────────────────────────────────────────
-function attemptLogin() {
-  _doLogin(
-    document.getElementById('adminId').value.trim(),
-    document.getElementById('adminPw').value.trim()
-  );
-}
-
-function _doLogin(id, pw) {
-  var cfg  = getAdminConfig();
-  var ckEl = document.getElementById('autoLoginChk');
-  var chk  = ckEl ? ckEl.checked : false;
-
-  if (id === cfg.id && pw === cfg.pw) {
-    if (chk) { saveAutoLogin(id, pw); } else { clearAutoLogin(); }
-    localStorage.removeItem('kb_guest_mode');
-    localStorage.setItem('kb_admin_session', JSON.stringify({
-      isAuth:  true,
-      expires: Date.now() + 86400000,
-      mainUrl: cfg.mainUrl
-    }));
-    _adminAlert(
-      '로그인이 완료되었습니다.<br>대표 페이지로 이동합니다.',
-      '\u2705',
-      function() { window.location.href = cfg.mainUrl; }
-    );
+// ─── 로그아웃 ────────────────────────────────────────────────────────────────
+function adminLogout() {
+  var modal = document.getElementById('logoutConfirmModal');
+  if (modal) {
+    modal.style.display = 'flex';
   } else {
-    var badge = document.querySelector('.admin-auto-badge');
-    if (badge && badge.parentNode) badge.parentNode.removeChild(badge);
-    _adminAlert('아이디 또는 비밀번호가 일치하지 않습니다.', '\uD83D\uDEAB');
+    if (window.confirm('로그아웃 하시겠습니까?')) proceedAdminLogout();
   }
 }
 
-// ─── 설정 변경 ────────────────────────────────────────────────────
-function changeAdminSettings() {
-  var cfg = getAdminConfig();
-  document.getElementById('setCurId').value  = '';
-  document.getElementById('setCurPw').value  = '';
-  document.getElementById('setNewPw').value  = '';
-  document.getElementById('setNewUrl').value = cfg.mainUrl;
-  var pEl = document.getElementById('setNewPhone');
-  if (pEl) pEl.value = cfg.phone || '';
-  document.getElementById('settingsModal').style.display = 'flex';
+function closeLogoutModal() {
+  var modal = document.getElementById('logoutConfirmModal');
+  if (modal) modal.style.display = 'none';
 }
-function closeSettingsModal() {
-  document.getElementById('settingsModal').style.display = 'none';
-}
-function saveSettingsFromModal() {
-  var cfg   = getAdminConfig();
-  var curId = document.getElementById('setCurId').value.trim();
-  var curPw = document.getElementById('setCurPw').value.trim();
-  var newPw = document.getElementById('setNewPw').value.trim();
-  var newUrl= document.getElementById('setNewUrl').value.trim();
-  var pEl   = document.getElementById('setNewPhone');
-  var phone = pEl ? pEl.value.trim() : '';
 
-  if (curId !== cfg.id || curPw !== cfg.pw) {
-    _adminAlert('현재 아이디 또는 비밀번호가 일치하지 않습니다.', '\uD83D\uDEAB');
-    return;
-  }
-  if (phone && !/^010-\d{4}-\d{4}$/.test(phone)) {
-    _adminAlert('연락처 형식이 올바르지 않습니다.<br><span style="font-size:12px;">예: 010-1234-5678</span>', '\u26a0\ufe0f');
-    return;
-  }
-
-  var newCfg = {
-    id:      cfg.id,
-    pw:      newPw   || cfg.pw,
-    mainUrl: newUrl  || cfg.mainUrl,
-    phone:   phone   || cfg.phone || ''
-  };
-  saveAdminConfig(newCfg);
+function proceedAdminLogout() {
+  closeLogoutModal();
   localStorage.removeItem('kb_admin_session');
 
-  var al = getAutoLogin();
-  if (al) saveAutoLogin(newCfg.id, newCfg.pw);
+  var el = document.getElementById('adminShareContainer');
+  if (el) el.style.display = 'none';
 
-  localStorage.setItem(_IK, JSON.stringify({
-    id: newCfg.id, pw: newCfg.pw, autoCheck: true, autoLogin: true
-  }));
-
-  closeSettingsModal();
-  _adminAlert(
-    '설정이 변경되었습니다.<br>변경된 계정으로 자동 로그인합니다.',
-    '\u2705',
-    function() {
-      window.location.href = window.location.href.split('?')[0].split('#')[0];
+  // 자동 로그인 정보 있으면 init_state 저장
+  try {
+    var raw = localStorage.getItem('kb_admin_autologin');
+    if (raw) {
+      var auto = JSON.parse(raw);
+      if (auto && auto.enabled) {
+        localStorage.setItem('kb_admin_init_state', JSON.stringify({
+          id: auto.id, pw: auto.pw, autoCheck: true, autoLogin: true
+        }));
+      }
     }
-  );
+  } catch(e) {}
+
+  var base = window.location.href.split('?')[0].split('#')[0];
+  var dir  = base.substring(0, base.lastIndexOf('/') + 1);
+  window.location.href = dir + 'admin.html';
 }
 
-// ─── DOMContentLoaded ─────────────────────────────────────────────
-// 정적 <script src="admin.js"> + body 끝 로드 구조에서
-// DOMContentLoaded 는 스크립트 실행 직후 발동 → 타이밍 문제 없음
-document.addEventListener('DOMContentLoaded', function() {
-  // 고객 낙인 해제
-  localStorage.removeItem('kb_guest_mode');
+// ─── URL-safe Base64 (SMS/카카오 + → 공백 방지) ──────────────────────────────
+function _toUrlSafeB64(str) {
+  return btoa(encodeURIComponent(str))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+}
 
-  // 확인 버튼 — addEventListener 로 등록 (onclick 충돌 방지)
-  var confirmBtn = document.getElementById('modalConfirm');
-  if (confirmBtn) {
-    confirmBtn.addEventListener('click', function() {
-      document.getElementById('customModal').style.display = 'none';
-      if (_modalCallback) {
-        var cb = _modalCallback;
-        _modalCallback = null;
-        cb();
-      }
-    });
+// ─── 하루 발급 카운터 ─────────────────────────────────────────────────────────
+function _shareDailyKey() {
+  var d = new Date();
+  var m = String(d.getMonth() + 1);
+  var day = String(d.getDate());
+  if (m.length < 2) m = '0' + m;
+  if (day.length < 2) day = '0' + day;
+  return 'kb_share_cnt_' + d.getFullYear() + m + day;
+}
+
+function _checkShareLimit() {
+  var limit = (_C && _C.REPORT_COPY_DAILY_LIMIT) ? _C.REPORT_COPY_DAILY_LIMIT : 10;
+  var key   = _shareDailyKey();
+  var cnt   = parseInt(localStorage.getItem(key) || '0', 10);
+  if (cnt >= limit) return { ok: false, cnt: cnt, limit: limit };
+  localStorage.setItem(key, String(cnt + 1));
+  return { ok: true, cnt: cnt + 1, limit: limit };
+}
+
+// ─── URL 단축 ─────────────────────────────────────────────────────────────────
+function _adminShortenUrl(longUrl) {
+  var api = (_C && _C.SHORTENER_API) ? _C.SHORTENER_API : 'https://is.gd/create.php?format=simple&url=';
+  return fetch(api + encodeURIComponent(longUrl))
+    .then(function(res) {
+      if (!res.ok) throw new Error('shorten failed');
+      return res.text();
+    })
+    .then(function(s) {
+      s = s.trim();
+      if (s.indexOf('http') === 0) return s;
+      throw new Error('bad response');
+    })
+    .catch(function() { return longUrl; });
+}
+
+// ─── 클립보드 복사 (iOS 포함) ─────────────────────────────────────────────────
+function _adminCopy(text, successMsg) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text)
+      .then(function() {
+        if (successMsg) showAlert(successMsg, null, '\u2705');
+      })
+      .catch(function() { _adminCopyFallback(text, successMsg); });
+  } else {
+    _adminCopyFallback(text, successMsg);
   }
+}
 
-  // 엔터키 로그인
-  document.addEventListener('keypress', function(e) {
-    if ((e.key || e.keyCode) !== 'Enter' && e.keyCode !== 13) return;
-    var cm = document.getElementById('customModal');
-    var sm = document.getElementById('settingsModal');
-    if ((cm && cm.style.display === 'flex') ||
-        (sm && sm.style.display === 'flex')) return;
-    attemptLogin();
-  });
+function _adminCopyFallback(text, successMsg) {
+  var ta = document.createElement('textarea');
+  ta.style.cssText = 'position:fixed;top:-9999px;opacity:0;';
+  document.body.appendChild(ta);
+  ta.value = text;
+  ta.focus();
+  ta.select();
+  try {
+    document.execCommand('copy');
+    if (successMsg) showAlert(successMsg, null, '\u2705');
+  } catch(e) {
+    showAlert('복사에 실패했습니다. 직접 복사해 주세요.<br>' + text, null, '\u26A0\uFE0F');
+  }
+  document.body.removeChild(ta);
+}
 
-  // 1회용 초기 상태 (로그아웃/설정 변경 직후 복원)
-  var init = getInitState();
-  if (init) {
-    clearInitState();
-    _fillForm(init.id, init.pw, init.autoCheck !== false);
-    if (init.autoLogin) { _triggerAutoLogin(init.id, init.pw); }
+// ─── 고객 배포용 임시 링크 생성 ──────────────────────────────────────────────
+function generateAdminShareLink() {
+  // 발급 한도 체크
+  var limitCheck = _checkShareLimit();
+  if (!limitCheck.ok) {
+    showAlert(
+      '\uc624\ub298 \ubc1c\uae09 \ud55c\ub3c4(' + limitCheck.limit + '\ud68c)\ub97c \ucd08\uacfc\ud588\uc2b5\ub2c8\ub2e4.<br>' +
+      '<span style="font-size:12px;">\ub0b4\uc77c \uc790\uc815\uc5d0 \ucd08\uae30\ud654\ub429\ub2c8\ub2e4.</span>',
+      null, '\uD83D\uDEAB'
+    );
     return;
   }
 
-  // 자동 로그인
-  var auto = getAutoLogin();
-  if (auto) {
-    _fillForm(auto.id, auto.pw, true);
-    _triggerAutoLogin(auto.id, auto.pw);
+  // 버튼 로딩 상태
+  var btn = document.getElementById('btnAdminShare');
+  var origHtml = btn ? btn.innerHTML : null;
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<div class="admin-share-icon">\u23f3</div>' +
+      '<div class="admin-share-text"><span class="share-title-main">\ub9c1\ud06c \uc0dd\uc131 \uc911...</span></div>';
   }
-});
+
+  // 24시간 만료 토큰 생성
+  var payload  = { exp: Date.now() + 86400000 };
+  var token    = _toUrlSafeB64(JSON.stringify(payload));
+  var base     = window.location.href.split('?')[0].split('#')[0];
+  var baseDir  = base.substring(0, base.lastIndexOf('/') + 1);
+  var longUrl  = baseDir + 'share.html?t=' + token;
+  var remaining = limitCheck.limit - limitCheck.cnt;
+
+  var successMsg =
+    '\uD83D\uDD17 <b>\uace0\uac1d\uc6a9 \uc571 \uc124\uce58 \ub9c1\ud06c\uac00 \ubcf5\uc0ac\ub418\uc5c8\uc2b5\ub2c8\ub2e4.</b><br><br>' +
+    '<span style="font-size:12px; display:block;">' +
+    '\u2022 \ubc1c\uae09 \ud6c4 <b>24\uc2dc\uac04 \ub3d9\uc548\ub9cc \uc720\ud6a8</b>\ud569\ub2c8\ub2e4.<br>' +
+    '\u2022 \uc624\ub298 \ub0a8\uc740 \ubc1c\uae09 \ud69f\uc218: <b>' + remaining + '\ud68c</b></span>';
+
+  _adminShortenUrl(longUrl)
+    .then(function(shortUrl) {
+      if (navigator.share && /Mobi|Android/i.test(navigator.userAgent)) {
+        return navigator.share({
+          title: 'KB DSR \uacc4\uc0b0\uae30 (\uace0\uac1d\uc6a9)',
+          text:  'DSR \uacc4\uc0b0\uae30 \uac04\ud3b8 \uc811\uc18d \uc2e4\ub9c1\ud06c\uc785\ub2c8\ub2e4. (24\uc2dc\uac04 \uc720\ud6a8)',
+          url:   shortUrl
+        }).catch(function(err) {
+          if (err.name !== 'AbortError') _adminCopy(shortUrl, successMsg);
+        });
+      } else {
+        _adminCopy(shortUrl, successMsg);
+      }
+    })
+    .catch(function(e) {
+      console.error('[AdminShare]', e);
+      showAlert('\ub9c1\ud06c \uc0dd\uc131 \uc911 \uc624\ub958\uac00 \ubc1c\uc0dd\ud588\uc2b5\ub2c8\ub2e4.', null, '\u26A0\uFE0F');
+    })
+    .then(function() {
+      // finally 역할
+      if (btn) {
+        btn.disabled = false;
+        if (origHtml) btn.innerHTML = origHtml;
+      }
+    });
+}
