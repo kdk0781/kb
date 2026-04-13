@@ -13,10 +13,23 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="DSR 관리자">
 
-  <link rel="stylesheet" href="./css/common.css" media="all">
-  <link rel="stylesheet" href="./css/admin.css" media="all">
+  <link rel="stylesheet" href="common.css" media="all">
+  <link rel="stylesheet" href="admin.css" media="all">
 </head>
 <body>
+  <!-- ★ admin.html 접속 즉시 게스트 낙인 해제 + 캐시 우회 동적 로드 -->
+  <script>
+    // 1. 게스트 낙인 즉시 해제
+    localStorage.removeItem('kb_guest_mode');
+
+    // 2. admin.js 캐시 우회 — 타임스탬프로 항상 최신 버전 로드
+    //    정적 <script src="admin.js"> 와 동시 사용 금지 (const 재선언 오류 발생)
+    (function() {
+      var s = document.createElement('script');
+      s.src = 'admin.js?_t=' + Date.now();
+      document.head.appendChild(s);
+    })();
+  </script>
   <div class="admin-container">
     <div class="admin-card">
       <div class="admin-header">
@@ -79,6 +92,6 @@
     </div>
   </div>
 
-  <script src="./js/admin.js"></script>
+
 </body>
 </html>
