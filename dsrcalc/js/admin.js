@@ -1,8 +1,8 @@
 /* =================================================================
    admin.js — admin.html 전용 로그인 / 설정 변경 로직
    원본 admin-login.js 구조 기반 + ES 호환성 수정본
-   · showAlert 는 이 파일 고유 시그니처 (msg, icon, callback)
-     → common.js 의 showAlert(msg, focusId, icon) 와 다른 파일임
+   · _adminAlert 는 이 파일 고유 시그니처 (msg, icon, callback)
+     → common.js 의 _adminAlert(msg, focusId, icon) 와 다른 파일임
      → admin.html 은 common.js 를 로드하지 않으므로 충돌 없음
    · DOMContentLoaded + 정적 <script src> → 타이밍 문제 없음
    ================================================================= */
@@ -28,7 +28,7 @@ function saveAdminConfig(config) {
 // ─── 모달 (admin.html 전용 — common.js showAlert 와 충돌 없음) ────
 var _modalCallback = null;
 
-function showAlert(msg, icon, callback) {
+function _adminAlert(msg, icon, callback) {
   // icon 기본값: 경고 이모지 (유니코드 이스케이프)
   icon     = (icon !== undefined && icon !== null) ? icon : '\u26a0\ufe0f';
   callback = callback || null;
@@ -108,7 +108,7 @@ function _doLogin(id, pw) {
       expires: Date.now() + 86400000,
       mainUrl: cfg.mainUrl
     }));
-    showAlert(
+    _adminAlert(
       '로그인이 완료되었습니다.<br>대표 페이지로 이동합니다.',
       '\u2705',
       function() { window.location.href = cfg.mainUrl; }
@@ -116,7 +116,7 @@ function _doLogin(id, pw) {
   } else {
     var badge = document.querySelector('.admin-auto-badge');
     if (badge && badge.parentNode) badge.parentNode.removeChild(badge);
-    showAlert('아이디 또는 비밀번호가 일치하지 않습니다.', '\uD83D\uDEAB');
+    _adminAlert('아이디 또는 비밀번호가 일치하지 않습니다.', '\uD83D\uDEAB');
   }
 }
 
@@ -144,11 +144,11 @@ function saveSettingsFromModal() {
   var phone = pEl ? pEl.value.trim() : '';
 
   if (curId !== cfg.id || curPw !== cfg.pw) {
-    showAlert('현재 아이디 또는 비밀번호가 일치하지 않습니다.', '\uD83D\uDEAB');
+    _adminAlert('현재 아이디 또는 비밀번호가 일치하지 않습니다.', '\uD83D\uDEAB');
     return;
   }
   if (phone && !/^010-\d{4}-\d{4}$/.test(phone)) {
-    showAlert('연락처 형식이 올바르지 않습니다.<br><span style="font-size:12px;">예: 010-1234-5678</span>', '\u26a0\ufe0f');
+    _adminAlert('연락처 형식이 올바르지 않습니다.<br><span style="font-size:12px;">예: 010-1234-5678</span>', '\u26a0\ufe0f');
     return;
   }
 
@@ -169,7 +169,7 @@ function saveSettingsFromModal() {
   }));
 
   closeSettingsModal();
-  showAlert(
+  _adminAlert(
     '설정이 변경되었습니다.<br>변경된 계정으로 자동 로그인합니다.',
     '\u2705',
     function() {
