@@ -51,8 +51,29 @@ window.onload = async function () {
     };
   }
 
-  // 관리자 세션 체크
-  checkAdminAuth();
+  // ─── 관리자 세션 체크 ────────────────────────────────────────────────────
+  // ★ 외부 js/admin.js 에 의존하지 않고 app.js 에 직접 내장
+  //    → js/admin.js 로드 실패 / 미배포 상황에서도 반드시 동작 보장
+  (function checkAdminSession() {
+    try {
+      // 고객 낙인 확인
+      if (localStorage.getItem('kb_guest_mode') === 'true') return;
+
+      var sessionStr = localStorage.getItem('kb_admin_session');
+      if (!sessionStr) return;
+
+      var session = JSON.parse(sessionStr);
+      if (session && session.isAuth && Date.now() < session.expires) {
+        var el = document.getElementById('adminShareContainer');
+        if (el) el.style.display = 'block';
+      } else {
+        localStorage.removeItem('kb_admin_session');
+      }
+    } catch (e) {}
+  })();
+
+  // js/admin.js 에도 checkAdminAuth 가 있으면 호환성 유지
+  if (typeof checkAdminAuth === 'function') checkAdminAuth();
 
   // KB 금리 자동 로드
   if (typeof applyKBRatesToConfig === 'function') {
@@ -152,3 +173,55 @@ document.addEventListener('keydown', e => {
     if (guideModal && guideModal.style.display !== 'none') closeGuide();
   }
 });
+
+// ─── 관리자 로그아웃 (app.js 직접 내장 — 외부 파일 의존 없음) ────────────────
+/**
+ * 로그아웃 버튼 onclick="adminLogout()" 에서 호출
+ * logoutConfirmModal 이 없으면 바로 로그아웃 실행
+ */
+function adminLogout() {
+  var modal = document.getElementById('logoutConfirmModal');
+  if (modal) {
+    modal.style.display = 'flex';
+  } else {
+    // 모달 없으면 바로 로그아웃 (partials 미주입 대비)
+    if (confirm('로그아웃 하시겠습니까?')) {
+      proceedAdminLogout();
+    }
+  }
+}
+
+function closeLogoutModal() {
+  var modal = document.getElementById('logoutConfirmModal');
+  if (modal) modal.style.display = 'none';
+}
+
+function proceedAdminLogout() {
+  closeLogoutModal();
+  localStorage.removeItem('kb_admin_session');
+
+  // adminShareContainer 즉시 숨김
+  var el = document.getElementById('adminShareContainer');
+  if (el) el.style.display = 'none';
+
+  // 자동 로그인 정보가 있으면 init_state 저장 → 로그인 페이지 복원용
+  try {
+    var autoRaw = localStorage.getItem('kb_admin_autologin');
+    if (autoRaw) {
+      var auto = JSON.parse(autoRaw);
+      if (auto && auto.enabled) {
+        localStorage.setItem('kb_admin_init_state', JSON.stringify({
+          id:        auto.id,
+          pw:        auto.pw,
+          autoCheck: true,
+          autoLogin: true,
+        }));
+      }
+    }
+  } catch (e) {}
+
+  // admin.html 로 이동
+  var base = window.location.href.split('?')[0].split('#')[0];
+  var dir  = base.substring(0, base.lastIndexOf('/') + 1);
+  window.location.href = dir + 'admin.html';
+}
