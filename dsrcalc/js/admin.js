@@ -12,16 +12,25 @@
    ============================================================================= */
 
 // ─── localStorage 키 상수 ─────────────────────────────────────────────────────
-const _AUTOLOGIN_KEY  = 'kb_admin_autologin';   // { id, pw, enabled }
-const _INIT_STATE_KEY = 'kb_admin_init_state';   // { id, pw, autoCheck, autoLogin } — 1회용
+var _AUTOLOGIN_KEY  = 'kb_admin_autologin';
+var _INIT_STATE_KEY = 'kb_admin_init_state';
+
+// ─── 아이콘 상수 (BMP: \uXXXX / SMP: 서로게이트 페어) ─────────────────────────
+// ✅ U+2705  BMP  → \u2705
+// 🚫 U+1F6AB SMP  → 서로게이트 페어 \uD83D\uDEAB
+// ⚠️ U+26A0  BMP  → \u26A0 + variation selector \uFE0F
+// ⚡ U+26A1  BMP  → \u26A1
+var _IC_OK   = '\u2705';           // ✅ check mark
+var _IC_ERR  = '\uD83D\uDEAB';    // 🚫 prohibited (surrogate pair)
+var _IC_WARN = '\u26A0\uFE0F';    // ⚠️ warning
+var _IC_BOLT = '\u26A1';          // ⚡ bolt
 
 // ─── 관리자 설정 ─────────────────────────────────────────────────────────────
-const DEFAULT_CONFIG = {
+var DEFAULT_CONFIG = {
   id:      'admin',
   pw:      'admin',
   mainUrl: 'index.html',
-  // 상담사 연락처: 입력 시 DSR 리포트에 워터마크로 삽입 / 빈 문자열이면 워터마크 없음
-  phone:   '',
+  phone:   ''
 };
 
 function getAdminConfig() {
@@ -38,8 +47,8 @@ function saveAdminConfig(config) {
 // ─── 커스텀 모달 ──────────────────────────────────────────────────────────────
 let _modalCallback = null;
 
-function showAlert(msg, icon, callback) {
-  icon     = icon     || '\u26a0\ufe0f'; // warning icon
+function _adminAlert(msg, icon, callback) {
+  icon     = icon     || _IC_WARN; // warning icon
   callback = callback || null;
   const modal = document.getElementById('customModal');
   if (!modal) return;
@@ -158,16 +167,16 @@ function _doLogin(id, pw) {
       mainUrl: config.mainUrl,
     }));
 
-    showAlert(
+    _adminAlert(
       '관리자 로그인이 완료되었습니다.<br>대표 페이지로 이동합니다.',
-      '\u2705',
+      _IC_OK,
       function () { window.location.href = config.mainUrl; }
     );
   } else {
     // 자동 로그인 배지 제거 후 에러 표시
     var badge = document.querySelector('.admin-auto-badge');
     if (badge) badge.remove();
-    showAlert('아이디 또는 비밀번호가 일치하지 않습니다.', '\u1f6ab');
+    _adminAlert('아이디 또는 비밀번호가 일치하지 않습니다.', _IC_ERR);
   }
 }
 
@@ -209,12 +218,12 @@ function saveSettingsFromModal() {
   var phoneOk   = newPhone === '' || /^010-\d{4}-\d{4}$/.test(newPhone);
 
   if (curId !== config.id || curPw !== config.pw) {
-    showAlert('현재 아이디 또는 비밀번호가 일치하지 않습니다.', '\u1f6ab');
+    _adminAlert('현재 아이디 또는 비밀번호가 일치하지 않습니다.', _IC_ERR);
     return;
   }
 
   if (newPhone && !phoneOk) {
-    showAlert('연락처 형식이 올바르지 않습니다.<br><span style="font-size:12px;">예: 010-1234-5678</span>', '\u26a0\ufe0f');
+    _adminAlert('연락처 형식이 올바르지 않습니다.<br><span style="font-size:12px;">예: 010-1234-5678</span>', _IC_WARN);
     return;
   }
 
@@ -239,10 +248,10 @@ function saveSettingsFromModal() {
   }));
 
   closeSettingsModal();
-  showAlert(
+  _adminAlert(
     '관리자 설정이 성공적으로 변경되었습니다.<br>' +
     '<span style="font-size:12px;">변경된 계정으로 자동 로그인합니다.</span>',
-    '\u2705',
+    _IC_OK,
     function () {
       var base = window.location.href.split('?')[0].split('#')[0];
       window.location.href = base;
