@@ -117,13 +117,6 @@ function _showLoading(visible) {
   if (!el) return;
   el.style.display = visible ? 'flex' : 'none';
   document.body.style.overflow = visible ? 'hidden' : '';
-  // 오버레이 표시 시 단계 카드 초기화 + 3번째(금리 불러오기)를 active로 설정
-  if (visible) {
-    for (let i = 1; i <= 3; i++) {
-      const s = document.getElementById(`ls${i}`);
-      if (s) s.className = 'loading-step' + (i === 3 ? ' active' : ' done');
-    }
-  }
 }
 
 function applySystemTheme() {
@@ -177,11 +170,9 @@ function markRateWarning(rInput) {
 }
 
 function clearRateWarnings() {
-  // 단일 루프로 3개 querySelectorAll 통합
-  document.querySelectorAll('.rate-missing, .rate-warning-card, .rate-missing-banner').forEach(el => {
-    if (el.classList.contains('rate-missing-banner')) el.remove();
-    else el.classList.remove('rate-missing', 'rate-warning-card');
-  });
+  document.querySelectorAll('.rate-missing').forEach(el => el.classList.remove('rate-missing'));
+  document.querySelectorAll('.rate-warning-card').forEach(el => el.classList.remove('rate-warning-card'));
+  document.querySelectorAll('.rate-missing-banner').forEach(el => el.remove());
 }
 
 function onRateInput(input) {
@@ -627,6 +618,12 @@ function generateSchedule() {
   schedLoans.forEach(loan => renderLoanSchedule(listEl, loan));
 }
 
+/**
+ * 스케줄 렌더링
+ * 핵심: milestoneMap 에 개별 서브론 종료 회차(part.n) 를 등록하여
+ *       해당 회차에 "잔금 상환 완료" 카드를 삽입합니다.
+ *       단기 서브론이 없는 경우 (merged=false) 에도 마지막 회차(i===n)에 종료 카드를 표시합니다.
+ */
 function renderLoanSchedule(listEl, loan) {
   const { P, R, n, label, merged, parts } = loan;
   const r = R / 1200;
@@ -640,14 +637,16 @@ function renderLoanSchedule(listEl, loan) {
     : `<span class="sch-calc-title">${_EMOJI[loan.cat]||'🏠'} ${label} 상환 스케줄</span><span class="sch-calc-meta">${Math.round(P).toLocaleString()}원 | ${R.toFixed(2)}% | ${n}개월</span>`;
   listEl.appendChild(schedHeader);
 
-  // ★ 마일스톤 맵 구성
+  // ★ 마일스톤 맵 구성 (단기 서브론 + 단일 대출 마지막 회차 모두 포함)
   const milestoneMap = {};
   if (merged && parts) {
+    // 복수 구입자금: 각 서브론의 종료 회차 등록
     parts.forEach(part => {
       const key = part.n;
       (milestoneMap[key] = milestoneMap[key] || []).push({ ...part, isSub: true });
     });
   } else {
+    // 단일 대출: 마지막 회차에 단일 종료 카드 등록
     milestoneMap[n] = [{ ...loan, label, cat: loan.cat, isSub: false }];
   }
 
@@ -655,9 +654,6 @@ function renderLoanSchedule(listEl, loan) {
   const mP_prin  = P / n;
   const mPMT_lvl = calcPMT(P, r, n);
   let balance = P, yearCumP = 0, yearCumI = 0, totalCumP = 0, totalInterest = 0;
-
-  // ★ DocumentFragment — 회차 전체를 메모리에서 조립 후 1회 DOM 삽입
-  const frag = document.createDocumentFragment();
 
   for (let i = 1; i <= n; i++) {
     let curP, curI;
@@ -669,7 +665,7 @@ function renderLoanSchedule(listEl, loan) {
     const row = document.createElement('div');
     row.className = 'schedule-item';
     row.innerHTML = `<div class="sch-idx">${i}회</div><div class="sch-val">${Math.round(curP).toLocaleString()}</div><div class="sch-val">${Math.round(curI).toLocaleString()}</div><div class="sch-total">${Math.round(curP+curI).toLocaleString()}</div>`;
-    frag.appendChild(row);
+    listEl.appendChild(row);
 
     // N년차 요약 카드
     if (i % 12 === 0 || i === n) {
@@ -683,11 +679,11 @@ function renderLoanSchedule(listEl, loan) {
           <div>누적이자: <b class="stat-int">${Math.round(yearCumI).toLocaleString()}원</b></div>
         </div>
         <div class="card-balance-row"><span class="balance-label">잔액</span><span class="balance-value">${Math.max(0, Math.round(balance)).toLocaleString()}원</span></div>`;
-      frag.appendChild(card);
+      listEl.appendChild(card);
       yearCumP = 0; yearCumI = 0;
     }
 
-    // ★ 마일스톤 카드
+    // ★ 마일스톤 카드 삽입
     if (milestoneMap[i]) {
       milestoneMap[i].forEach(part => {
         const mc       = document.createElement('div');
@@ -714,12 +710,12 @@ function renderLoanSchedule(listEl, loan) {
             <span class="balance-label">${part.isSub ? '전체 잔액 (통합 기준)' : '잔액'}</span>
             <span class="balance-value">${Math.max(0, Math.round(balance)).toLocaleString()}원</span>
           </div>`;
-        frag.appendChild(mc);
+        listEl.appendChild(mc);
       });
     }
   }
 
-  // 통합 총계 카드
+  // 통합 총계 카드 (단일 대출은 마일스톤 카드로 대체되므로 merged 시에만)
   if (merged) {
     const total = document.createElement('div');
     total.className = 'year-summary-card total-card';
@@ -730,11 +726,8 @@ function renderLoanSchedule(listEl, loan) {
         <div>총 이자: <b class="stat-int">${Math.round(totalInterest).toLocaleString()}원</b></div>
       </div>
       <div class="card-balance-row"><span class="balance-label">총 납입액</span><span class="balance-value">${Math.round(P+totalInterest).toLocaleString()}원</span></div>`;
-    frag.appendChild(total);
+    listEl.appendChild(total);
   }
-
-  // ★ 단 1회 DOM 삽입 (30년 = 360 appendChild → 1 appendChild)
-  listEl.appendChild(frag);
 }
 
 // ─── [6] 공지 팝업 ───────────────────────────────────────────────────────────
@@ -807,9 +800,9 @@ function openGuide() {
     }
 }
 
-// 가이드 모달 닫기 (스크롤 복구 포함)
+// 가이드 모달 닫기
 function closeGuide() {
-    const guideModal = document.getElementById('guideModal');
+    var guideModal = document.getElementById('guideModal');
     if (guideModal) guideModal.style.display = 'none';
     document.body.classList.remove('body-no-scroll');
     document.body.style.overflow = '';
@@ -819,8 +812,6 @@ function closeGuide() {
 function closeGuideOnBackdrop(event) {
     if (event.target === event.currentTarget) closeGuide();
 }
-
-
 
 // ─── [8] 임시 리포트 링크 ─────────────────────────────────────────────────────
 const _COPY_KEY = 'dsr_copy_count';
@@ -862,14 +853,19 @@ function _buildReportData() {
     createdAt:new Date().toISOString() };
 }
 
-async function _shortenUrl(longUrl) {
-  try {
-    const r=await fetch(_C.SHORTENER_API+encodeURIComponent(longUrl));
-    if(!r.ok) throw new Error();
-    const s=(await r.text()).trim();
-    if(s.startsWith('http')) return s;
-    throw new Error();
-  } catch { return longUrl; }
+function _shortenUrl(longUrl) {
+  var api = (_C && _C.SHORTENER_API) ? _C.SHORTENER_API : 'https://is.gd/create.php?format=simple&url=';
+  return fetch(api + encodeURIComponent(longUrl))
+    .then(function(r) {
+      if (!r.ok) throw new Error('http');
+      return r.text();
+    })
+    .then(function(s) {
+      s = s.trim();
+      if (s.indexOf('http') === 0) return s;
+      throw new Error('bad');
+    })
+    .catch(function() { return longUrl; });
 }
 
 // ─── [8-1] 클립보드 복사 강제 실행 함수 (공통) ───
@@ -897,7 +893,7 @@ function _fcFallback(text, successMsg){
 }
 
 // ─── [8-2] 리포트 링크 생성 및 공유 (iOS 이슈 해결) ───
-async function copyResultText() {
+function copyResultText() {
   const limit = _C.REPORT_COPY_DAILY_LIMIT, count = _getCopyCount();
   if(count >= limit){ showAlert(`금일 리포트 발급을 모두 사용하셨습니다.<br><span style="font-size:12px;">(${count}/${limit}회 사용 완료 — 내일 초기화됩니다)</span>`, null, "🚫"); return; }
   if(document.getElementById('resultArea')?.style.display === 'none'){ showAlert("먼저 DSR 분석을 실행해주세요.", null, "ℹ️"); return; }
@@ -912,7 +908,7 @@ async function copyResultText() {
     const longUrl = `${base}${_C.REPORT_PAGE_PATH}#${encoded}`;
     
     // URL 단축 수행 (비동기)
-    const shortUrl = await _shortenUrl(longUrl);
+    return _shortenUrl(longUrl).then(function(shortUrl) {
 
     const newCount = _incCopyCount(), remaining = limit - newCount;
     const expDate = new Date(data.expiry).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' });
@@ -938,11 +934,23 @@ async function copyResultText() {
       // PC 환경에서는 바로 클립보드 복사
       _forceCopy(shortUrl, msg);
     }
-  } catch (e) {
-    showAlert("링크 생성 중 오류가 발생했습니다.", null, "⚠️");
-  } finally {
-    if(btn && !btn.disabled){ btn.innerHTML = origHtml; btn.disabled = false; }
+  }).catch(function(e) {
+    showAlert("\ub9c1\ud06c \uc0dd\uc131 \uc624\ub958.", null, "\u26A0\uFE0F");
+  }).then(function() {
+    if (btn && !btn.disabled) { btn.innerHTML = origHtml; btn.disabled = false; }
+  });
+  } catch(e) {
+    showAlert("\ub9c1\ud06c \uc624\ub958.", null, "\u26A0\uFE0F");
+    if (btn && !btn.disabled) { btn.innerHTML = origHtml; btn.disabled = false; }
   }
+}
+
+function _fc(text){
+  const t=document.createElement("textarea");
+  t.style.cssText="position:fixed;top:-9999px;opacity:0;";
+  document.body.appendChild(t);t.value=text;t.focus();t.select();
+  try{document.execCommand("copy");}catch{}
+  document.body.removeChild(t);
 }
 
 // ─── [9] 관리자 기능 ───────────────────────────────
@@ -966,47 +974,28 @@ function checkAdminAuth() {
   } catch(e) {}
 }
 
-// ─── [10] 관리자 기능: 배포용 링크 생성 (iOS 이슈 해결) ───
-async function generateAdminShareLink() {
-  const btn = document.getElementById('btnAdminShare');
-  const origHtml = btn.innerHTML;
-  btn.innerHTML = '🔗 링크 생성 중...';
-  btn.disabled = true;
-
-  try {
-    const currentUrl = window.location.href.split('?')[0].split('#')[0];
-    const baseUrl = currentUrl.substring(0, currentUrl.lastIndexOf('/') + 1);
-    const payload = { url: currentUrl, exp: Date.now() + (24 * 60 * 60 * 1000) };
-    const encodedPayload = btoa(encodeURIComponent(JSON.stringify(payload)));
-    const longShareUrl = `${baseUrl}share.html?t=${encodedPayload}`;
-    
-    // URL 단축 수행 (비동기)
-    const shortUrl = await _shortenUrl(longShareUrl);
-    
-    const msg = `🔗 <b>고객용 앱 설치 링크가 복사되었습니다.</b><br><br>` +
-                `<span style="font-size:12px; display:block; margin-top:8px;">` +
-                `• 이 링크는 발급 시간 기준 <b>24시간 동안만 유효</b>합니다.<br>` +
-                `• 접속 시 PWA 자동 설치 안내 페이지로 연결됩니다.</span>`;
-
-    // ★ 핵심 고도화: 모바일(iOS/Android)에서는 네이티브 공유 창 띄우기
-    if (navigator.share && /Mobi|Android/i.test(navigator.userAgent)) {
-      navigator.share({
-        title: 'KB DSR 계산기 (고객용)',
-        text: 'DSR 계산기 간편 접속 및 앱 설치 링크입니다. (24시간 유효)',
-        url: shortUrl
-      }).catch((error) => {
-        if(error.name !== 'AbortError') _forceCopy(shortUrl, msg);
-      });
-    } else {
-      _forceCopy(shortUrl, msg);
-    }
-  } catch (e) {
-    console.error(e);
-    showAlert("링크 생성 중 오류가 발생했습니다.", null, "⚠️");
-  } finally {
-    btn.innerHTML = origHtml;
-    btn.disabled = false;
-  }
+// ─── [9] 관리자 기능: 배포용 링크 생성 (iOS 이슈 해결) ───
+function generateAdminShareLink() {
+  var btn      = document.getElementById('btnAdminShare');
+  var origHtml = btn ? btn.innerHTML : null;
+  if (btn) { btn.innerHTML = '\uD83D\uDD17 \ub9c1\ud06c \uc0dd\uc131 \uc911...'; btn.disabled = true; }
+  var b64   = btoa(encodeURIComponent(JSON.stringify({ exp: Date.now() + 86400000 })));
+  var token = b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  var base  = window.location.href.split('?')[0].split('#')[0];
+  var dir   = base.substring(0, base.lastIndexOf('/') + 1);
+  var longUrl = dir + 'share.html?t=' + token;
+  var msg = '\uD83D\uDD17 <b>\uace0\uac1d\uc6a9 \uc571 \uc124\uce58 \ub9c1\ud06c\uac00 \ubcf5\uc0ac\ub418\uc5c8\uc2b5\ub2c8\ub2e4.</b><br><br>' +
+    '<span style="font-size:12px;">\u2022 \ubc1c\uae09 \ud6c4 <b>24\uc2dc\uac04 \ub3d9\uc548\ub9cc \uc720\ud6a8</b>\ud569\ub2c8\ub2e4.</span>';
+  function done() { if (btn) { btn.disabled = false; if (origHtml) btn.innerHTML = origHtml; } }
+  _shortenUrl(longUrl)
+    .then(function(shortUrl) {
+      if (navigator.share && /Mobi|Android/i.test(navigator.userAgent)) {
+        return navigator.share({ title: 'KB DSR \uacc4\uc0b0\uae30 (\uace0\uac1d\uc6a9)', text: '24\uc2dc\uac04 \uc720\ud6a8', url: shortUrl })
+          .catch(function(e) { if (e.name !== 'AbortError') _forceCopy(shortUrl, msg); });
+      } else { _forceCopy(shortUrl, msg); }
+    })
+    .catch(function() { showAlert('\ub9c1\ud06c \uc624\ub958.', null, '\u26A0\uFE0F'); })
+    .then(done);
 }
 
 // ─── 관리자 로그아웃 모달 제어 로직 ───
@@ -1023,28 +1012,8 @@ function closeLogoutModal() {
 function proceedAdminLogout() {
   closeLogoutModal();
   localStorage.removeItem('kb_admin_session');
-
-  // ── 자동 로그인 정보가 있으면 → 로그인 페이지에 1회용 초기 상태 설정
-  //    로그인 페이지가 해당 값으로 필드·체크박스를 복원함
-  try {
-    const _AL_KEY   = 'kb_admin_autologin';
-    const _INIT_KEY = 'kb_admin_init_state';
-    const autoRaw   = localStorage.getItem(_AL_KEY);
-    if (autoRaw) {
-      const auto = JSON.parse(autoRaw);
-      if (auto?.enabled) {
-        localStorage.setItem(_INIT_KEY, JSON.stringify({
-          id:        auto.id,
-          pw:        auto.pw,
-          autoCheck: true,   // 체크박스 켜진 채로 복원
-          autoLogin: true,   // 로드 즉시 자동 로그인
-        }));
-      }
-    }
-  } catch {}
-
   const currentUrl = window.location.href.split('?')[0].split('#')[0];
-  const baseUrl    = currentUrl.substring(0, currentUrl.lastIndexOf('/') + 1);
+  const baseUrl = currentUrl.substring(0, currentUrl.lastIndexOf('/') + 1);
   window.location.href = baseUrl + 'admin.html';
 }
 

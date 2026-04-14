@@ -88,12 +88,7 @@ window.onload = async function () {
 };
 
 /** 로딩 오버레이 표시/숨김 */
-function _showLoading(visible) {
-  const el = document.getElementById('loadingOverlay');
-  if (!el) return;
-  el.style.display = visible ? 'flex' : 'none';
-  document.body.style.overflow = visible ? 'hidden' : '';
-}
+// _showLoading: common.js 에 정의됨
 
 // ─── 하드 새로고침 ────────────────────────────────────────────────────────────
 // ── 단계 카드 활성/완료 헬퍼 ────────────────────────────────────────────────
@@ -173,55 +168,3 @@ document.addEventListener('keydown', e => {
     if (guideModal && guideModal.style.display !== 'none') closeGuide();
   }
 });
-
-// ─── 관리자 로그아웃 (app.js 직접 내장 — 외부 파일 의존 없음) ────────────────
-/**
- * 로그아웃 버튼 onclick="adminLogout()" 에서 호출
- * logoutConfirmModal 이 없으면 바로 로그아웃 실행
- */
-function adminLogout() {
-  var modal = document.getElementById('logoutConfirmModal');
-  if (modal) {
-    modal.style.display = 'flex';
-  } else {
-    // 모달 없으면 바로 로그아웃 (partials 미주입 대비)
-    if (confirm('로그아웃 하시겠습니까?')) {
-      proceedAdminLogout();
-    }
-  }
-}
-
-function closeLogoutModal() {
-  var modal = document.getElementById('logoutConfirmModal');
-  if (modal) modal.style.display = 'none';
-}
-
-function proceedAdminLogout() {
-  closeLogoutModal();
-  localStorage.removeItem('kb_admin_session');
-
-  // adminShareContainer 즉시 숨김
-  var el = document.getElementById('adminShareContainer');
-  if (el) el.style.display = 'none';
-
-  // 자동 로그인 정보가 있으면 init_state 저장 → 로그인 페이지 복원용
-  try {
-    var autoRaw = localStorage.getItem('kb_admin_autologin');
-    if (autoRaw) {
-      var auto = JSON.parse(autoRaw);
-      if (auto && auto.enabled) {
-        localStorage.setItem('kb_admin_init_state', JSON.stringify({
-          id:        auto.id,
-          pw:        auto.pw,
-          autoCheck: true,
-          autoLogin: true,
-        }));
-      }
-    }
-  } catch (e) {}
-
-  // admin.html 로 이동
-  var base = window.location.href.split('?')[0].split('#')[0];
-  var dir  = base.substring(0, base.lastIndexOf('/') + 1);
-  window.location.href = dir + 'admin.html';
-}

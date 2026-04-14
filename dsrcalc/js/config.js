@@ -52,14 +52,14 @@ const APP_CONFIG = {
 
   // ── 리포트 링크 설정 ────────────────────────────────────────────────────
   REPORT_LINK_EXPIRY_DAYS: 7,   // 리포트 링크 유효일 수
-  REPORT_COPY_DAILY_LIMIT: 10,  // 하루 발급 한도 ← 숫자만 변경
+  REPORT_COPY_DAILY_LIMIT: 100,  // 하루 발급 한도 ← 숫자만 변경
   REPORT_PAGE_PATH: 'report.html',
   SHORTENER_API: 'https://is.gd/create.php?format=simple&url=',
 
   // ── 담보대출 유형별 금리 % (폴백값 — kb_rates.js 에서 자동 갱신) ────
   KB_MORTGAGE_RATES: {
-    mortgage_level: { '5년변동': 4.88, '5년혼합': 4.88, '6_12변동': 4.25, '직접입력': null },
-    mortgage_prin:  { '5년변동': 4.88, '5년혼합': 4.88, '6_12변동': 4.25, '직접입력': null },
+    mortgage_level: { '5년변동': 5.14, '5년혼합': 5.14, '6_12변동': 4.41, '직접입력': null },
+    mortgage_prin:  { '5년변동': 5.14, '5년혼합': 5.14, '6_12변동': 4.41, '직접입력': null },
   },
 
   // ── 스트레스 금리 기준값 (kb_rates.js 에서 자동 갱신) ──────────────────

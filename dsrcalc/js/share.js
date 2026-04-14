@@ -1,253 +1,167 @@
-/* =============================================================================
-   js/share.js — 앱 설치 / 임시 접속 링크 게이트 v3
-   ─────────────────────────────────────────────────────────────────────────────
-   접근 제어 로직:
-   ① 관리자 기기 (kb_admin_session 유효) → 무제한 접속
-   ② 최초 클릭 기기 → 기기 바인딩 후 유효기간 동안 다회 접속 허용
-   ③ 다른 기기에서 복사된 링크 클릭 → 에러 메시지
-   ─────────────────────────────────────────────────────────────────────────────
-   ★ 유효시간 변경: js/admin.js 의 SHARE_LINK_TTL_MS 값을 수정하세요
-      1시간  →   1 * 60 * 60 * 1000
-      6시간  →   6 * 60 * 60 * 1000
-     24시간  →  24 * 60 * 60 * 1000  ← 현재값
-     48시간  →  48 * 60 * 60 * 1000
-   ★ _OTL_SIGN_KEY 는 js/report.js 와 반드시 동일해야 합니다
-   ============================================================================= */
+/* share.js — DSR 계산기 임시 링크 검증 + PWA 설치 안내
+   ★ share.html 과 세트: 카드 3개 (loadingCard / mainCard / errorCard)
+   ★ 모든 카드는 display:none 으로 시작 — 이 파일이 필요한 카드만 표시 */
 
-// ─── 설정 ─────────────────────────────────────────────────────────────────────
-const _OTL_SIGN_KEY      = 'KB_DSR_OTL_SIGN_2026';
-const _GRANT_PREFIX      = 'share_grant_';    // 기기 바인딩 nonce 키 접두사
-const _ACTIVE_NONCE_KEY  = 'share_active';    // 현재 기기의 활성 nonce
+var deferredPrompt = null;
 
-let deferredPrompt;
-
-// ─── 관리자 기기 판별 ─────────────────────────────────────────────────────────
-function _isAdminDevice() {
-  try {
-    const s = JSON.parse(localStorage.getItem('kb_admin_session') || 'null');
-    return s?.isAuth && Date.now() < s.expires;
-  } catch { return false; }
-}
-
-// ─── HMAC-SHA256 서명 검증 ────────────────────────────────────────────────────
-async function _verifySign(payload, sigToCheck) {
-  const keyBuf    = new TextEncoder().encode(_OTL_SIGN_KEY);
-  const dataBuf   = new TextEncoder().encode(JSON.stringify(payload));
-  const ck = await crypto.subtle.importKey('raw', keyBuf, { name:'HMAC', hash:'SHA-256' }, false, ['verify']);
-  const b64 = sigToCheck.replace(/-/g, '+').replace(/_/g, '/');
-  const bin = atob(b64);
-  const buf = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
-  return crypto.subtle.verify('HMAC', ck, buf, dataBuf);
-}
-
-// ─── 기기 바인딩 유틸 ─────────────────────────────────────────────────────────
-/** 이 기기에 nonce 가 바인딩되어 있고 아직 유효한지 확인 */
-function _isGrantedToThisDevice(nonce) {
-  try {
-    const raw = localStorage.getItem(_GRANT_PREFIX + nonce);
-    if (!raw) return false;
-    const { expiry } = JSON.parse(raw);
-    return Date.now() < expiry;
-  } catch { return false; }
-}
-
-/** nonce 를 이 기기에 바인딩 (url·expiry 함께 저장해 토큰 없이도 재접속 가능) */
-function _bindNonceToDevice(nonce, url, expiry) {
-  try {
-    localStorage.setItem(_GRANT_PREFIX + nonce,
-      JSON.stringify({ url, expiry, grantedAt: Date.now() }));
-    localStorage.setItem(_ACTIVE_NONCE_KEY, nonce); // 활성 nonce 기록
-  } catch {}
-}
-
-/** 저장된 바인딩 데이터 조회 */
-function _getGrant(nonce) {
-  try { return JSON.parse(localStorage.getItem(_GRANT_PREFIX + nonce) || 'null'); }
-  catch { return null; }
-}
-
-/** 만료된 바인딩 청소 */
-function _cleanExpiredGrants() {
-  try {
-    for (const key of Object.keys(localStorage)) {
-      if (!key.startsWith(_GRANT_PREFIX)) continue;
-      try {
-        const { expiry } = JSON.parse(localStorage.getItem(key));
-        if (Date.now() > expiry) localStorage.removeItem(key);
-      } catch { localStorage.removeItem(key); }
-    }
-  } catch {}
-}
-
-// ─── UI 카드 전환 ─────────────────────────────────────────────────────────────
-function _showCard(cardId) {
-  ['cardLoading','cardMain','cardExpired','cardUsed','cardInvalid'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.classList.toggle('active', id === cardId);
+// ─── 카드 전환 (1개만 표시) ───────────────────────────────────────────────────
+function _showCard(id) {
+  ['loadingCard','mainCard','errorCard'].forEach(function(cid) {
+    var el = document.getElementById(cid);
+    if (el) el.style.display = (cid === id) ? 'block' : 'none';
   });
 }
 
-// ─── 정상 카드 셋업 (버튼 이벤트 + 뱃지 업데이트) ────────────────────────────
-function _setupMainCard(url, expiry) {
-  // 유효기간 뱃지
-  const expDate = new Date(expiry).toLocaleString('ko-KR', {
-    month:'long', day:'numeric', hour:'2-digit', minute:'2-digit'
-  });
-  const badge = document.getElementById('expiryBadge');
-  if (badge) badge.textContent = `⏱ ${expDate}까지 유효`;
+// ─── 토큰 파싱 (URL-safe base64 + 구형 표준 base64 모두 처리) ─────────────────
+function _parseToken(token) {
+  // 시도 1: URL-safe base64 (js/admin.js 신형 — - _ 사용)
+  try {
+    var b64 = token.replace(/-/g, '+').replace(/_/g, '/');
+    while (b64.length % 4) b64 += '=';
+    var p1 = JSON.parse(decodeURIComponent(atob(b64)));
+    if (p1 && p1.exp) return p1;
+  } catch(e1) {}
 
-  // 1회성 접속 버튼
-  document.getElementById('btnOneTime')?.addEventListener('click', () => {
-    localStorage.setItem('kb_guest_mode', 'true');
-    window.location.href = url;
-  }, { once: true });
+  // 시도 2: 구형 표준 base64 (이전 버전 호환)
+  try {
+    var p2 = JSON.parse(decodeURIComponent(atob(token)));
+    if (p2 && p2.exp) return p2;
+  } catch(e2) {}
+
+  return null;
 }
 
-// ─── 메인 토큰 검증 ───────────────────────────────────────────────────────────
-async function validateToken() {
-  _cleanExpiredGrants();
+// ─── 토큰 검증 ───────────────────────────────────────────────────────────────
+function validateToken() {
+  var urlParams = new URLSearchParams(window.location.search);
+  var token = urlParams.get('t');
 
-  const raw    = new URLSearchParams(location.search).get('t');
-  const active = localStorage.getItem(_ACTIVE_NONCE_KEY);
-
-  // ══ 관리자 기기 우선 처리 ══════════════════════════════════════════════════
-  if (_isAdminDevice()) {
-    if (raw) {
-      // 토큰이 있으면 파싱해서 URL 추출
-      try {
-        const token = JSON.parse(decodeURIComponent(escape(atob(raw))));
-        if (token?.url && token?.exp && Date.now() < token.exp) {
-          window.history.replaceState(null, '', 'share.html');
-          _setupMainCard(token.url, token.exp);
-          _showCard('cardMain');
-          return;
-        }
-      } catch {}
-    } else if (active) {
-      // 저장된 바인딩에서 URL 복원
-      const grant = _getGrant(active);
-      if (grant) {
-        _setupMainCard(grant.url, grant.expiry);
-        _showCard('cardMain');
-        return;
-      }
-    }
-    // 관리자라도 토큰이 완전히 없으면 invalid 표시
-    _showCard('cardInvalid');
-    return;
-  }
-
-  // ══ 일반 사용자 ════════════════════════════════════════════════════════════
-
-  // ── Case A: 토큰 없음 → 이 기기에 바인딩된 기록이 있는지 확인 ──────────────
-  if (!raw) {
-    if (active && _isGrantedToThisDevice(active)) {
-      const grant = _getGrant(active);
-      _setupMainCard(grant.url, grant.expiry);
-      _showCard('cardMain');
+  // 케이스 1: URL에 토큰 있음
+  if (token) {
+    var payload = _parseToken(token);
+    if (payload && payload.exp && Date.now() <= payload.exp) {
+      sessionStorage.setItem('kb_valid_share', 'true');
+      window.history.replaceState(null, '', 'share.html');
+      _showCard('mainCard');
     } else {
-      // 바인딩 기록 없음 = 다른 기기에서 복사된 링크
-      _showCard('cardInvalid');
+      _showCard('errorCard');
     }
     return;
   }
 
-  // ── Case B: 토큰 있음 ─────────────────────────────────────────────────────
-  let token;
-  try {
-    // URL-safe base64 복원 후 파싱
-    const rawB64 = raw.replace(/-/g, '+').replace(/_/g, '/');
-    const rawPad = rawB64.length % 4 ? rawB64 + '='.repeat(4 - rawB64.length % 4) : rawB64;
-    token = JSON.parse(decodeURIComponent(escape(atob(rawPad))));
-  }
-  catch { _showCard('cardInvalid'); return; }
-
-  const { url, exp, nonce, sig } = token;
-  if (!url || !exp || !nonce || !sig) { _showCard('cardInvalid'); return; }
-
-  // 만료 체크
-  if (Date.now() > exp) { _showCard('cardExpired'); return; }
-
-  // 서명 검증
-  let sigOk = false;
-  try { sigOk = await _verifySign({ url, exp, nonce }, sig); } catch {}
-  if (!sigOk) { _showCard('cardInvalid'); return; }
-
-  // 이미 이 기기에 바인딩된 경우 → 다회 접속 허용
-  if (_isGrantedToThisDevice(nonce)) {
-    window.history.replaceState(null, '', 'share.html');
-    _setupMainCard(url, exp);
-    _showCard('cardMain');
+  // 케이스 2: 토큰 없지만 같은 세션에서 이미 검증됨
+  // (PWA 설치 과정에서 페이지 재로드 케이스)
+  if (sessionStorage.getItem('kb_valid_share') === 'true') {
+    _showCard('mainCard');
     return;
   }
 
-  // 최초 접속 → 기기 바인딩
-  _bindNonceToDevice(nonce, url, exp);
-  window.history.replaceState(null, '', 'share.html');
-  _setupMainCard(url, exp);
-  _showCard('cardMain');
+  // 케이스 3: 직접 접근 or 만료
+  _showCard('errorCard');
 }
 
-// ─── window.onload ────────────────────────────────────────────────────────────
-window.onload = function () {
+// ─── 인앱 브라우저 감지 + 리다이렉트 ────────────────────────────────────────
+function checkInAppBrowser() {
+  var ua = navigator.userAgent.toLowerCase();
+  var isKakao = ua.indexOf('kakaotalk') > -1;
+  var isInApp  = isKakao ||
+    ua.indexOf('line') > -1 ||
+    ua.indexOf('inapp') > -1 ||
+    ua.indexOf('instagram') > -1 ||
+    ua.indexOf('facebook') > -1;
+
+  if (!isInApp) return false;
+
+  var currentUrl = location.href;
+
+  // Android 카카오 → Chrome Intent 리다이렉트
+  if (ua.indexOf('android') > -1 && isKakao) {
+    location.href = 'intent://' +
+      currentUrl.replace(/https?:\/\//i, '') +
+      '#Intent;scheme=https;package=com.android.chrome;end';
+    return true;
+  }
+
+  // 그 외 인앱 브라우저 → 안내 화면
+  document.body.innerHTML =
+    '<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;' +
+    'justify-content:center;padding:20px;background:#F4F6FB;text-align:center;">' +
+    '<div style="font-size:50px;margin-bottom:20px;">\uD83E\uDDED</div>' +
+    '<h2 style="font-size:20px;font-weight:800;color:#12203A;margin-bottom:12px;">' +
+    '\uae30\ubcf8 \ube0c\ub77c\uc6b0\uc800\ub85c \uc5f4\uc5b4\uc8fc\uc138\uc694</h2>' +
+    '<p style="font-size:14px;color:#485070;line-height:1.6;word-break:keep-all;margin-bottom:24px;">' +
+    '\uc571 \ub0b4 \ube0c\ub77c\uc6b0\uc800\uc5d0\uc11c\ub294 \uc571 \uc124\uce58\uac00 \uc9c0\uc6d0\ub418\uc9c0 \uc54a\uc2b5\ub2c8\ub2e4.<br><br>' +
+    '\uc6b0\uce21 \ud558\ub2e8\uc758 [\ub098\uce68\ubc18] \ub610\ub294 [\u22ee]\uc744 \ub208\ub7ec<br>' +
+    '<b style="color:#3B82F6;">\'\ub2e4\ub978 \ube0c\ub77c\uc6b0\uc800\ub85c \uc5f4\uae30\'</b>\ub97c \uc120\ud0dd\ud574\uc8fc\uc138\uc694.</p>' +
+    '<button onclick="(function(){var t=document.createElement(\'textarea\');' +
+    'document.body.appendChild(t);t.value=\'' + currentUrl + '\';' +
+    't.select();document.execCommand(\'copy\');document.body.removeChild(t);' +
+    'alert(\'\ub9c1\ud06c\uac00 \ubcf5\uc0ac\ub418\uc5c8\uc2b5\ub2c8\ub2e4.\');})()"' +
+    ' style="padding:14px 24px;background:#1A2B5A;color:#fff;border-radius:12px;' +
+    'font-weight:700;border:none;">' +
+    '\uD83D\uDD17 \ud604\uc7ac \ub9c1\ud06c \ubcf5\uc0ac\ud558\uae30</button></div>';
+  return true;
+}
+
+// ─── 설치 성공 화면 ───────────────────────────────────────────────────────────
+function showInstallSuccess() {
+  document.body.innerHTML =
+    '<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;' +
+    'justify-content:center;padding:20px;background:var(--bg-page);text-align:center;">' +
+    '<div style="font-size:60px;margin-bottom:20px;">\u2705</div>' +
+    '<h2 style="font-size:22px;font-weight:800;color:var(--text-primary);margin-bottom:12px;">' +
+    '\uc571 \uc124\uce58\uac00 \uc2dc\uc791\ub418\uc5c8\uc2b5\ub2c8\ub2e4!</h2>' +
+    '<p style="font-size:15px;color:var(--text-secondary);line-height:1.6;word-break:keep-all;">' +
+    '\uae30\uae30 \ud648 \ud654\uba74\uc5d0 \uc0dd\uc131\ub41c <b>\'DSR \uacc4\uc0b0\uae30\'</b> \uc544\uc774\ucf58\uc73c\ub85c \uc811\uc18d\ud574\uc8fc\uc138\uc694.</p>' +
+    '</div>';
+}
+
+// ─── 메인 초기화 ─────────────────────────────────────────────────────────────
+window.onload = function() {
+  // 1. 인앱 브라우저 감지 (리다이렉트 시 return)
   if (checkInAppBrowser()) return;
+
+  // 2. 로딩 카드 즉시 표시
+  _showCard('loadingCard');
+
+  // 3. 토큰 검증 (동기, 수ms 이내 완료)
   validateToken();
 
-  window.addEventListener('beforeinstallprompt', e => {
+  // 4. PWA 설치 프롬프트 캐치
+  window.addEventListener('beforeinstallprompt', function(e) {
     e.preventDefault();
     deferredPrompt = e;
   });
 
-  document.getElementById('btnInstall').addEventListener('click', async () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === 'accepted') { deferredPrompt = null; showInstallSuccess(); }
-    } else {
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-      if (isIOS) alert('아이폰 하단의 [공유(네모에 화살표)] 버튼을 누른 후\n[홈 화면에 추가]를 선택하여 설치해주세요.');
-      else alert("브라우저 설정 메뉴(우측 상단 ⁝)에서\n'앱 설치' 또는 '홈 화면에 추가'를 선택해주세요.");
-    }
-  });
-};
-
-// ─── 설치 성공 화면 ───────────────────────────────────────────────────────────
-function showInstallSuccess() {
-  document.body.innerHTML = `
-    <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;background:var(--bg-page);text-align:center;">
-      <div style="font-size:60px;margin-bottom:20px;">✅</div>
-      <h2 style="font-size:22px;font-weight:800;color:var(--text-primary);margin-bottom:12px;">앱 설치가 시작되었습니다!</h2>
-      <p style="font-size:15px;color:var(--text-secondary);line-height:1.6;word-break:keep-all;">이제 현재 브라우저 창을 닫으셔도 됩니다.<br><br>기기 홈 화면(바탕화면)에 생성된<br><b>'DSR 계산기'</b> 아이콘을 통해 접속해주세요.</p>
-    </div>`;
-}
-
-// ─── 인앱 브라우저 감지 ───────────────────────────────────────────────────────
-function checkInAppBrowser() {
-  const ua = navigator.userAgent.toLowerCase();
-  const isKakao = ua.includes('kakaotalk');
-  const isInApp = isKakao || ua.includes('line') || ua.includes('inapp') ||
-                  ua.includes('instagram') || ua.includes('facebook');
-  if (!isInApp) return false;
-
-  const currentUrl = location.href;
-  if (ua.includes('android') && isKakao) {
-    location.href = 'intent://' + currentUrl.replace(/https?:\/\//i, '') +
-                    '#Intent;scheme=https;package=com.android.chrome;end';
-    return true;
+  // 5. 설치 버튼
+  var btnInstall = document.getElementById('btnInstall');
+  if (btnInstall) {
+    btnInstall.addEventListener('click', function() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(function(result) {
+          if (result.outcome === 'accepted') {
+            deferredPrompt = null;
+            showInstallSuccess();
+          }
+        });
+      } else {
+        var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        if (isIOS) {
+          alert('\uc544\uc774\ud3f0 \ud558\ub2e8\uc758 [\uacf5\uc720] \ubc84\ud2bc\uc744 \ub204\ub978 \ud6c4\n[\ud648 \ud654\uba74\uc5d0 \ucd94\uac00]\ub97c \uc120\ud0dd\ud558\uc5ec \uc124\uce58\ud574\uc8fc\uc138\uc694.');
+        } else {
+          alert('\ube0c\ub77c\uc6b0\uc800 \uc124\uc815 \uba54\ub274(\uc6b0\uce21 \uc0c1\ub2e8 \u22ee)\uc5d0\uc11c\n\'\uc571 \uc124\uce58\' \ub610\ub294 \'\ud648 \ud654\uba74\uc5d0 \ucd94\uac00\'\ub97c \uc120\ud0dd\ud574\uc8fc\uc138\uc694.');
+        }
+      }
+    });
   }
-  document.body.innerHTML = `
-    <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;background:#F4F6FB;text-align:center;">
-      <div style="font-size:50px;margin-bottom:20px;">🧭</div>
-      <h2 style="font-size:20px;font-weight:800;color:#12203A;margin-bottom:12px;">기본 브라우저로 열어주세요</h2>
-      <p style="font-size:14px;color:#485070;line-height:1.6;word-break:keep-all;margin-bottom:24px;">앱 내 브라우저에서는 <b>앱 설치</b>가 지원되지 않습니다.<br><br>우측 하단의 <b>[나침반(사파리)]</b> 또는 <b>[⁝]</b>을 눌러<br><b style="color:#3B82F6;">'다른 브라우저로 열기'</b>를 선택해주세요.</p>
-      <button onclick="copyAndAlert('${currentUrl}')" style="padding:14px 24px;background:#1A2B5A;color:#fff;border-radius:12px;font-weight:700;border:none;box-shadow:0 4px 12px rgba(26,43,90,0.2);">🔗 현재 링크 복사하기</button>
-    </div>`;
-  window.copyAndAlert = url => {
-    const t = document.createElement('textarea');
-    document.body.appendChild(t); t.value = url; t.select();
-    document.execCommand('copy'); document.body.removeChild(t);
-    alert('링크가 복사되었습니다.\n사파리(Safari)나 크롬 주소창에 붙여넣어 주세요.');
-  };
-  return true;
-}
+
+  // 6. 1회성 접속 버튼
+  var btnOneTime = document.getElementById('btnOneTime');
+  if (btnOneTime) {
+    btnOneTime.addEventListener('click', function() {
+      localStorage.setItem('kb_guest_mode', 'true');
+      window.location.href = 'index.html';
+    });
+  }
+};
