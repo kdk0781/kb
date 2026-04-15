@@ -7,7 +7,7 @@
 
 // ── 버전 문자열: 배포 시 수동으로 올릴 것
 //    Date.now() 사용 금지 — SW가 설치될 때마다 새 캐시 생성 → 용량 무한 증가 버그
-const VERSION    = 'kb-interest-v5';
+const VERSION    = 'kb-interest-v6';
 const CACHE_NAME = VERSION;
 
 // 캐싱할 정적 파일 목록
