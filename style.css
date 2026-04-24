@@ -34,10 +34,10 @@ body {
 .kb_list {
   list-style: none;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 16px; /* 카드 사이의 간격 */
-  max-width: 1200px; /* PC 화면에서 너무 넓게 퍼지지 않도록 최대 너비 제한 */
-  margin: 0 auto; /* 중앙 정렬 */
+  /*grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));*/
+  grid-template-columns:auto;
+  gap: 5px; /* 카드 사이의 간격 */
+  /*max-width: 1200px; PC 화면에서 너무 넓게 퍼지지 않도록 최대 너비 제한 */
 }
 
 /* * 3. 리스트 아이템 (Card 스타일)
