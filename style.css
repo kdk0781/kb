@@ -98,16 +98,69 @@ body {
   background-color: var(--kb-yellow); /* 호버 시 불릿 색상이 포인트 컬러로 변경 */
 }
 
-/* * 5. 모바일 전용 미세 조정 (선택 사항)
- * 화면이 480px 이하일 때 글자 크기나 여백을 살짝 줄여줍니다.
- */
+/* ========================================================
+   공통 링크 스타일 수정 (파란색 깜빡임 방지 추가)
+   ======================================================== */
+.kb_list a {
+  /* ... 기존 스타일 유지 ... */
+  -webkit-tap-highlight-color: transparent; /* 모바일 터치 시 기본 파란색 음영 제거 (앱 같은 느낌 부여) */
+}
+
+/* ========================================================
+   📱 모바일 전용 고도화 스타일 (화면 너비 480px 이하)
+   ======================================================== */
 @media screen and (max-width: 480px) {
   body {
-    padding: 12px;
+    /* 아이폰 하단 홈 인디케이터(Safe Area) 영역을 침범하지 않도록 여백 확보 */
+    padding: 16px;
+    padding-bottom: calc(env(safe-area-inset-bottom, 20px) + 20px); 
+  }
+
+  .kb_list {
+    gap: 12px; /* 모바일에서는 화면이 작으므로 카드 사이 간격을 살짝 줄임 */
   }
   
+  .kb_list li {
+    border-radius: 12px; /* 모바일 기기 트렌드에 맞춰 모서리를 조금 더 둥글게 처리 */
+  }
+
+  /* 모바일 터치 피드백 (버튼 눌림 효과) */
+  .kb_list li:active {
+    transform: scale(0.97); /* 누르는 순간 3% 작아지면서 쫀득한 클릭감 제공 */
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1); /* 눌렸을 때 그림자도 줄어듦 */
+    transition: transform 0.1s, box-shadow 0.1s; /* 누를 때는 빠르게 반응 */
+  }
+
   .kb_list a {
+    min-height: 56px; /* 엄지손가락 터치 최소 권장 높이 (접근성 보장) */
     padding: 14px 16px;
-    font-size: 0.95rem;
+    font-size: 1.05rem; /* 모바일 야외 시인성을 위해 폰트 크기 미세하게 증가 */
+    font-weight: 600; /* 가독성을 위해 글씨 굵기 증가 */
+    
+    /* 화살표 배치를 위해 Flex 속성 확장 */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  /* 모바일 전용 우측 꺾쇠(›) UI 추가 (네비게이션 유도) */
+  .kb_list a::after {
+    content: "›";
+    font-size: 1.5rem;
+    color: #ced4da;
+    font-weight: 300;
+    margin-left: 10px;
+    transition: color var(--transition-speed);
+  }
+
+  /* 누르고 있을 때 우측 꺾쇠 색상 변경 */
+  .kb_list li:active a::after {
+    color: var(--kb-yellow);
+  }
+
+  /* 모바일에서는 공간 확보를 위해 좌측 불릿(막대기) 제거 또는 축소 가능 */
+  .kb_list a::before {
+    margin-right: 10px;
+    width: 4px; /* 막대기를 조금 더 얇게 */
   }
 }
