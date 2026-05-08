@@ -3,76 +3,115 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>수도권 담보회수율 조회</title>
+    <title>지역별 담보회수율 조회</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <style>
         * {margin: 0; padding: 0; box-sizing: border-box;}
         body { font-family: sans-serif; }
-        .sm_select { padding: 10px; background: #f8f9fa; }
-        .sm_select select { width:100%; padding: 15px; font-size: 1.5em; border-radius: 8px; border: 1px solid #ddd; }
+        
+        /* 2뎁스(분류->지역)에 맞춘 셀렉트 박스 레이아웃 */
+        .sm_select { padding: 15px; background: #f8f9fa; display: flex; flex-direction: column; gap: 12px; }
+        .sm_select select { width: 100%; padding: 12px; font-size: 1.2em; border-radius: 8px; border: 1px solid #ccc; outline: none; background: #fff; }
         
         .tab-contents { padding: 20px; }
-        h3 { font-size: 1.8em; margin-bottom: 15px; color: #333; border-bottom: 2px solid #000; padding-bottom: 10px; }
+        h3 { font-size: 1.5em; margin-bottom: 15px; color: #333; border-bottom: 2px solid #222; padding-bottom: 10px; }
         
-        .list li { list-style: none; font-size: 1.4em; padding: 15px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; }
-        .list li .right { font-weight: bold; color: #007bff; }
+        .list li { list-style: none; font-size: 1.2em; padding: 15px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .list li .left { color: #555; }
+        .list li .right { font-weight: bold; color: #007bff; font-size: 1.1em; }
         
-        .point { color: red; padding: 20px; font-size: 1.2em; font-weight: bold; text-align: center; }
+        .point { color: #e74c3c; padding: 20px; font-size: 1.1em; font-weight: bold; text-align: center; }
+        .error-msg { color: white; background: #e74c3c; padding: 20px; border-radius: 8px; text-align: center; font-weight: bold; line-height: 1.5; }
     </style>
 </head>
 <body>
 
 <div class="sm_select">
-    <select id="regionSelect">
-        </select>
+    <select id="categorySelect"></select>
+    <select id="regionSelect"></select>
 </div>
 
 <div id="contentArea" class="tab-contents">
-    <h3 id="displayTitle">지역을 선택하세요</h3>
+    <h3 id="displayTitle">지역 데이터 로딩중...</h3>
     <div class="list">
-        <ul id="displayList">
-        </ul>
+        <ul id="displayList"></ul>
     </div>
 </div>
 
-<div class="point">기준일: 2025.06 이후</div>
+<div class="point">기준일: 2026.05.08 이후</div>
 
-<script src="data.js"></script>
+<script src="data.js?v=20260508"></script>
 
 <script>
 $(document).ready(function() {
-    const $select = $('#regionSelect');
+    const $categorySelect = $('#categorySelect');
+    const $regionSelect = $('#regionSelect');
     const $title = $('#displayTitle');
     const $list = $('#displayList');
 
-    // 1. 셀렉트 박스 초기화 (data.js의 키값 기준)
-    Object.keys(collateralData).forEach(region => {
-        $select.append(`<option value="${region}">${region}</option>`);
+    // [예외 처리] data.js 파일이 없거나 문법 오류(오타, 괄호 누락 등)로 로드되지 않은 경우
+    if (typeof collateralData === 'undefined') {
+        $title.text('데이터 오류');
+        $list.html('<div class="error-msg">데이터를 불러오지 못했습니다.<br>data.js 파일의 문법(괄호, 쉼표 등)이 정확한지 확인해주세요.</div>');
+        return;
+    }
+
+    // 1. 대분류(수도권/지방) 옵션 세팅
+    const categories = Object.keys(collateralData);
+    categories.forEach(category => {
+        $categorySelect.append(`<option value="${category}">${category}</option>`);
     });
 
-    // 2. 화면 업데이트 함수
-    function updateDisplay(region) {
-        const data = collateralData[region];
+    // 2. 지역 선택지 업데이트 함수
+    function updateRegionSelect(category) {
+        $regionSelect.empty(); // 기존 지역 목록 초기화
+        
+        if (!category || !collateralData[category]) return;
+        
+        const regions = Object.keys(collateralData[category]);
+        regions.forEach(region => {
+            $regionSelect.append(`<option value="${region}">${region}</option>`);
+        });
+        
+        // 지역 목록이 채워지면, 강제로 첫 번째 지역 데이터를 화면에 출력
+        if (regions.length > 0) {
+            updateDisplay(category, regions[0]);
+        }
+    }
+
+    // 3. 리스트 데이터 렌더링 함수
+    function updateDisplay(category, region) {
+        if (!category || !region) return;
+        
+        const data = collateralData[category][region];
+        if (!data) return;
+
         $title.text(`${region} 담보 회수율`);
-        $list.empty();
+        $list.empty(); // 기존 리스트 지우기
 
         for (const [name, value] of Object.entries(data)) {
             $list.append(`
                 <li>
                     <span class="left">${name}</span>
-                    <span class="right">${value}</span>
+                    <span class="right">${value}%</span>
                 </li>
             `);
         }
     }
 
-    // 3. 변경 이벤트
-    $select.on('change', function() {
-        updateDisplay($(this).val());
+    // 4. 셀렉트 박스 변경 이벤트 리스너
+    $categorySelect.on('change', function() {
+        updateRegionSelect($(this).val());
     });
 
-    // 4. 초기 실행 (첫 번째 지역 표시)
-    updateDisplay(Object.keys(collateralData)[0]);
+    $regionSelect.on('change', function() {
+        updateDisplay($categorySelect.val(), $(this).val());
+    });
+
+    // 5. 페이지 첫 진입 시 초기화 (데이터 렌더링 시작 트리거)
+    if (categories.length > 0) {
+        updateRegionSelect(categories[0]);
+    }
 });
 </script>
 
