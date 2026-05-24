@@ -14,8 +14,8 @@ const APP_VERSION = 'kb-interest-v6';
    ====================================================== */
 const r = {
     base: {
-        mor5:    4.16,
-        mor2:    3.71,
+        mor5:    4.26,
+        mor2:    3.81,
         ncofix:  2.89,
         scofix:  2.49,
         primeOn: 1.10,
