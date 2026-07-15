@@ -16,8 +16,8 @@ const r = {
     base: {
         mor5:    4.35,
         mor2:    4.02,
-        ncofix:  2.90,
-        scofix:  2.50,
+        ncofix:  3.05,
+        scofix:  2.54,
         primeOn: 1.10,
         primeOff:0.90
     },
