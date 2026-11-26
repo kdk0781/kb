@@ -5,29 +5,17 @@
 
     const listData = [
         {
-            title: "임시 시세표 메인 서버",
-            url: "https://example.com/price-main",
-            period: "2026.11.24 ~ 2026.12.31",
-            downloadable: true
-        },
-        {
             title: "시세표 및 다운가능 링크",
             url: "https://kdk0781.github.io/Apt/?k=EEYOJxFSTm4KAQMEaxh2EF1QWG1NUh0xUVxHUjpnIVUYRlErEwURcxBRXlowVhBUCkZRKxMFEXMQVFdGKlU5AVECCjMSFVh9VlVBQi1OOWwFLQUsFREYMxAKVFczUiVe",
             period: "2026.11.26 ~ 2027.05.26",
             downloadable: true
-        },
+        }
         //{
         //    title: "실시간 조회 전용 링크",
         //    url: "https://example.com/view-only",
         //    period: "2026.11.20 ~ 2026.11.30",
         //    downloadable: false
-        //},
-        {
-            title: "11월 4주차 데이터 보관소",
-            url: "https://example.com/archive-w4",
-            period: "상시 운영 (7일마다 갱신)",
-            downloadable: true
-        }
+        //}
     ];
     // ==========================================
 
