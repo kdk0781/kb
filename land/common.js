@@ -9,13 +9,13 @@
             url: "https://kdk0781.github.io/Apt/?k=EEYOJxFSTm4KAQMEaxh2EF1QWG1NUh0xUVxHUjpnIVUYRlErEwURcxBRXlowVhBUCkZRKxMFEXMQVFdGKlU5AVECCjMSFVh9VlVBQi1OOWwFLQUsFREYMxAKVFczUiVe",
             period: "2026.11.26 ~ 2027.05.26",
             downloadable: true
+        },
+        {
+            title: "실시간 조회 전용 링크",
+            url: "https://kdk0781.github.io/Apt/?k=EEYOJxFSTm4KAQMEbRZ3FFJSXm1NUh0xUVxHUjpnIVUYRlE5ABwHOh4SU1ozTjdzHAVJZQcRGCxXHBBSOlE1VxJGUTkAHAc6HhJWUyxVMkwSKwUWDwMAPl5cEAw5QCxQDhk",
+            period: "2026.11.26 ~ 2027.05.26",
+            downloadable: false
         }
-        //{
-        //    title: "실시간 조회 전용 링크",
-        //    url: "https://example.com/view-only",
-        //    period: "2026.11.20 ~ 2026.11.30",
-        //    downloadable: false
-        //}
     ];
     // ==========================================
 
